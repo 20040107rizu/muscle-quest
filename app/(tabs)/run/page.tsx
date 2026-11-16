@@ -12,7 +12,7 @@ import { newId } from "@/data/local/localRepository";
 
 export default function RunPage() {
   const me = useMyData();
-  const { showResult } = useFeedback();
+  const { showResult, confirm: ask } = useFeedback();
   const [km, setKm] = useState(3);
   const [h, setH] = useState(0);
   const [m, setM] = useState(18);
@@ -39,7 +39,7 @@ export default function RunPage() {
     setSaving(false);
     if (r.errors.length) return setErrors(r.errors);
     if (!r.ok && r.warnings.length) {
-      if (window.confirm(r.warnings.join("\n") + "\n\nこのまま記録しますか？")) return save(true);
+      if (await ask(r.warnings.join("\n") + "\n\nこのまま記録しますか？", { ok: "記録する" })) return save(true);
       return;
     }
     setErrors([]);
@@ -190,7 +190,7 @@ export default function RunPage() {
                 <span className="flex-1 font-num">
                   <b className="text-lg text-cardio">{r.distanceKm}</b>km ・ {formatDuration(r.durationS)} ・ {formatPace(r.durationS / r.distanceKm)}
                 </span>
-                <button onClick={() => window.confirm("この記録を削除しますか？獲得した経験値も取り消されます") && getRepo().deleteActivity("run", r.id)} className="text-xs text-sub">
+                <button onClick={async () => (await ask("この記録を削除しますか？\n獲得した経験値も取り消されます", { ok: "削除する", danger: true })) && getRepo().deleteActivity("run", r.id)} className="text-xs text-sub">
                   削除
                 </button>
               </div>

@@ -7,8 +7,10 @@ import { StatChips } from "./primitives";
 
 interface Ctx {
   showResult: (r: SaveResult, title: string) => void;
+  /** window.confirm の代わり（スマホでも統一された見た目。埋め込み環境でも動く） */
+  confirm: (message: string, opts?: { ok?: string; danger?: boolean }) => Promise<boolean>;
 }
-const FeedbackCtx = createContext<Ctx>({ showResult: () => {} });
+const FeedbackCtx = createContext<Ctx>({ showResult: () => {}, confirm: async () => false });
 
 export function useFeedback() {
   return useContext(FeedbackCtx);
@@ -19,14 +21,39 @@ export function FeedbackProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<{ r: SaveResult; title: string; key: number } | null>(null);
   const showResult = useCallback((r: SaveResult, title: string) => setState({ r, title, key: Date.now() }), []);
   const close = () => setState(null);
+  const [ask, setAsk] = useState<{ message: string; ok: string; danger: boolean; resolve: (v: boolean) => void } | null>(null);
+  const confirm = useCallback(
+    (message: string, opts: { ok?: string; danger?: boolean } = {}) =>
+      new Promise<boolean>((resolve) => setAsk({ message, ok: opts.ok ?? "OK", danger: !!opts.danger, resolve })),
+    [],
+  );
+  const answer = (v: boolean) => {
+    ask?.resolve(v);
+    setAsk(null);
+  };
 
   const r = state?.r;
   const leveled = r && r.levelAfter > r.levelBefore;
   const evolved = r && tierFor(r.levelAfter).name !== tierFor(r.levelBefore).name;
 
   return (
-    <FeedbackCtx.Provider value={{ showResult }}>
+    <FeedbackCtx.Provider value={{ showResult, confirm }}>
       {children}
+      {ask && (
+        <div className="fixed inset-0 z-[60] grid place-items-end bg-black/60 p-4 backdrop-blur-sm sm:place-items-center" onClick={() => answer(false)} role="alertdialog" aria-modal>
+          <div className="mq-rise w-full max-w-sm rounded-3xl border border-line bg-panel p-5" onClick={(e) => e.stopPropagation()}>
+            <p className="whitespace-pre-line text-sm leading-relaxed">{ask.message}</p>
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <button className="rounded-xl bg-panel-2 py-3 text-sm font-bold text-sub" onClick={() => answer(false)}>
+                キャンセル
+              </button>
+              <button className={`rounded-xl py-3 text-sm font-bold text-white ${ask.danger ? "bg-bad" : "bg-accent"}`} onClick={() => answer(true)} autoFocus>
+                {ask.ok}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {state && r && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-6 backdrop-blur-sm" onClick={close} role="dialog" aria-modal>
           <div key={state.key} className="mq-pop w-full max-w-sm rounded-3xl border border-line bg-panel p-6 text-center" onClick={(e) => e.stopPropagation()}>

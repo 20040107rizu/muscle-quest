@@ -173,7 +173,7 @@ function SetEditor({
   todaySetsSameExercise: number;
   onBack: () => void;
 }) {
-  const { showResult } = useFeedback();
+  const { showResult, confirm: ask } = useFeedback();
   const prev = history[0]; // createdAt 降順
   const best = history.length ? Math.max(...history.map((h) => bestE1RM(h.sets))) : 0;
   const defaultSet: SetRecord = prev?.sets[prev.sets.length - 1] ?? { weightKg: exercise.bodyweight ? 0 : 20, reps: 10 };
@@ -196,7 +196,7 @@ function SetEditor({
     setSaving(false);
     if (r.errors.length) return setErrors(r.errors);
     if (!r.ok && r.warnings.length) {
-      if (window.confirm(r.warnings.join("\n") + "\n\nこのまま記録しますか？")) return save(true);
+      if (await ask(r.warnings.join("\n") + "\n\nこのまま記録しますか？", { ok: "記録する" })) return save(true);
       return;
     }
     setErrors([]);
@@ -298,6 +298,7 @@ function SetEditor({
 }
 
 function TodayList({ entries }: { entries: WorkoutEntry[] }) {
+  const { confirm: ask } = useFeedback();
   if (!entries.length) return null;
   return (
     <section>
@@ -310,7 +311,7 @@ function TodayList({ entries }: { entries: WorkoutEntry[] }) {
               <p className="font-num text-xs text-sub">{summarizeSets(w.sets)}</p>
             </div>
             <button
-              onClick={() => window.confirm("この記録を削除しますか？獲得した経験値も取り消されます") && getRepo().deleteActivity("workout", w.id)}
+              onClick={async () => (await ask("この記録を削除しますか？\n獲得した経験値も取り消されます", { ok: "削除する", danger: true })) && getRepo().deleteActivity("workout", w.id)}
               className="text-xs text-sub"
             >
               削除

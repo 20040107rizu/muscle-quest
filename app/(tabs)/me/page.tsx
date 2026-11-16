@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
+import { useFeedback } from "@/components/ui/Feedback";
 import { Card, Initial, LevelBadge, Loading, PageHeader, Segmented, SectionTitle } from "@/components/ui/primitives";
 import { addDays, parseDateKey } from "@/domain/dates";
 import type { Activity } from "@/domain/types";
@@ -11,6 +12,7 @@ import { mockReactionsOn } from "@/data/mock/friends";
 
 export default function MyPage() {
   const me = useMyData();
+  const { confirm: ask } = useFeedback();
   const [tab, setTab] = useState<"history" | "bests">("history");
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
@@ -181,7 +183,7 @@ export default function MyPage() {
                     right={
                       <button
                         aria-label="削除"
-                        onClick={() => window.confirm("この記録を削除しますか？獲得した経験値も取り消されます") && getRepo().deleteActivity(a.type, a.id)}
+                        onClick={async () => (await ask("この記録を削除しますか？\n獲得した経験値も取り消されます", { ok: "削除する", danger: true })) && getRepo().deleteActivity(a.type, a.id)}
                         className="text-xs text-sub"
                       >
                         ✕
@@ -224,9 +226,9 @@ export default function MyPage() {
 
       <button
         onClick={async () => {
-          if (window.confirm("この端末のすべての記録を削除してリセットしますか？（元に戻せません）")) {
+          if (await ask("この端末のすべての記録を削除してリセットしますか？\n元に戻せません", { ok: "リセット", danger: true })) {
             await getRepo().resetAll();
-            location.href = "/";
+            location.reload();
           }
         }}
         className="w-full py-3 text-xs text-sub"

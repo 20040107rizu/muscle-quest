@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
 import { Avatar } from "@/components/avatar/Avatar";
 import { StatBars } from "@/components/StatBars";
+import { useFeedback } from "@/components/ui/Feedback";
 import { Card, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/primitives";
 import { buildFriendView, getRepo, useMyData } from "@/data/hooks";
 import { findMockUser } from "@/data/mock/friends";
@@ -14,6 +15,7 @@ export default function FriendDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const me = useMyData();
+  const { confirm: ask } = useFeedback();
   const user = findMockUser(id);
   const view = useMemo(() => (user && me ? buildFriendView(user, me.now) : null), [user, me]);
   const myReactions = useMemo(() => new Set(me?.reactions.map((r) => r.id)), [me?.reactions]);
@@ -105,7 +107,7 @@ export default function FriendDetailPage() {
       {isFriend && (
         <button
           onClick={async () => {
-            if (window.confirm(`${user.name}さんを友達から外しますか？`)) {
+            if (await ask(`${user.name}さんを友達から外しますか？`, { ok: "外す", danger: true })) {
               await getRepo().removeFriend(user.id);
               router.push("/friends");
             }
