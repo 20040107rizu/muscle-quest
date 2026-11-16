@@ -1,0 +1,62 @@
+import type { Exercise, MuscleGroup } from "./types";
+
+/** ジムにある定番種目。distribution は鍛えられる部位への経験値配分 */
+export const PRESET_EXERCISES: Exercise[] = [
+  { id: "bench_press", name: "ベンチプレス", distribution: { chest: 0.7, shoulders: 0.15, arms: 0.15 }, maxWeightKg: 400, step: 2.5 },
+  { id: "chest_press", name: "チェストプレス", distribution: { chest: 0.75, shoulders: 0.1, arms: 0.15 }, maxWeightKg: 300, step: 2.5 },
+  { id: "incline_db_press", name: "インクラインダンベルプレス", distribution: { chest: 0.6, shoulders: 0.3, arms: 0.1 }, maxWeightKg: 100, step: 1 },
+  { id: "push_up", name: "腕立て伏せ", distribution: { chest: 0.6, arms: 0.25, core: 0.15 }, bodyweight: true, maxWeightKg: 100, step: 5 },
+  { id: "lat_pulldown", name: "ラットプルダウン", distribution: { back: 0.75, arms: 0.25 }, maxWeightKg: 250, step: 2.5 },
+  { id: "seated_row", name: "シーテッドロー", distribution: { back: 0.75, arms: 0.15, shoulders: 0.1 }, maxWeightKg: 250, step: 2.5 },
+  { id: "pull_up", name: "懸垂", distribution: { back: 0.7, arms: 0.3 }, bodyweight: true, maxWeightKg: 100, step: 2.5 },
+  { id: "deadlift", name: "デッドリフト", distribution: { back: 0.45, legs: 0.4, core: 0.15 }, maxWeightKg: 500, step: 2.5 },
+  { id: "squat", name: "スクワット", distribution: { legs: 0.8, core: 0.2 }, maxWeightKg: 500, step: 2.5 },
+  { id: "leg_press", name: "レッグプレス", distribution: { legs: 1.0 }, maxWeightKg: 600, step: 5 },
+  { id: "leg_extension", name: "レッグエクステンション", distribution: { legs: 1.0 }, maxWeightKg: 200, step: 2.5 },
+  { id: "leg_curl", name: "レッグカール", distribution: { legs: 1.0 }, maxWeightKg: 200, step: 2.5 },
+  { id: "shoulder_press", name: "ショルダープレス", distribution: { shoulders: 0.8, arms: 0.2 }, maxWeightKg: 250, step: 2.5 },
+  { id: "lateral_raise", name: "サイドレイズ", distribution: { shoulders: 1.0 }, maxWeightKg: 60, step: 1 },
+  { id: "dumbbell_curl", name: "ダンベルカール", distribution: { arms: 1.0 }, maxWeightKg: 80, step: 1 },
+  { id: "triceps_pushdown", name: "トライセプスプッシュダウン", distribution: { arms: 1.0 }, maxWeightKg: 150, step: 2.5 },
+  { id: "ab_crunch", name: "アブドミナルクランチ", distribution: { core: 1.0 }, maxWeightKg: 200, step: 2.5 },
+  { id: "hanging_leg_raise", name: "ハンギングレッグレイズ", distribution: { core: 0.85, arms: 0.15 }, bodyweight: true, maxWeightKg: 50, step: 2.5 },
+];
+
+export const EXERCISE_GROUP_ORDER: { group: MuscleGroup; label: string }[] = [
+  { group: "chest", label: "胸" },
+  { group: "back", label: "背中" },
+  { group: "legs", label: "脚" },
+  { group: "shoulders", label: "肩" },
+  { group: "arms", label: "腕" },
+  { group: "core", label: "体幹" },
+];
+
+/** 配分が一番大きい部位 = メイン部位 */
+export function primaryGroup(ex: Exercise): MuscleGroup {
+  let best: MuscleGroup = "chest";
+  let max = -1;
+  for (const [g, v] of Object.entries(ex.distribution) as [MuscleGroup, number][]) {
+    if (v > max) {
+      max = v;
+      best = g;
+    }
+  }
+  return best;
+}
+
+/** ユーザー追加種目。メイン部位を1つ選ぶだけで作れる（初心者向け） */
+export function makeCustomExercise(id: string, name: string, group: MuscleGroup, bodyweight = false): Exercise {
+  return {
+    id,
+    name: name.trim(),
+    distribution: { [group]: 1.0 },
+    bodyweight,
+    maxWeightKg: 500,
+    step: 2.5,
+    isCustom: true,
+  };
+}
+
+export function findExercise(id: string, custom: Exercise[] = []): Exercise | undefined {
+  return PRESET_EXERCISES.find((e) => e.id === id) ?? custom.find((e) => e.id === id);
+}

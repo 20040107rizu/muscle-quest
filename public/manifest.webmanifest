@@ -1,0 +1,9 @@
+{
+  "name": "MUSCLE QUEST",
+  "short_name": "MuscleQuest",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0d11",
+  "theme_color": "#0b0d11",
+  "lang": "ja"
+}

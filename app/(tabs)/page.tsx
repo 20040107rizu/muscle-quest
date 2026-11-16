@@ -1,0 +1,172 @@
+"use client";
+
+import Link from "next/link";
+import { useMemo } from "react";
+import { ActivityCard } from "@/components/ActivityCard";
+import { Avatar } from "@/components/avatar/Avatar";
+import { useFeedback } from "@/components/ui/Feedback";
+import { Card, Initial, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/primitives";
+import { DAILY_MISSIONS, missionEventId } from "@/domain/missions";
+import { rank } from "@/domain/ranking";
+import { getRepo, useFriends, useMyData } from "@/data/hooks";
+
+export default function HomePage() {
+  const me = useMyData();
+  const friends = useFriends(me?.friendIds, me?.now ?? 0);
+  const { showResult } = useFeedback();
+
+  const todayActs = useMemo(() => me?.activities.filter((a) => a.date === me.today) ?? [], [me]);
+  const feed = useMemo(
+    () =>
+      friends
+        // 友達ごとの最新の活動を1件ずつ
+        .flatMap((f) => f.activities.slice(0, 1).map((a) => ({ a, f })))
+        .sort((x, y) => y.a.createdAt - x.a.createdAt)
+        .slice(0, 3),
+    [friends],
+  );
+
+  if (!me) return <Loading />;
+  const c = me.character;
+  const sets = todayActs.reduce((s, a) => s + (a.workout?.sets.length ?? 0), 0);
+  const km = todayActs.reduce((s, a) => s + (a.run?.distanceKm ?? 0), 0);
+
+  const weekly = rank(
+    [{ name: me.profile.displayName, isMe: true, v: me.metrics.weekXp }, ...friends.map((f) => ({ name: f.user.name, isMe: false, v: f.metrics.weekXp }))],
+    (x) => x.v,
+  );
+  const myRank = weekly.find((r) => r.item.isMe)!;
+
+  let mood = "今日も一緒に鍛えよう";
+  if (c.daysSinceActive === 0) mood = "パンプアップ中！いい追い込みだ";
+  else if (c.daysSinceActive == null) mood = "最初のトレーニングを記録しよう";
+  else if (c.daysSinceActive > 3) mood = `${c.daysSinceActive}日休み… 筋肉がしぼみかけてる`;
+  else if (c.streak > 1) mood = `${c.streak}日連続！この調子`;
+
+  const claimed = new Set(me.xpEvents.filter((e) => e.sourceType === "mission").map((e) => e.id));
+
+  return (
+    <div className="space-y-5">
+      <header className="flex items-center justify-between pt-4">
+        <p className="font-num text-lg font-bold tracking-[0.18em]">
+          MUSCLE<span className="text-accent">QUEST</span>
+        </p>
+        <div className="flex items-center gap-1 rounded-full bg-panel px-3 py-1 text-sm">
+          <span aria-hidden>🔥</span>
+          <span className="font-num font-bold">{c.streak}</span>
+          <span className="text-[10px] text-sub">日連続</span>
+        </div>
+      </header>
+
+      {/* キャラクター */}
+      <Link href="/character" className="relative block overflow-hidden rounded-3xl border border-line bg-[radial-gradient(ellipse_at_50%_20%,#2a2f3a_0%,#14171d_55%,#0b0d11_100%)]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,181,71,0.18),transparent_70%)]" />
+        <div className="absolute left-4 top-4 z-10">
+          <LevelBadge level={c.level} />
+          <p className="mt-1.5 text-lg font-black">{c.tier.name}</p>
+          <p className="text-[11px] text-sub">{c.tier.title}</p>
+        </div>
+        <div className="absolute right-4 top-4 z-10 text-right text-[10px] text-sub">
+          <p>パワー</p>
+          <p className="font-num text-lg font-bold text-ink">{Math.round((c.stats.chest + c.stats.back + c.stats.shoulders + c.stats.arms + c.stats.legs + c.stats.core) / 10)}</p>
+          <p className="mt-1">スタミナ</p>
+          <p className="font-num text-lg font-bold text-cardio">{Math.round(c.stats.cardio / 10)}</p>
+        </div>
+        <Avatar dev={c.dev} fat={c.fat} cardio={c.cardio} pump={c.pump} glow={c.daysSinceActive === 0} className="mx-auto h-[360px] w-full pt-6" />
+        <div className="relative z-10 -mt-2 px-4 pb-4">
+          <p className="mb-2 text-center text-xs text-ink/80">{mood}</p>
+          <XpBar into={c.levelInto} needed={c.levelNeeded} />
+        </div>
+      </Link>
+
+      {/* 今日 */}
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          { label: "今日のXP", value: me.metrics.todayXp, unit: "XP", color: "text-accent" },
+          { label: "セット数", value: sets, unit: "set", color: "text-ink" },
+          { label: "走行距離", value: km.toFixed(1), unit: "km", color: "text-cardio" },
+        ].map((t) => (
+          <div key={t.label} className="rounded-2xl border border-line bg-panel px-3 py-2.5">
+            <p className="text-[10px] text-sub">{t.label}</p>
+            <p className={`font-num text-2xl font-bold ${t.color}`}>
+              {t.value}
+              <span className="ml-0.5 text-[10px] text-sub">{t.unit}</span>
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <Link href="/workout" className="rounded-2xl bg-accent py-3.5 text-center text-sm font-bold text-white shadow-[0_8px_24px_-8px_rgba(255,107,44,0.7)]">
+          🏋️ 筋トレを記録
+        </Link>
+        <Link href="/run" className="rounded-2xl bg-cardio/90 py-3.5 text-center text-sm font-bold text-bg shadow-[0_8px_24px_-8px_rgba(76,201,240,0.6)]">
+          🏃 ランを記録
+        </Link>
+      </div>
+
+      {/* ミッション */}
+      <section>
+        <SectionTitle>デイリーミッション</SectionTitle>
+        <Card className="space-y-3 !p-3">
+          {DAILY_MISSIONS.map((m) => {
+            const p = m.progress(todayActs);
+            const done = p.current >= p.target;
+            const got = claimed.has(missionEventId(me.today, m.id));
+            return (
+              <div key={m.id} className="flex items-center gap-3">
+                <div className="flex-1">
+                  <p className={`text-sm ${got ? "text-sub line-through" : ""}`}>{m.label}</p>
+                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
+                    <div className="h-full rounded-full bg-accent-2" style={{ width: `${(p.current / p.target) * 100}%` }} />
+                  </div>
+                </div>
+                <button
+                  disabled={!done || got}
+                  onClick={async () => showResult(await getRepo().claimMission(me.today, m.id), "ミッション達成！")}
+                  className={`w-20 rounded-lg py-1.5 text-xs font-bold ${got ? "bg-panel-2 text-sub" : done ? "bg-accent-2 text-bg" : "bg-panel-2 text-sub"}`}
+                >
+                  {got ? "受取済" : done ? `+${m.bonusXp}XP` : `${p.current}/${p.target}`}
+                </button>
+              </div>
+            );
+          })}
+        </Card>
+      </section>
+
+      {/* 友達 */}
+      <section>
+        <SectionTitle href="/friends">友達の動き</SectionTitle>
+        <div className="space-y-2">
+          {feed.map(({ a, f }) => (
+            <ActivityCard key={a.id} a={a} name={f.user.name} userHref={`/friends/${f.user.id}`} now={me.now} />
+          ))}
+          {feed.length === 0 && <Card className="text-center text-sm text-sub">友達を追加して一緒に鍛えよう</Card>}
+        </div>
+      </section>
+
+      {/* ランキング */}
+      <section>
+        <SectionTitle href="/ranking">今週のランキング</SectionTitle>
+        <Card className="!p-0">
+          {weekly.slice(0, 3).map((r) => (
+            <div key={r.item.name} className={`flex items-center gap-3 border-b border-line px-4 py-2.5 last:border-0 ${r.item.isMe ? "bg-accent/10" : ""}`}>
+              <span className="w-5 font-num text-lg font-bold text-sub">{r.rank}</span>
+              <Initial name={r.item.name} size={28} color={r.item.isMe ? "#ff6b2c" : "#7c8597"} />
+              <span className="flex-1 text-sm font-bold">{r.item.name}</span>
+              <span className="font-num text-base font-bold">{r.value.toLocaleString()} XP</span>
+            </div>
+          ))}
+          {myRank.rank > 3 && (
+            <div className="flex items-center gap-3 bg-accent/10 px-4 py-2.5">
+              <span className="w-5 font-num text-lg font-bold text-sub">{myRank.rank}</span>
+              <Initial name={myRank.item.name} size={28} />
+              <span className="flex-1 text-sm font-bold">{myRank.item.name}</span>
+              <span className="font-num text-base font-bold">{myRank.value.toLocaleString()} XP</span>
+            </div>
+          )}
+        </Card>
+      </section>
+    </div>
+  );
+}

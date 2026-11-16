@@ -1,0 +1,100 @@
+// ドメイン全体で使う型。UI・DB実装には依存しない。
+
+export const MUSCLE_GROUPS = ["chest", "back", "shoulders", "arms", "legs", "core"] as const;
+export type MuscleGroup = (typeof MUSCLE_GROUPS)[number];
+
+/** キャラクターのステータス（筋肉6部位 + 心肺） */
+export const STAT_KEYS = [...MUSCLE_GROUPS, "cardio"] as const;
+export type StatKey = (typeof STAT_KEYS)[number];
+
+export type XpBreakdown = Partial<Record<StatKey, number>>;
+
+export const STAT_LABELS: Record<StatKey, string> = {
+  chest: "胸",
+  back: "背中",
+  shoulders: "肩",
+  arms: "腕",
+  legs: "脚",
+  core: "体幹",
+  cardio: "心肺",
+};
+
+export interface Exercise {
+  id: string;
+  name: string;
+  /** 部位ごとの経験値配分（合計 1.0） */
+  distribution: Partial<Record<MuscleGroup, number>>;
+  /** 自重種目（体重の一部を負荷として計算） */
+  bodyweight?: boolean;
+  /** 不正入力防止用の重量上限 (kg) */
+  maxWeightKg: number;
+  /** 重量ステッパーの刻み (kg) */
+  step: number;
+  isCustom?: boolean;
+}
+
+export interface SetRecord {
+  weightKg: number;
+  reps: number;
+}
+
+/** 1種目ぶんの記録（複数セット） */
+export interface WorkoutEntry {
+  id: string; // クライアント発行のUUID（重複送信防止キー）
+  userId: string;
+  date: string; // YYYY-MM-DD（ローカル日付）
+  createdAt: number;
+  exerciseId: string;
+  exerciseName: string;
+  sets: SetRecord[];
+}
+
+export interface RunRecord {
+  id: string;
+  userId: string;
+  date: string;
+  createdAt: number;
+  distanceKm: number;
+  durationS: number;
+}
+
+export type XpSourceType = "workout" | "run" | "mission";
+
+/** 経験値台帳。id = `${sourceType}:${sourceId}` で一意 → 二重計上が構造的に起きない */
+export interface XpEvent {
+  id: string;
+  userId: string;
+  sourceType: XpSourceType;
+  sourceId: string;
+  date: string;
+  createdAt: number;
+  total: number;
+  byStat: XpBreakdown;
+}
+
+/** 自分・友達共通の活動フォーマット（タイムライン・ランキング用） */
+export interface Activity {
+  id: string;
+  userId: string;
+  type: "workout" | "run";
+  date: string;
+  createdAt: number;
+  xp: number;
+  byStat: XpBreakdown;
+  workout?: { exerciseId: string; exerciseName: string; sets: SetRecord[] };
+  run?: { distanceKm: number; durationS: number };
+}
+
+export interface Profile {
+  id: string;
+  displayName: string;
+  bodyweightKg: number;
+  friendCode: string;
+  createdAt: number;
+}
+
+export interface ValidationResult {
+  errors: string[];
+  /** 警告は確認すれば保存可能 */
+  warnings: string[];
+}
