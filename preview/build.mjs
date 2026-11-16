@@ -3,12 +3,32 @@
 import { build } from "esbuild";
 import postcss from "postcss";
 import tailwind from "@tailwindcss/postcss";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const shim = (f) => path.join(root, "preview/shims", f);
+
+// ボス画像を data URI で埋め込んだ bossImages モジュールに差し替える（1ファイルで完結させるため）
+const bossImagesPlugin = {
+  name: "boss-images",
+  setup(b) {
+    b.onResolve({ filter: /bossImages$/ }, () => ({ path: "boss-images", namespace: "boss" }));
+    b.onLoad({ filter: /.*/, namespace: "boss" }, async () => {
+      const dir = path.join(root, "public/bosses");
+      const files = (await readdir(dir)).filter((f) => f.endsWith(".webp"));
+      const data = {};
+      for (const f of files) data[f.replace(/\.webp$/, "")] = "data:image/webp;base64," + (await readFile(path.join(dir, f))).toString("base64");
+      const src = await readFile(path.join(root, "src/components/bossImages.ts"), "utf8");
+      const files_ = src.slice(src.indexOf("export const BOSS_FILES"), src.indexOf("export function bossImageUrl"));
+      return {
+        contents: `${files_}\nconst DATA = ${JSON.stringify(data)};\nexport function bossImageUrl(d, f) { const n = BOSS_FILES[d]?.[f]; return n ? DATA[n] : undefined; }`,
+        loader: "ts",
+      };
+    });
+  },
+};
 
 const js = await build({
   entryPoints: [path.join(root, "preview/main.tsx")],
@@ -25,6 +45,7 @@ const js = await build({
   },
   define: { "process.env.NODE_ENV": '"production"' },
   logLevel: "error",
+  plugins: [bossImagesPlugin],
 });
 
 const cssIn = await readFile(path.join(root, "app/globals.css"), "utf8");

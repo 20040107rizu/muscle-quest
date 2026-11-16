@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { BossArt } from "@/components/BossArt";
 import { Card, Loading } from "@/components/ui/primitives";
 import { findItem } from "@/domain/items";
 import { clearId, currentFloor, findDungeon, findTitle, floorProgress, isUnlocked, type Reward } from "@/domain/quests";
@@ -75,8 +76,8 @@ export default function DungeonPage() {
           style={{ background: `radial-gradient(ellipse at 50% 30%, ${d.color}33, #14171d 65%)` }}
         >
           <p className="text-xs font-bold text-sub">{floor.name}</p>
-          <div className={`my-3 select-none text-[88px] leading-none ${phase === "fighting" ? "mq-shake" : ""} ${phase === "won" ? "mq-defeat" : ""}`} aria-hidden>
-            {floor.emoji}
+          <div className={`my-2 flex justify-center ${phase === "fighting" ? "mq-shake" : ""} ${phase === "won" ? "mq-defeat" : ""}`}>
+            <BossArt dungeonId={d.id} floor={fi!} size={200} />
           </div>
           <p className="text-lg font-black">{floor.boss}</p>
           <div className="mx-auto mt-2 max-w-[16rem]">
@@ -159,8 +160,9 @@ export default function DungeonPage() {
             const cur = i === fi;
             return (
               <div key={f.name} className={`flex items-center gap-3 border-b border-line px-4 py-3 last:border-0 ${cur ? "bg-white/5" : ""}`}>
-                <span className={`grid size-9 place-items-center rounded-full text-lg ${done ? "" : cur ? "" : "opacity-30 grayscale"}`} style={{ background: `${d.color}22` }} aria-hidden>
-                  {done ? "✓" : f.emoji}
+                <span className="relative grid size-11 shrink-0 place-items-center rounded-full" style={{ background: `${d.color}22` }}>
+                  <BossArt dungeonId={d.id} floor={i} size={40} dim={!done && !cur} className={done ? "opacity-60" : ""} />
+                  {done && <span className="absolute -bottom-0.5 -right-0.5 grid size-4 place-items-center rounded-full bg-good text-[9px] font-bold text-bg">✓</span>}
                 </span>
                 <div className="flex-1">
                   <p className={`text-sm font-bold ${done || cur ? "" : "text-sub"}`}>{f.name}</p>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
 import { Avatar } from "@/components/avatar/Avatar";
+import { BossArt } from "@/components/BossArt";
 import { useFeedback } from "@/components/ui/Feedback";
 import { Card, Initial, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/primitives";
 import { DAILY_MISSIONS, missionEventId } from "@/domain/missions";
@@ -51,7 +52,7 @@ export default function HomePage() {
       const fi = currentFloor(d, me.cleared);
       if (fi == null) return null;
       const floor = d.floors[fi];
-      return { d, floor, prog: floorProgress(floor, me.questStats) };
+      return { d, fi, floor, prog: floorProgress(floor, me.questStats) };
     })
     .filter((x): x is NonNullable<typeof x> => !!x)
     .sort((a, b) => Number(b.prog.ready) - Number(a.prog.ready) || b.prog.ratio - a.prog.ratio)[0];
@@ -127,8 +128,8 @@ export default function HomePage() {
       {quest && (
         <Link href={`/quest/${quest.d.id}`} className="block rounded-2xl border border-line bg-panel p-4" style={{ backgroundImage: `linear-gradient(120deg, ${quest.d.color}26, transparent 65%)` }}>
           <div className="flex items-center gap-3">
-            <span className={`text-4xl ${quest.prog.ready ? "mq-shake" : ""}`} aria-hidden>
-              {quest.floor.emoji}
+            <span className={`shrink-0 ${quest.prog.ready ? "mq-shake" : ""}`}>
+              <BossArt dungeonId={quest.d.id} floor={quest.fi} size={64} />
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-[10px] text-sub">

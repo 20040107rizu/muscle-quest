@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BossArt } from "@/components/BossArt";
 import { Card, Loading, PageHeader } from "@/components/ui/primitives";
 import { findItem } from "@/domain/items";
 import { currentFloor, DUNGEONS, findDungeon, findTitle, floorProgress, isDungeonCleared, isUnlocked, TITLES } from "@/domain/quests";
@@ -57,12 +58,11 @@ export default function QuestPage() {
               style={unlocked ? { backgroundImage: `linear-gradient(120deg, ${d.color}22, transparent 60%)` } : undefined}
             >
               <div className="flex items-start gap-3">
-                <div
-                  className={`grid size-14 shrink-0 place-items-center rounded-xl text-3xl ${unlocked ? "" : "grayscale opacity-40"}`}
-                  style={{ background: `${d.color}26` }}
-                  aria-hidden
-                >
-                  {done ? "🏆" : unlocked ? floor?.emoji : "🔒"}
+                <div className="relative grid size-16 shrink-0 place-items-center rounded-xl" style={{ background: `${d.color}26` }}>
+                  {/* 挑戦中のボス / 踏破済みは最終ボス / 未解放は最終ボスのシルエット */}
+                  <BossArt dungeonId={d.id} floor={fi ?? d.floors.length - 1} size={60} dim={!unlocked} />
+                  {done && <span className="absolute -bottom-1 -right-1 text-base" aria-label="踏破済み">🏆</span>}
+                  {!unlocked && <span className="absolute -bottom-1 -right-1 text-base" aria-label="未解放">🔒</span>}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
