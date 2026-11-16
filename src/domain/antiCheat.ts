@@ -22,6 +22,7 @@ export function validateSets(
   bestWeightKg: number | null,
   date: string,
   today: string,
+  bodyweightKg?: number,
 ): ValidationResult {
   const errors: string[] = [...validateDate(date, today)];
   const warnings: string[] = [];
@@ -33,10 +34,11 @@ export function validateSets(
     else if (s.weightKg > ex.maxWeightKg) errors.push(`${n}セット目: ${ex.name}は${ex.maxWeightKg}kgまでです`);
     if (!Number.isInteger(s.reps) || s.reps < 1) errors.push(`${n}セット目: 回数は1回以上`);
     else if (s.reps > 100) errors.push(`${n}セット目: 回数は100回までです`);
-    if (!ex.bodyweight && s.weightKg === 0) warnings.push(`${n}セット目: 重量が0kgです`);
+    if (ex.assist && bodyweightKg != null && s.weightKg >= bodyweightKg) errors.push(`${n}セット目: アシスト重量は体重(${bodyweightKg}kg)未満にしてください`);
+    if (!ex.bodyweight && !ex.assist && s.weightKg === 0) warnings.push(`${n}セット目: 重量が0kgです`);
   });
   const top = Math.max(0, ...sets.map((s) => s.weightKg));
-  if (bestWeightKg != null && bestWeightKg > 0 && top > bestWeightKg * 1.3 && top - bestWeightKg >= 10) {
+  if (!ex.assist && bestWeightKg != null && bestWeightKg > 0 && top > bestWeightKg * 1.3 && top - bestWeightKg >= 10) {
     warnings.push(`自己ベスト(${bestWeightKg}kg)を大きく上回っています。入力ミスはありませんか？`);
   }
   return { errors: dedupe(errors), warnings: dedupe(warnings) };

@@ -10,6 +10,7 @@ import { useFeedback } from "@/components/ui/Feedback";
 import { Card, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/primitives";
 import { buildFriendView, getRepo, useMyData } from "@/data/hooks";
 import { findMockUser } from "@/data/mock/friends";
+import { findTitle } from "@/domain/quests";
 
 export default function FriendDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -39,13 +40,14 @@ export default function FriendDetailPage() {
             <LevelBadge level={c.level} />
             <span className="text-sm font-bold">{c.tier.name}</span>
           </div>
+          {findTitle(view.titleId) && <p className="mt-1 text-xs font-bold text-accent-2">【{findTitle(view.titleId)!.name}】</p>}
           <p className="mt-2 max-w-[10rem] text-xs text-sub">「{user.comment}」</p>
         </div>
         <div className="absolute right-4 top-4 z-10 text-right">
           <p className="text-[10px] text-sub">連続</p>
           <p className="font-num text-2xl font-bold">🔥{c.streak}</p>
         </div>
-        <Avatar dev={c.dev} fat={c.fat} cardio={c.cardio} pump={c.pump} glow={c.daysSinceActive === 0} className="mx-auto h-[320px] w-full pt-10" />
+        <Avatar gear={view.gear} dev={c.dev} fat={c.fat} cardio={c.cardio} pump={c.pump} glow={c.daysSinceActive === 0} className="mx-auto h-[320px] w-full pt-10" />
         <div className="px-4 pb-4">
           <XpBar into={c.levelInto} needed={c.levelNeeded} />
         </div>

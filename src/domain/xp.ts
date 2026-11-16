@@ -15,7 +15,11 @@ export function setDiminishFactor(setIndexToday: number): number {
 
 /** 1セットの経験値。ボリューム(重量×回数)の平方根で、極端な入力の影響を抑える */
 export function rawSetXp(ex: Exercise, set: SetRecord, bodyweightKg: number): number {
-  const load = ex.bodyweight ? bodyweightKg * BODYWEIGHT_RATIO + set.weightKg : set.weightKg;
+  const load = ex.assist
+    ? Math.max(bodyweightKg * 0.15, bodyweightKg - set.weightKg) // 体重 − アシスト
+    : ex.bodyweight
+      ? bodyweightKg * BODYWEIGHT_RATIO + set.weightKg
+      : set.weightKg;
   const volume = Math.max(0, load) * Math.max(0, set.reps);
   return 4 + Math.sqrt(volume) * 0.9;
 }

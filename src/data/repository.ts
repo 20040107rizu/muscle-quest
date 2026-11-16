@@ -1,4 +1,6 @@
-import type { Activity, Exercise, MuscleGroup, Profile, RunRecord, SetRecord, StatKey, WorkoutEntry, XpEvent } from "@/domain/types";
+import type { GearSlot } from "@/domain/items";
+import type { Reward } from "@/domain/quests";
+import type { Activity, Exercise, MuscleGroup, Profile, QuestClear, RunRecord, SetRecord, StatKey, WorkoutEntry, XpEvent } from "@/domain/types";
 
 /**
  * データアクセスの抽象。画面はこのインターフェースだけに依存する。
@@ -15,6 +17,14 @@ export interface SaveResult {
   levelBefore: number;
   levelAfter: number;
   /** 同じIDで既に保存済みだった（二重送信） */
+  duplicate?: boolean;
+}
+
+export interface ChallengeResult {
+  ok: boolean;
+  errors: string[];
+  /** この挑戦でダンジョンを踏破した場合の報酬 */
+  reward: Reward | null;
   duplicate?: boolean;
 }
 
@@ -49,6 +59,14 @@ export interface Repository {
   listWorkouts(): Promise<WorkoutEntry[]>;
   listRuns(): Promise<RunRecord[]>;
   listXpEvents(): Promise<XpEvent[]>;
+
+  // ---- クエスト ----
+  listQuestClears(): Promise<QuestClear[]>;
+  /** ボスに挑戦。条件はサーバー側（ここ）で記録から再計算して判定する */
+  challengeFloor(dungeonId: string, floor: number): Promise<ChallengeResult>;
+  /** 獲得済みのアイテムだけ装備できる。null で外す */
+  equipItem(slot: GearSlot, itemId: string | null): Promise<void>;
+  setTitle(titleId: string | null): Promise<void>;
 
   // ---- ソーシャル ----
   listFriendIds(): Promise<string[]>;

@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Avatar } from "@/components/avatar/Avatar";
 import { Card, Initial, LevelBadge, Loading, PageHeader, Segmented } from "@/components/ui/primitives";
 import type { CharacterState } from "@/domain/character";
+import type { Gear } from "@/domain/items";
+import { findTitle } from "@/domain/quests";
 import { RANKINGS, rank, type RankingKey, type UserMetrics } from "@/domain/ranking";
 import { useFriends, useMyData } from "@/data/hooks";
 
@@ -25,6 +27,8 @@ interface Row {
   metrics: UserMetrics;
   character: CharacterState;
   href?: string;
+  gear?: Gear;
+  titleId?: string;
 }
 
 export default function RankingPage() {
@@ -35,8 +39,8 @@ export default function RankingPage() {
 
   const def = RANKINGS.find((r) => r.key === key)!;
   const rows: Row[] = [
-    { id: "me", name: me.profile.displayName, isMe: true, metrics: me.metrics, character: me.character },
-    ...friends.map((f) => ({ id: f.user.id, name: f.user.name, isMe: false, metrics: f.metrics, character: f.character, href: `/friends/${f.user.id}` })),
+    { id: "me", name: me.profile.displayName, isMe: true, metrics: me.metrics, character: me.character, gear: me.profile.gear, titleId: me.profile.titleId },
+    ...friends.map((f) => ({ id: f.user.id, name: f.user.name, isMe: false, metrics: f.metrics, character: f.character, href: `/friends/${f.user.id}`, gear: f.gear, titleId: f.titleId })),
   ];
   const ranked = rank(rows, (r) => def.pick(r.metrics));
   const fmt = (v: number) => (key === "growth" ? `${v > 0 ? "+" : ""}${v}` : v.toLocaleString());
@@ -55,7 +59,7 @@ export default function RankingPage() {
           const h = r === podium[0] ? "h-24" : r === podium[1] ? "h-16" : "h-12";
           return (
             <div key={r.item.id} className="flex w-1/3 flex-col items-center">
-              <Avatar dev={r.item.character.dev} fat={r.item.character.fat} cardio={r.item.character.cardio} className={first ? "h-40 w-full" : "h-32 w-full"} glow={first} />
+              <Avatar gear={r.item.gear} dev={r.item.character.dev} fat={r.item.character.fat} cardio={r.item.character.cardio} className={first ? "h-40 w-full" : "h-32 w-full"} glow={first} />
               <p className={`mt-1 truncate text-sm font-bold ${r.item.isMe ? "text-accent" : ""}`}>{r.item.name}</p>
               <p className="font-num text-base font-bold">
                 {fmt(r.value)}
@@ -82,7 +86,7 @@ export default function RankingPage() {
                 </p>
                 <div className="mt-0.5 flex items-center gap-1.5">
                   <LevelBadge level={r.item.character.level} size="sm" />
-                  <span className="text-[10px] text-sub">{r.item.character.tier.name}</span>
+                  <span className="truncate text-[10px] text-sub">{findTitle(r.item.titleId) ? `【${findTitle(r.item.titleId)!.name}】` : r.item.character.tier.name}</span>
                 </div>
               </div>
               <span className="font-num text-xl font-bold">

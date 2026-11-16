@@ -5,6 +5,7 @@ import { ActivityCard } from "@/components/ActivityCard";
 import { useFeedback } from "@/components/ui/Feedback";
 import { Card, Initial, LevelBadge, Loading, PageHeader, Segmented, SectionTitle } from "@/components/ui/primitives";
 import { addDays, parseDateKey } from "@/domain/dates";
+import { isAssist } from "@/domain/exercises";
 import type { Activity } from "@/domain/types";
 import { bestE1RM, volumeOf } from "@/domain/xp";
 import { getRepo, useMyData } from "@/data/hooks";
@@ -25,15 +26,17 @@ export default function MyPage() {
   }, [me?.xpEvents]);
 
   const bests = useMemo(() => {
-    const map = new Map<string, { name: string; maxW: number; e1: number; count: number; last: string; lastE1: number; prevE1: number | null }>();
+    const map = new Map<string, { name: string; assist: boolean; maxW: number; minW: number; e1: number; count: number; last: string; lastE1: number; prevE1: number | null }>();
     // workouts は新しい順
     for (const w of me?.workouts ?? []) {
       const cur = map.get(w.exerciseId);
       const e1 = bestE1RM(w.sets);
       const maxW = Math.max(...w.sets.map((s) => s.weightKg));
-      if (!cur) map.set(w.exerciseId, { name: w.exerciseName, maxW, e1, count: 1, last: w.date, lastE1: e1, prevE1: null });
+      const minW = Math.min(...w.sets.map((s) => s.weightKg));
+      if (!cur) map.set(w.exerciseId, { name: w.exerciseName, assist: isAssist(w.exerciseId), maxW, minW, e1, count: 1, last: w.date, lastE1: e1, prevE1: null });
       else {
         cur.maxW = Math.max(cur.maxW, maxW);
+        cur.minW = Math.min(cur.minW, minW);
         cur.e1 = Math.max(cur.e1, e1);
         if (cur.count === 1) cur.prevE1 = e1;
         cur.count++;
@@ -51,7 +54,7 @@ export default function MyPage() {
   if (!me) return <Loading />;
   const c = me.character;
   const totalSets = me.workouts.reduce((a, w) => a + w.sets.length, 0);
-  const totalVol = me.workouts.reduce((a, w) => a + volumeOf(w.sets), 0);
+  const totalVol = me.workouts.filter((w) => !isAssist(w.exerciseId)).reduce((a, w) => a + volumeOf(w.sets), 0);
   const totalKm = me.runs.reduce((a, r) => a + r.distanceKm, 0);
 
   // 直近5週のカレンダー（月曜始まり）
@@ -199,7 +202,7 @@ export default function MyPage() {
         <Card className="!p-0">
           {bests.length === 0 && <p className="p-4 text-center text-sm text-sub">筋トレを記録すると自己ベストが表示されます</p>}
           {bests.map((b) => {
-            const diff = b.prevE1 != null ? b.lastE1 - b.prevE1 : null;
+            const diff = b.prevE1 != null && !b.assist ? b.lastE1 - b.prevE1 : null;
             return (
               <div key={b.name} className="flex items-center gap-3 border-b border-line px-4 py-3 last:border-0">
                 <div className="flex-1">
@@ -215,8 +218,8 @@ export default function MyPage() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-num text-lg font-bold">{b.maxW}kg</p>
-                  <p className="text-[10px] text-sub">推定MAX {b.e1.toFixed(1)}kg</p>
+                  <p className="font-num text-lg font-bold">{b.assist ? b.minW : b.maxW}kg</p>
+                  <p className="text-[10px] text-sub">{b.assist ? "最小アシスト" : `推定MAX ${b.e1.toFixed(1)}kg`}</p>
                 </div>
               </div>
             );

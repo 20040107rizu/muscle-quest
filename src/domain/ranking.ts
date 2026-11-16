@@ -1,5 +1,6 @@
 import { addDays, startOfMonth, startOfWeek } from "./dates";
 import { computeStreak } from "./character";
+import { isAssist } from "./exercises";
 import { bestE1RM } from "./xp";
 import type { Activity } from "./types";
 
@@ -49,7 +50,7 @@ export function strengthGrowth(activities: Activity[], today: string): number {
   const recent = new Map<string, number>();
   const before = new Map<string, number>();
   for (const a of activities) {
-    if (a.type !== "workout" || !a.workout) continue;
+    if (a.type !== "workout" || !a.workout || isAssist(a.workout.exerciseId)) continue;
     const m = a.date > cut ? recent : before;
     const v = bestE1RM(a.workout.sets);
     m.set(a.workout.exerciseId, Math.max(m.get(a.workout.exerciseId) ?? 0, v));

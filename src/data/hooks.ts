@@ -6,6 +6,8 @@ import { buildCharacter, type CharacterState } from "@/domain/character";
 import { toDateKey } from "@/domain/dates";
 import { computeMetrics, type UserMetrics } from "@/domain/ranking";
 import type { Activity, XpBreakdown } from "@/domain/types";
+import { findItem, type Gear } from "@/domain/items";
+import { buildQuestStats, ownedRewards, simulateClears } from "@/domain/quests";
 import { sumStats } from "@/domain/xp";
 import { bonusXpByDate, toActivities } from "./activities";
 import { LocalRepository } from "./local/localRepository";
@@ -38,15 +40,16 @@ export function useMyData() {
     const repo = getRepo();
     const profile = await repo.getProfile();
     if (!profile) return undefined;
-    const [workouts, runs, xpEvents, customExercises, friendIds, reactions] = await Promise.all([
+    const [workouts, runs, xpEvents, customExercises, friendIds, reactions, questClears] = await Promise.all([
       repo.listWorkouts(),
       repo.listRuns(),
       repo.listXpEvents(),
       repo.listCustomExercises(),
       repo.listFriendIds(),
       repo.listMyReactions(),
+      repo.listQuestClears(),
     ]);
-    return { profile, workouts, runs, xpEvents, customExercises, friendIds, reactions };
+    return { profile, workouts, runs, xpEvents, customExercises, friendIds, reactions, questClears };
   }, []);
 
   return useMemo(() => {
@@ -55,7 +58,10 @@ export function useMyData() {
     const activities = toActivities(raw.workouts, raw.runs, raw.xpEvents);
     const character = buildCharacter(raw.xpEvents, activities.map((a) => a.date), today);
     const metrics = computeMetrics(activities, today, bonusXpByDate(raw.xpEvents));
-    return { ...raw, activities, character, metrics, today, now };
+    const questStats = buildQuestStats(activities, character, today);
+    const cleared = new Set(raw.questClears.map((c) => c.id));
+    const owned = ownedRewards(cleared);
+    return { ...raw, activities, character, metrics, questStats, cleared, owned, today, now };
   }, [raw, now]);
 }
 
@@ -64,6 +70,10 @@ export interface FriendView {
   activities: Activity[];
   character: CharacterState;
   metrics: UserMetrics;
+  /** 達成済みのダンジョン階・称号・装備（モックでは条件を満たした分を自動クリア扱い） */
+  cleared: Set<string>;
+  titleId?: string;
+  gear: Gear;
 }
 
 export function buildFriendView(user: MockUser, now: number): FriendView {
@@ -79,11 +89,23 @@ export function buildFriendView(user: MockUser, now: number): FriendView {
     for (const [k, v] of Object.entries(s)) byStat[k as keyof XpBreakdown] = Math.round((v / sum) * legacy);
     events.push({ total: legacy, byStat, date: "2000-01-01" });
   }
+  const character = buildCharacter(events, activities.map((a) => a.date), today);
+  const cleared = simulateClears(buildQuestStats(activities, character, today));
+  const owned = ownedRewards(cleared);
+  // 一番最後に得た称号・各スロットで最後に得たアイテムを装備
+  const gear: Gear = {};
+  for (const id of owned.items) {
+    const it = findItem(id);
+    if (it) gear[it.slot] = id;
+  }
   return {
     user,
     activities,
-    character: buildCharacter(events, activities.map((a) => a.date), today),
+    character,
     metrics: computeMetrics(activities, today),
+    cleared,
+    titleId: owned.titles[owned.titles.length - 1],
+    gear,
   };
 }
 

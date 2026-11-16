@@ -6,7 +6,7 @@ import { useFeedback } from "@/components/ui/Feedback";
 import { RecordTabs } from "@/components/RecordTabs";
 import { Card, Loading, SectionTitle, Stepper } from "@/components/ui/primitives";
 import { addDays } from "@/domain/dates";
-import { EXERCISE_GROUP_ORDER, PRESET_EXERCISES, primaryGroup } from "@/domain/exercises";
+import { EXERCISE_GROUP_ORDER, isAssist, PRESET_EXERCISES, primaryGroup } from "@/domain/exercises";
 import type { Exercise, MuscleGroup, SetRecord, WorkoutEntry } from "@/domain/types";
 import { bestE1RM, computeWorkoutXp, volumeOf } from "@/domain/xp";
 import { getRepo, useMyData } from "@/data/hooks";
@@ -175,8 +175,12 @@ function SetEditor({
 }) {
   const { showResult, confirm: ask } = useFeedback();
   const prev = history[0]; // createdAt 降順
+  const assist = !!exercise.assist;
   const best = history.length ? Math.max(...history.map((h) => bestE1RM(h.sets))) : 0;
-  const defaultSet: SetRecord = prev?.sets[prev.sets.length - 1] ?? { weightKg: exercise.bodyweight ? 0 : 20, reps: 10 };
+  // アシスト式は補助が少ないほど強い → 最小アシストが自己ベスト
+  const minAssist = history.length ? Math.min(...history.flatMap((h) => h.sets.map((s) => s.weightKg))) : null;
+  const defaultSet: SetRecord =
+    prev?.sets[prev.sets.length - 1] ?? { weightKg: exercise.bodyweight ? 0 : assist ? Math.round(bodyweightKg * 0.5 / 5) * 5 : 20, reps: 10 };
   const [sets, setSets] = useState<SetRecord[]>([{ ...defaultSet }]);
   const [date, setDate] = useState(today);
   // 保存するまで同じIDを使う → 連打・再送信しても1回分しか記録されない
@@ -189,6 +193,9 @@ function SetEditor({
   const vol = volumeOf(sets);
   const prevVol = prev ? volumeOf(prev.sets) : 0;
   const e1 = bestE1RM(sets);
+  const reps = sets.reduce((a, x) => a + x.reps, 0);
+  const prevReps = prev ? prev.sets.reduce((a, x) => a + x.reps, 0) : 0;
+  const curMinAssist = Math.min(...sets.map((x) => x.weightKg));
 
   async function save(confirm = false) {
     setSaving(true);
@@ -226,9 +233,9 @@ function SetEditor({
           <div className="mt-2 rounded-xl bg-panel-2 p-3 text-xs">
             <div className="flex justify-between text-sub">
               <span>前回 {prev.date.slice(5).replace("-", "/")}</span>
-              <span>推定MAX {best.toFixed(1)}kg</span>
+              <span>{assist ? `最小アシスト ${minAssist}kg` : `推定MAX ${best.toFixed(1)}kg`}</span>
             </div>
-            <p className="mt-1 font-num text-sm">{summarizeSets(prev.sets)}</p>
+            <p className="mt-1 font-num text-sm">{summarizeSets(prev.sets, assist)}</p>
             <button onClick={() => setSets(prev.sets.map((s) => ({ ...s })))} className="mt-2 rounded-lg bg-bg px-3 py-1.5 text-[11px] font-bold text-accent">
               前回と同じメニューを入力
             </button>
@@ -236,12 +243,17 @@ function SetEditor({
         ) : (
           <p className="mt-1 text-xs text-sub">初めての種目です。無理のない重量から始めましょう</p>
         )}
+        {assist && (
+          <p className="mt-2 text-[11px] leading-relaxed text-sub">
+            アシスト（補助）重量を入力します。少ないほど負荷が高く、0kgで補助なしの懸垂と同じです。体重 {bodyweightKg}kg − アシストを負荷として計算します。
+          </p>
+        )}
       </Card>
 
       <div className="space-y-2">
         <div className="grid grid-cols-[1.5rem_1fr_1fr_1.25rem] gap-1.5 px-1 text-[10px] text-sub">
           <span>SET</span>
-          <span className="text-center">{exercise.bodyweight ? "追加重量" : "重量"}</span>
+          <span className="text-center">{assist ? "アシスト" : exercise.bodyweight ? "追加重量" : "重量"}</span>
           <span className="text-center">回数</span>
           <span />
         </div>
@@ -261,6 +273,26 @@ function SetEditor({
       </div>
 
       <Card className="grid grid-cols-3 gap-2 !p-3 text-center">
+        {assist ? (
+          <>
+            <div>
+              <p className="text-[10px] text-sub">総回数</p>
+              <p className="font-num text-lg font-bold">{reps}回</p>
+              {prev && (
+                <p className={`text-[10px] font-bold ${reps >= prevReps ? "text-good" : "text-bad"}`}>
+                  前回比 {reps >= prevReps ? "+" : ""}
+                  {reps - prevReps}
+                </p>
+              )}
+            </div>
+            <div>
+              <p className="text-[10px] text-sub">最小アシスト</p>
+              <p className="font-num text-lg font-bold">{curMinAssist}kg</p>
+              {minAssist != null && curMinAssist < minAssist && <p className="text-[10px] font-bold text-accent-2">自己ベスト更新!</p>}
+            </div>
+          </>
+        ) : (
+          <>
         <div>
           <p className="text-[10px] text-sub">総挙上量</p>
           <p className="font-num text-lg font-bold">{vol.toLocaleString()}kg</p>
@@ -276,6 +308,8 @@ function SetEditor({
           <p className="font-num text-lg font-bold">{e1.toFixed(1)}kg</p>
           {best > 0 && e1 > best && <p className="text-[10px] font-bold text-accent-2">自己ベスト更新!</p>}
         </div>
+          </>
+        )}
         <div>
           <p className="text-[10px] text-sub">獲得予定</p>
           <p className="font-num text-lg font-bold text-accent">+{preview}XP</p>
@@ -308,7 +342,7 @@ function TodayList({ entries }: { entries: WorkoutEntry[] }) {
           <div key={w.id} className="flex items-center justify-between border-b border-line px-4 py-3 last:border-0">
             <div>
               <p className="text-sm font-bold">{w.exerciseName}</p>
-              <p className="font-num text-xs text-sub">{summarizeSets(w.sets)}</p>
+              <p className="font-num text-xs text-sub">{summarizeSets(w.sets, isAssist(w.exerciseId))}</p>
             </div>
             <button
               onClick={async () => (await ask("この記録を削除しますか？\n獲得した経験値も取り消されます", { ok: "削除する", danger: true })) && getRepo().deleteActivity("workout", w.id)}

@@ -7,6 +7,7 @@ import { Avatar } from "@/components/avatar/Avatar";
 import { useFeedback } from "@/components/ui/Feedback";
 import { Card, Initial, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/primitives";
 import { DAILY_MISSIONS, missionEventId } from "@/domain/missions";
+import { currentFloor, DUNGEONS, findTitle, floorProgress, isUnlocked } from "@/domain/quests";
 import { rank } from "@/domain/ranking";
 import { getRepo, useFriends, useMyData } from "@/data/hooks";
 
@@ -43,6 +44,17 @@ export default function HomePage() {
   else if (c.daysSinceActive > 3) mood = `${c.daysSinceActive}日休み… 筋肉がしぼみかけてる`;
   else if (c.streak > 1) mood = `${c.streak}日連続！この調子`;
 
+  const title = findTitle(me.profile.titleId);
+  // 挑戦できるボスを優先、なければ一番HPを削れているボス
+  const quest = DUNGEONS.filter((d) => isUnlocked(d, me.cleared))
+    .map((d) => {
+      const fi = currentFloor(d, me.cleared);
+      if (fi == null) return null;
+      const floor = d.floors[fi];
+      return { d, floor, prog: floorProgress(floor, me.questStats) };
+    })
+    .filter((x): x is NonNullable<typeof x> => !!x)
+    .sort((a, b) => Number(b.prog.ready) - Number(a.prog.ready) || b.prog.ratio - a.prog.ratio)[0];
   const claimed = new Set(me.xpEvents.filter((e) => e.sourceType === "mission").map((e) => e.id));
 
   return (
@@ -51,10 +63,15 @@ export default function HomePage() {
         <p className="font-num text-lg font-bold tracking-[0.18em]">
           MUSCLE<span className="text-accent">QUEST</span>
         </p>
-        <div className="flex items-center gap-1 rounded-full bg-panel px-3 py-1 text-sm">
-          <span aria-hidden>🔥</span>
-          <span className="font-num font-bold">{c.streak}</span>
-          <span className="text-[10px] text-sub">日連続</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 rounded-full bg-panel px-3 py-1 text-sm">
+            <span aria-hidden>🔥</span>
+            <span className="font-num font-bold">{c.streak}</span>
+            <span className="text-[10px] text-sub">日連続</span>
+          </div>
+          <Link href="/me" aria-label="マイページ" className="rounded-full ring-2 ring-line">
+            <Initial name={me.profile.displayName} size={32} />
+          </Link>
         </div>
       </header>
 
@@ -65,6 +82,7 @@ export default function HomePage() {
           <LevelBadge level={c.level} />
           <p className="mt-1.5 text-lg font-black">{c.tier.name}</p>
           <p className="text-[11px] text-sub">{c.tier.title}</p>
+          {title && <p className="mt-1 text-[11px] font-bold text-accent-2">【{title.name}】</p>}
         </div>
         <div className="absolute right-4 top-4 z-10 text-right text-[10px] text-sub">
           <p>パワー</p>
@@ -72,7 +90,7 @@ export default function HomePage() {
           <p className="mt-1">スタミナ</p>
           <p className="font-num text-lg font-bold text-cardio">{Math.round(c.stats.cardio / 10)}</p>
         </div>
-        <Avatar dev={c.dev} fat={c.fat} cardio={c.cardio} pump={c.pump} glow={c.daysSinceActive === 0} className="mx-auto h-[360px] w-full pt-6" />
+        <Avatar gear={me.profile.gear} dev={c.dev} fat={c.fat} cardio={c.cardio} pump={c.pump} glow={c.daysSinceActive === 0} className="mx-auto h-[360px] w-full pt-6" />
         <div className="relative z-10 -mt-2 px-4 pb-4">
           <p className="mb-2 text-center text-xs text-ink/80">{mood}</p>
           <XpBar into={c.levelInto} needed={c.levelNeeded} />
@@ -104,6 +122,28 @@ export default function HomePage() {
           🏃 ランを記録
         </Link>
       </div>
+
+      {/* クエスト */}
+      {quest && (
+        <Link href={`/quest/${quest.d.id}`} className="block rounded-2xl border border-line bg-panel p-4" style={{ backgroundImage: `linear-gradient(120deg, ${quest.d.color}26, transparent 65%)` }}>
+          <div className="flex items-center gap-3">
+            <span className={`text-4xl ${quest.prog.ready ? "mq-shake" : ""}`} aria-hidden>
+              {quest.floor.emoji}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] text-sub">
+                クエスト ・ {quest.d.name} {quest.floor.name}
+              </p>
+              <p className="font-bold">{quest.prog.ready ? `${quest.floor.boss}に挑戦できる！` : `${quest.floor.boss} が待ち構えている`}</p>
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+                <div className="h-full rounded-full bg-bad" style={{ width: `${Math.max(3, (1 - quest.prog.ratio) * 100)}%` }} />
+              </div>
+              <p className="mt-1 text-[10px] text-sub">ボスHP {Math.round((1 - quest.prog.ratio) * 100)}% ・ 鍛えるほど削れる</p>
+            </div>
+            <span className="text-sub">›</span>
+          </div>
+        </Link>
+      )}
 
       {/* ミッション */}
       <section>

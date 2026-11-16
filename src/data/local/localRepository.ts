@@ -6,7 +6,10 @@ import type { Exercise, MuscleGroup, Profile, XpEvent } from "@/domain/types";
 import { applyDailyCap, computeRunXp, computeWorkoutXp, levelFromXp } from "@/domain/xp";
 import { findMockUserByCode, MOCK_DEFAULT_FRIENDS } from "../mock/friends";
 import { toActivities } from "../activities";
-import type { Reaction, ReactionKind, Repository, RunInput, SaveResult, WorkoutInput } from "../repository";
+import { buildCharacter } from "@/domain/character";
+import { findItem, type GearSlot } from "@/domain/items";
+import { buildQuestStats, clearId, currentFloor, findDungeon, floorProgress, isDungeonCleared, isUnlocked, ownedRewards } from "@/domain/quests";
+import type { ChallengeResult, Reaction, ReactionKind, Repository, RunInput, SaveResult, WorkoutInput } from "../repository";
 import { MuscleQuestDB } from "./db";
 
 export const ME = "me";
@@ -108,11 +111,11 @@ export class LocalRepository implements Repository {
       const sets = input.sets.map((s) => ({ weightKg: Number(s.weightKg), reps: Math.round(Number(s.reps)) }));
       const history = await db.workouts.where("exerciseId").equals(ex.id).toArray();
       const best = history.length ? Math.max(...history.flatMap((h) => h.sets.map((s) => s.weightKg))) : null;
-      const v = validateSets(ex, sets, best, input.date, this.today());
+      const bodyweightKg = (await db.profile.get(ME))?.bodyweightKg ?? 65;
+      const v = validateSets(ex, sets, best, input.date, this.today(), bodyweightKg);
       if (v.errors.length) return { ...res, errors: v.errors, warnings: v.warnings };
       if (v.warnings.length && !opts.confirm) return { ...res, warnings: v.warnings };
 
-      const bodyweightKg = (await db.profile.get(ME))?.bodyweightKg ?? 65;
       const priorSetsToday = history.filter((h) => h.date === input.date).reduce((a, h) => a + h.sets.length, 0);
       const raw = computeWorkoutXp({ exercise: ex, sets, priorSetsToday, bodyweightKg });
       const gained = applyDailyCap(raw, await this.xpOnDate(input.date));
@@ -240,6 +243,62 @@ export class LocalRepository implements Repository {
 
   listMyReactions(): Promise<Reaction[]> {
     return this.db.reactions.toArray();
+  }
+
+  // ---------- クエスト ----------
+
+  listQuestClears() {
+    return this.db.questClears.toArray();
+  }
+
+  private async clearedSet() {
+    return new Set((await this.db.questClears.toArray()).map((c) => c.id));
+  }
+
+  /** 記録から判定用の数値を計算（画面から渡された値は信用しない） */
+  private async questStats() {
+    const [workouts, runs, xpEvents] = await Promise.all([this.db.workouts.toArray(), this.db.runs.toArray(), this.db.xpEvents.toArray()]);
+    const today = this.today();
+    const acts = toActivities(workouts, runs, xpEvents);
+    const c = buildCharacter(xpEvents, acts.map((a) => a.date), today);
+    return buildQuestStats(acts, { level: c.level, stats: c.stats, streak: c.streak, activeDays: c.activeDays }, today);
+  }
+
+  async challengeFloor(dungeonId: string, floor: number): Promise<ChallengeResult> {
+    const db = this.db;
+    return db.transaction("rw", [db.questClears, db.workouts, db.runs, db.xpEvents], async () => {
+      const fail = (e: string): ChallengeResult => ({ ok: false, errors: [e], reward: null });
+      const d = findDungeon(dungeonId);
+      if (!d || !d.floors[floor]) return fail("ダンジョンが見つかりません");
+      const cleared = await this.clearedSet();
+      if (cleared.has(clearId(dungeonId, floor))) return { ok: true, errors: [], reward: null, duplicate: true };
+      if (!isUnlocked(d, cleared)) return fail("まだ解放されていません");
+      if (currentFloor(d, cleared) !== floor) return fail("前の階をクリアしてください");
+      const prog = floorProgress(d.floors[floor], await this.questStats());
+      if (!prog.ready) return fail("まだ力が足りない…もっと鍛えよう");
+      await db.questClears.put({ id: clearId(dungeonId, floor), dungeonId, floor, clearedAt: this.now() });
+      cleared.add(clearId(dungeonId, floor));
+      return { ok: true, errors: [], reward: isDungeonCleared(d, cleared) ? d.reward : null };
+    });
+  }
+
+  async equipItem(slot: GearSlot, itemId: string | null) {
+    const p = await this.init();
+    if (itemId) {
+      const item = findItem(itemId);
+      const owned = ownedRewards(await this.clearedSet()).items;
+      if (!item || item.slot !== slot || !owned.includes(itemId)) throw new Error("このアイテムは装備できません");
+    }
+    const gear = { ...(p.gear ?? {}) };
+    if (itemId) gear[slot] = itemId;
+    else delete gear[slot];
+    await this.db.profile.put({ ...p, gear });
+  }
+
+  async setTitle(titleId: string | null) {
+    const p = await this.init();
+    if (titleId && !ownedRewards(await this.clearedSet()).titles.includes(titleId)) throw new Error("この称号はまだ獲得していません");
+    await this.db.profile.put({ ...p, titleId: titleId ?? undefined });
   }
 
   async resetAll() {

@@ -1,4 +1,5 @@
 // ドメイン全体で使う型。UI・DB実装には依存しない。
+import type { Gear } from "./items";
 
 export const MUSCLE_GROUPS = ["chest", "back", "shoulders", "arms", "legs", "core"] as const;
 export type MuscleGroup = (typeof MUSCLE_GROUPS)[number];
@@ -26,6 +27,8 @@ export interface Exercise {
   distribution: Partial<Record<MuscleGroup, number>>;
   /** 自重種目（体重の一部を負荷として計算） */
   bodyweight?: boolean;
+  /** アシスト式マシン（入力重量 = 補助重量。少ないほど高負荷） */
+  assist?: boolean;
   /** 不正入力防止用の重量上限 (kg) */
   maxWeightKg: number;
   /** 重量ステッパーの刻み (kg) */
@@ -91,6 +94,17 @@ export interface Profile {
   bodyweightKg: number;
   friendCode: string;
   createdAt: number;
+  /** 装備中の称号 */
+  titleId?: string;
+  /** 装備中のアイテム（スロット → アイテムID） */
+  gear?: Gear;
+}
+
+export interface QuestClear {
+  id: string; // `${dungeonId}:${floor}`
+  dungeonId: string;
+  floor: number;
+  clearedAt: number;
 }
 
 export interface ValidationResult {

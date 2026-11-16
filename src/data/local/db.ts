@@ -1,5 +1,5 @@
 import Dexie, { type Table } from "dexie";
-import type { Exercise, Profile, RunRecord, WorkoutEntry, XpEvent } from "@/domain/types";
+import type { Exercise, Profile, QuestClear, RunRecord, WorkoutEntry, XpEvent } from "@/domain/types";
 import type { Reaction } from "../repository";
 
 export interface FriendshipRow {
@@ -16,6 +16,7 @@ export class MuscleQuestDB extends Dexie {
   xpEvents!: Table<XpEvent, string>;
   friendships!: Table<FriendshipRow, string>;
   reactions!: Table<Reaction, string>;
+  questClears!: Table<QuestClear, string>;
 
   constructor(name = "muscle-quest") {
     super(name);
@@ -28,5 +29,6 @@ export class MuscleQuestDB extends Dexie {
       friendships: "userId",
       reactions: "id, activityId",
     });
+    this.version(2).stores({ questClears: "id, dungeonId" });
   }
 }

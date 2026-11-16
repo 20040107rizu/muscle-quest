@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { findItem, type Gear } from "@/domain/items";
 import type { MuscleGroup } from "@/domain/types";
 
 /**
@@ -16,6 +17,8 @@ export interface AvatarProps {
   /** 部位をハイライト（育成画面用） */
   highlight?: MuscleGroup | "cardio" | null;
   glow?: boolean;
+  /** クエスト報酬の装備 */
+  gear?: Gear;
 }
 
 type P = [number, number];
@@ -84,7 +87,14 @@ function lerpColor(a: string, b: string, t: number) {
   return "#" + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, "0")).join("");
 }
 
-export function Avatar({ dev, fat, cardio, pump = 1, className, highlight = null, glow = false }: AvatarProps) {
+export function Avatar({ dev, fat, cardio, pump = 1, className, highlight = null, glow = false, gear }: AvatarProps) {
+  const head = findItem(gear?.head);
+  const wrist = findItem(gear?.wrist);
+  const waist = findItem(gear?.waist);
+  const shortsItem = findItem(gear?.shorts);
+  const shoes = findItem(gear?.shoes);
+  const aura = findItem(gear?.aura);
+  const auraColor = aura?.color ?? "#ff6b2c";
   const uid = useId().replace(/:/g, "");
   const r3 = (v: number) => Math.round(v * 1000) / 1000;
   const pm = (v: number) => r3(clamp01(v * r3(pump)));
@@ -254,9 +264,10 @@ export function Avatar({ dev, fat, cardio, pump = 1, className, highlight = null
         {/* シューズ */}
         <path
           d={`M${f(A[0] - 7)},${f(A[1] - 2)} C${f(A[0] - 9)},${f(A[1] + 8)} ${f(A[0] - 6)},${f(A[1] + 13)} ${f(A[0] + 2)},${f(A[1] + 13)} C${f(A[0] + 12)},${f(A[1] + 13)} ${f(A[0] + 14)},${f(A[1] + 9)} ${f(A[0] + 9)},${f(A[1] - 2)} Z`}
-          fill="#1c1f26"
+          fill={shoes ? "#10202a" : "#1c1f26"}
         />
-        <path d={`M${f(A[0] - 7)},${f(A[1] + 9)} L${f(A[0] + 12)},${f(A[1] + 9)}`} stroke="#ff6b2c" strokeWidth={1.2} opacity={0.8} />
+        <path d={`M${f(A[0] - 7)},${f(A[1] + 9)} L${f(A[0] + 12)},${f(A[1] + 9)}`} stroke={shoes?.color ?? "#ff6b2c"} strokeWidth={shoes ? 2.4 : 1.2} opacity={0.9} />
+        {shoes && <ellipse cx={A[0] + 2} cy={A[1] + 13} rx={11} ry={2.5} fill={shoes.color} opacity={0.45} />}
       </g>
     </>
   );
@@ -301,7 +312,14 @@ export function Avatar({ dev, fat, cardio, pump = 1, className, highlight = null
     <>
       {/* ショーツ */}
       <path d={shorts} fill={`url(#shorts-${uid})`} />
-      <path d={`M-1,198 L${f(W + belly * 0.3 + 1.5)},198 L${f(W + belly * 0.3 + 2.5)},204 L-1,204 Z`} fill="#ff6b2c" opacity={0.85} />
+      <path d={`M-1,198 L${f(W + belly * 0.3 + 1.5)},198 L${f(W + belly * 0.3 + 2.5)},204 L-1,204 Z`} fill={shortsItem?.color2 ?? "#ff6b2c"} opacity={0.85} />
+      {waist && (
+        <>
+          <path d={`M-3,186 L${f(W + belly * 0.4 + 2.5)},186 L${f(W + belly * 0.3 + 3)},203 L-3,203 Z`} fill={waist.color} />
+          <path d={`M-3,188.5 L${f(W + belly * 0.4 + 2)},188.5 M-3,200.5 L${f(W + belly * 0.3 + 2.5)},200.5`} stroke="#000" strokeWidth={0.6} opacity={0.35} strokeDasharray="2 2" />
+          <rect x={-3} y={187} width={8} height={15} rx={1.5} fill="none" stroke={waist.color2 ?? "#d9b25a"} strokeWidth={2} />
+        </>
+      )}
     </>
   );
   const layerArms = (
@@ -334,6 +352,13 @@ export function Avatar({ dev, fat, cardio, pump = 1, className, highlight = null
           opacity={cut * ar * 0.45}
         />
         <ellipse cx={handC[0]} cy={handC[1]} rx={6.5} ry={10} transform={`rotate(${f((-ang2 * 180) / Math.PI)} ${f(handC[0])} ${f(handC[1])})`} fill={skinMid} />
+        {wrist && (
+          <path
+            d={`M${f(add(fore.at(0.84), mul(fore.n, 5.6 + 1.2 * ar))[0])},${f(add(fore.at(0.84), mul(fore.n, 5.6 + 1.2 * ar))[1])} L${f(add(fore.at(0.84), mul(fore.n, -(5.2 + 1.2 * ar)))[0])},${f(add(fore.at(0.84), mul(fore.n, -(5.2 + 1.2 * ar)))[1])}`}
+            stroke={wrist.color}
+            strokeWidth={8}
+          />
+        )}
       </g>
 
       {/* 三角筋 */}
@@ -401,16 +426,16 @@ export function Avatar({ dev, fat, cardio, pump = 1, className, highlight = null
           <stop offset="1" stopColor={shade} stopOpacity="0.35" />
         </radialGradient>
         <linearGradient id={`shorts-${uid}`} x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0" stopColor="#2a2f3a" />
-          <stop offset="1" stopColor="#151820" />
+          <stop offset="0" stopColor={shortsItem?.color ?? "#2a2f3a"} />
+          <stop offset="1" stopColor={shortsItem?.color2 ?? "#151820"} />
         </linearGradient>
         <radialGradient id={`aura-${uid}`} cx="0.5" cy="0.45" r="0.5">
-          <stop offset="0" stopColor="#ff6b2c" stopOpacity="0.35" />
-          <stop offset="1" stopColor="#ff6b2c" stopOpacity="0" />
+          <stop offset="0" stopColor={auraColor} stopOpacity={aura ? 0.5 : 0.35} />
+          <stop offset="1" stopColor={auraColor} stopOpacity="0" />
         </radialGradient>
       </defs>
 
-      {glow && <ellipse cx={CX} cy={210} rx={130} ry={200} fill={`url(#aura-${uid})`} className="mq-aura" />}
+      {(glow || aura) && <ellipse cx={CX} cy={210} rx={130} ry={200} fill={`url(#aura-${uid})`} className="mq-aura" />}
       <ellipse cx={CX} cy={432} rx={58 + 12 * lg} ry={6} fill="#000" opacity={0.35} />
 
       <g className="mq-breathe">
@@ -438,6 +463,13 @@ export function Avatar({ dev, fat, cardio, pump = 1, className, highlight = null
             d={`M${CX - 17},42 C${CX - 19},24 ${CX - 6},16 ${CX + 2},17 C${CX + 14},17 ${CX + 20},27 ${CX + 17},42 C${CX + 16},34 ${CX + 12},29 ${CX + 3},29 C${CX - 3},31 ${CX - 12},31 ${CX - 17},42 Z`}
             fill="#1a1412"
           />
+          {head && (
+            <>
+              <path d={`M${CX + 15},37 L${CX + 25},43 L${CX + 22},46 Z M${CX + 15},38 L${CX + 21},49 L${CX + 18},50 Z`} fill={head.color2 ?? head.color} />
+              <path d={`M${CX - 17},35.5 Q${CX},30 ${CX + 17},35.5 L${CX + 16.8},40.5 Q${CX},35 ${CX - 16.8},40.5 Z`} fill={head.color} />
+              <circle cx={CX} cy={33.8} r={2} fill={head.color2 ?? head.color} />
+            </>
+          )}
           <path d={`M${CX - 11},43 l7,-1 M${CX + 11},43 l-7,-1`} stroke="#1a1412" strokeWidth={1.8} strokeLinecap="round" />
           <ellipse cx={CX - 7} cy={48} rx={2} ry={1.3} fill="#1a1412" />
           <ellipse cx={CX + 7} cy={48} rx={2} ry={1.3} fill="#1a1412" />

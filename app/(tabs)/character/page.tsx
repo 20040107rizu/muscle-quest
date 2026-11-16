@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Avatar } from "@/components/avatar/Avatar";
+import { EquipmentPanel } from "@/components/EquipmentPanel";
 import { StatBars } from "@/components/StatBars";
 import { Card, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/primitives";
 import { TIERS } from "@/domain/character";
@@ -43,6 +44,7 @@ export default function CharacterPage() {
           <p className={`mt-1 text-xs font-bold ${condition.color}`}>● {condition.label}</p>
         </div>
         <Avatar
+          gear={me.profile.gear}
           dev={c.dev}
           fat={c.fat}
           cardio={c.cardio}
@@ -71,6 +73,11 @@ export default function CharacterPage() {
           </div>
         )}
       </Card>
+
+      <section>
+        <SectionTitle href="/quest" more="クエストへ">称号・装備</SectionTitle>
+        <EquipmentPanel gear={me.profile.gear ?? {}} titleId={me.profile.titleId} ownedItems={me.owned.items} ownedTitles={me.owned.titles} />
+      </section>
 
       <section>
         <SectionTitle>進化ロード</SectionTitle>

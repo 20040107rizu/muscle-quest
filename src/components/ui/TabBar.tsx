@@ -4,11 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
-  { href: "/", label: "ホーム", icon: HomeIcon, match: (p: string) => p === "/" || p.startsWith("/character") },
+  { href: "/", label: "ホーム", icon: HomeIcon, match: (p: string) => p === "/" || p.startsWith("/character") || p.startsWith("/me") },
+  { href: "/quest", label: "クエスト", icon: SwordIcon, match: (p: string) => p.startsWith("/quest") },
   { href: "/workout", label: "記録", icon: PlusIcon, match: (p: string) => p.startsWith("/workout") || p.startsWith("/run") },
   { href: "/friends", label: "友達", icon: UsersIcon, match: (p: string) => p.startsWith("/friends") },
   { href: "/ranking", label: "ランキング", icon: TrophyIcon, match: (p: string) => p.startsWith("/ranking") },
-  { href: "/me", label: "マイページ", icon: UserIcon, match: (p: string) => p.startsWith("/me") },
 ];
 
 export function TabBar() {
@@ -61,6 +61,6 @@ function UsersIcon() {
 function TrophyIcon() {
   return <I><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4.5a3 3 0 0 0 3.5 4M16 6h3.5a3 3 0 0 1-3.5 4M12 13v4M8.5 20h7M10 17h4" /></I>;
 }
-function UserIcon() {
-  return <I><circle cx="12" cy="8" r="4" /><path d="M4 21c.8-4 4-6 8-6s7.2 2 8 6" /></I>;
+function SwordIcon() {
+  return <I><path d="M14.5 3H21v6.5L10 20.5 3.5 14z" /><path d="M7 17l-3 3M5 13l6 6" /></I>;
 }

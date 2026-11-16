@@ -8,6 +8,8 @@ import FriendDetailPage from "../app/(tabs)/friends/[id]/page";
 import RankingPage from "../app/(tabs)/ranking/page";
 import CharacterPage from "../app/(tabs)/character/page";
 import MyPage from "../app/(tabs)/me/page";
+import QuestPage from "../app/(tabs)/quest/page";
+import DungeonPage from "../app/(tabs)/quest/[id]/page";
 import { usePath } from "./shims/router";
 
 function Router() {
@@ -20,6 +22,8 @@ function Router() {
   else if (path === "/ranking") page = <RankingPage />;
   else if (path === "/character") page = <CharacterPage />;
   else if (path === "/me") page = <MyPage />;
+  else if (path === "/quest") page = <QuestPage />;
+  else if (path.startsWith("/quest/")) page = <DungeonPage key={path} />;
   return <TabsLayout>{page}</TabsLayout>;
 }
 

@@ -4,10 +4,10 @@ export function usePathname() {
   return usePath();
 }
 
-/** /friends/[id] のみ対応 */
+/** /friends/[id] と /quest/[id] に対応 */
 export function useParams<T extends Record<string, string>>(): T {
   const path = usePath();
-  const m = path.match(/^\/friends\/([^/]+)$/);
+  const m = path.match(/^\/(?:friends|quest)\/([^/]+)$/);
   return (m ? { id: decodeURIComponent(m[1]) } : {}) as T;
 }
 
