@@ -27,7 +27,8 @@ export default function DungeonPage() {
   const fi = currentFloor(d, me.cleared);
   const floor = fi != null ? d.floors[fi] : null;
   const prog = floor ? floorProgress(floor, me.questStats) : null;
-  const shownHp = hp ?? (prog ? 1 - prog.ratio : 0);
+  // 開戦前は満タン表示（どれだけ削れるかは戦ってみるまで分からない）
+  const shownHp = hp ?? 1;
 
   async function challenge() {
     if (fi == null || !prog || phase === "fighting") return;
@@ -83,7 +84,7 @@ export default function DungeonPage() {
           <div className="mx-auto mt-2 max-w-[16rem]">
             <div className="flex justify-between text-[10px] text-sub">
               <span>HP</span>
-              <span className="font-num">{Math.round(shownHp * 100)}%</span>
+              <span className="font-num">{hp == null ? "???" : `${Math.round(shownHp * 100)}%`}</span>
             </div>
             <div className="mt-0.5 h-2.5 overflow-hidden rounded-full bg-white/10">
               <div className="h-full rounded-full bg-bad transition-[width] duration-700 ease-out" style={{ width: `${shownHp * 100}%` }} />
@@ -103,9 +104,9 @@ export default function DungeonPage() {
             <button
               onClick={challenge}
               disabled={phase === "fighting"}
-              className={`mt-4 w-full rounded-2xl py-4 text-base font-black ${prog.ready ? "bg-accent-2 text-bg shadow-[0_8px_24px_-8px_rgba(255,181,71,0.8)]" : "bg-panel-2 text-ink"} disabled:opacity-60`}
+              className="mt-4 w-full rounded-2xl bg-accent-2 py-4 text-base font-black text-bg shadow-[0_8px_24px_-8px_rgba(255,181,71,0.8)] disabled:opacity-60"
             >
-              {phase === "fighting" ? "戦闘中…" : prog.ready ? "⚔️ ボスに挑む" : "挑戦してみる"}
+              {phase === "fighting" ? "戦闘中…" : phase === "lost" ? "⚔️ もう一度挑む" : "⚔️ ボスに挑む"}
             </button>
           )}
           {msg && <p className="mt-2 text-xs text-bad">{msg}</p>}

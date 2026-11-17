@@ -46,7 +46,7 @@ export default function HomePage() {
   else if (c.streak > 1) mood = `${c.streak}日連続！この調子`;
 
   const title = findTitle(me.profile.titleId);
-  // 挑戦できるボスを優先、なければ一番HPを削れているボス
+  // 一番倒しやすいボスを表示（HPや勝敗は表示しない）
   const quest = DUNGEONS.filter((d) => isUnlocked(d, me.cleared))
     .map((d) => {
       const fi = currentFloor(d, me.cleared);
@@ -128,18 +128,18 @@ export default function HomePage() {
       {quest && (
         <Link href={`/quest/${quest.d.id}`} className="block rounded-2xl border border-line bg-panel p-4" style={{ backgroundImage: `linear-gradient(120deg, ${quest.d.color}26, transparent 65%)` }}>
           <div className="flex items-center gap-3">
-            <span className={`shrink-0 ${quest.prog.ready ? "mq-shake" : ""}`}>
+            <span className="shrink-0">
               <BossArt dungeonId={quest.d.id} floor={quest.fi} size={64} />
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-[10px] text-sub">
                 クエスト ・ {quest.d.name} {quest.floor.name}
               </p>
-              <p className="font-bold">{quest.prog.ready ? `${quest.floor.boss}に挑戦できる！` : `${quest.floor.boss} が待ち構えている`}</p>
+              <p className="font-bold">{`${quest.floor.boss} が待ち構えている`}</p>
               <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full rounded-full bg-bad" style={{ width: `${Math.max(3, (1 - quest.prog.ratio) * 100)}%` }} />
+                <div className="h-full w-full rounded-full bg-bad" />
               </div>
-              <p className="mt-1 text-[10px] text-sub">ボスHP {Math.round((1 - quest.prog.ratio) * 100)}% ・ 鍛えるほど削れる</p>
+              <p className="mt-1 text-[10px] text-sub">HP ??? ・ 鍛えた分だけダメージを与えられる</p>
             </div>
             <span className="text-sub">›</span>
           </div>

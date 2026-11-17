@@ -83,10 +83,10 @@ export default function QuestPage() {
                         <span>
                           {floor.name}：<b>{floor.boss}</b>
                         </span>
-                        {prog.ready ? <span className="font-bold text-accent-2">挑戦できる！</span> : <span className="text-sub">ボスHP {Math.round((1 - prog.ratio) * 100)}%</span>}
+                        <span className="text-sub">HP ???</span>
                       </div>
                       <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
-                        <div className="h-full rounded-full" style={{ width: `${Math.max(3, (1 - prog.ratio) * 100)}%`, background: prog.ready ? "#ffb547" : d.color }} />
+                        <div className="h-full w-full rounded-full bg-bad" />
                       </div>
                     </div>
                   )}
