@@ -68,6 +68,13 @@ tests/                   Vitest
 - 踏破報酬は称号と装備アイテム。装備はキャラの見た目（ハチマキ・リストバンド・ベルト・ショーツ・シューズ・オーラ）に反映。全踏破で追加報酬。
 - 定義は `src/domain/quests.ts` と `src/domain/items.ts`。
 
+## キャラクター画像
+
+- 主人公: `public/hero/{タイプ}_{段階}.webp`。段階はレベルで1〜6（ビギナー〜神話）、タイプはいちばん育った部位で8種類（`src/domain/character.ts` の `heroType`）。
+  現在あるのはバランス型（1〜6）と胸型（2〜6）。ほかのタイプはバランス型で代わりに表示（`src/components/heroImages.ts` の `AVAILABLE` に足せば切り替わる）。
+- 装備アイコン: `public/items/{アイテムID}.webp`。ボス: `public/bosses/*.webp`。
+- 生成AIのシート画像からの切り出しは `scripts/assets/` のスクリプトで行う（`python3 -I scripts/assets/cut_hero_sheet.py シート.png 出力先 名前 人数`）。
+
 ## 不正・重複対策
 
 - 記録IDはクライアント発行UUID。同じIDの再送信は無視（連打・通信リトライで二重計上しない）。

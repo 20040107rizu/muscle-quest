@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Avatar } from "@/components/avatar/Avatar";
+import { HeroFigure } from "@/components/HeroFigure";
 import { Card, Initial, LevelBadge, Loading, PageHeader, Segmented } from "@/components/ui/primitives";
 import type { CharacterState } from "@/domain/character";
 import type { Gear } from "@/domain/items";
@@ -59,7 +59,7 @@ export default function RankingPage() {
           const h = r === podium[0] ? "h-24" : r === podium[1] ? "h-16" : "h-12";
           return (
             <div key={r.item.id} className="flex w-1/3 flex-col items-center">
-              <Avatar gear={r.item.gear} dev={r.item.character.dev} fat={r.item.character.fat} cardio={r.item.character.cardio} className={first ? "h-40 w-full" : "h-32 w-full"} glow={first} />
+              <HeroFigure c={r.item.character} gear={r.item.gear} showGear={false} className={first ? "h-40 w-full" : "h-32 w-full"} glow={first} />
               <p className={`mt-1 truncate text-sm font-bold ${r.item.isMe ? "text-accent" : ""}`}>{r.item.name}</p>
               <p className="font-num text-base font-bold">
                 {fmt(r.value)}

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
-import { Avatar } from "@/components/avatar/Avatar";
+import { HeroFigure } from "@/components/HeroFigure";
 import { StatBars } from "@/components/StatBars";
 import { useFeedback } from "@/components/ui/Feedback";
 import { Card, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/primitives";
@@ -41,14 +41,14 @@ export default function FriendDetailPage() {
             <span className="text-sm font-bold">{c.tier.name}</span>
           </div>
           {findTitle(view.titleId) && <p className="mt-1 text-xs font-bold text-accent-2">【{findTitle(view.titleId)!.name}】</p>}
-          <p className="mt-2 max-w-[10rem] text-xs text-sub">「{user.comment}」</p>
         </div>
         <div className="absolute right-4 top-4 z-10 text-right">
           <p className="text-[10px] text-sub">連続</p>
           <p className="font-num text-2xl font-bold">🔥{c.streak}</p>
         </div>
-        <Avatar gear={view.gear} dev={c.dev} fat={c.fat} cardio={c.cardio} pump={c.pump} glow={c.daysSinceActive === 0} className="mx-auto h-[320px] w-full pt-10" />
+        <HeroFigure c={c} gear={view.gear} glow={c.daysSinceActive === 0} className="mx-auto h-[320px] w-full pt-10" />
         <div className="px-4 pb-4">
+          <p className="mb-2 text-center text-xs text-sub">「{user.comment}」</p>
           <XpBar into={c.levelInto} needed={c.levelNeeded} />
         </div>
       </div>

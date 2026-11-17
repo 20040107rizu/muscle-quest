@@ -10,21 +10,22 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const shim = (f) => path.join(root, "preview/shims", f);
 
-// ボス画像を data URI で埋め込んだ bossImages モジュールに差し替える（1ファイルで完結させるため）
-const bossImagesPlugin = {
-  name: "boss-images",
+// 画像（public/bosses, hero, items）を data URI で埋め込んだ assets モジュールに差し替える（1ファイルで完結させるため）
+const assetsPlugin = {
+  name: "inline-assets",
   setup(b) {
-    b.onResolve({ filter: /bossImages$/ }, () => ({ path: "boss-images", namespace: "boss" }));
-    b.onLoad({ filter: /.*/, namespace: "boss" }, async () => {
-      const dir = path.join(root, "public/bosses");
-      const files = (await readdir(dir)).filter((f) => f.endsWith(".webp"));
+    b.onResolve({ filter: /(^|\/)assets$/ }, () => ({ path: "inline-assets", namespace: "assets" }));
+    b.onLoad({ filter: /.*/, namespace: "assets" }, async () => {
       const data = {};
-      for (const f of files) data[f.replace(/\.webp$/, "")] = "data:image/webp;base64," + (await readFile(path.join(dir, f))).toString("base64");
-      const src = await readFile(path.join(root, "src/components/bossImages.ts"), "utf8");
-      const files_ = src.slice(src.indexOf("export const BOSS_FILES"), src.indexOf("export function bossImageUrl"));
+      for (const dir of ["bosses", "hero", "items"]) {
+        for (const f of await readdir(path.join(root, "public", dir))) {
+          if (!f.endsWith(".webp")) continue;
+          data[`${dir}/${f}`] = "data:image/webp;base64," + (await readFile(path.join(root, "public", dir, f))).toString("base64");
+        }
+      }
       return {
-        contents: `${files_}\nconst DATA = ${JSON.stringify(data)};\nexport function bossImageUrl(d, f) { const n = BOSS_FILES[d]?.[f]; return n ? DATA[n] : undefined; }`,
-        loader: "ts",
+        contents: `const DATA = ${JSON.stringify(data)};\nexport function assetUrl(p) { return DATA[p] ?? "/" + p; }`,
+        loader: "js",
       };
     });
   },
@@ -45,7 +46,7 @@ const js = await build({
   },
   define: { "process.env.NODE_ENV": '"production"' },
   logLevel: "error",
-  plugins: [bossImagesPlugin],
+  plugins: [assetsPlugin],
 });
 
 const cssIn = await readFile(path.join(root, "app/globals.css"), "utf8");

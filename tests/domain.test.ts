@@ -75,3 +75,22 @@ describe("character & ranking", () => {
     expect(m.growthPct).toBe(10);
   });
 });
+
+describe("hero appearance", () => {
+  it("レベルで段階が決まる", async () => {
+    const { heroStage } = await import("@/domain/character");
+    expect(heroStage(1)).toBe(1);
+    expect(heroStage(12)).toBe(3);
+    expect(heroStage(50)).toBe(6);
+  });
+  it("突出した部位でタイプが決まる", async () => {
+    const { heroType } = await import("@/domain/character");
+    const base = { chest: 500, back: 500, shoulders: 500, arms: 500, legs: 500, core: 500, cardio: 500 };
+    expect(heroType(base)).toBe("balance");
+    expect(heroType({ ...base, chest: 1500 })).toBe("chest");
+    expect(heroType({ ...base, cardio: 2000 })).toBe("runner");
+    // 1位と2位が近ければバランス型（低い部位に引きずられない）
+    expect(heroType({ chest: 141, back: 153, shoulders: 192, arms: 150, legs: 162, core: 39, cardio: 0 })).toBe("balance");
+    expect(heroType({ ...base, chest: 0, back: 0, shoulders: 0, arms: 0, legs: 0, core: 0, cardio: 0 })).toBe("balance");
+  });
+});

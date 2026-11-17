@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
-import { Avatar } from "@/components/avatar/Avatar";
+import { HeroFigure } from "@/components/HeroFigure";
 import { BossArt } from "@/components/BossArt";
 import { useFeedback } from "@/components/ui/Feedback";
 import { Card, Initial, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/primitives";
@@ -91,7 +91,7 @@ export default function HomePage() {
           <p className="mt-1">スタミナ</p>
           <p className="font-num text-lg font-bold text-cardio">{Math.round(c.stats.cardio / 10)}</p>
         </div>
-        <Avatar gear={me.profile.gear} dev={c.dev} fat={c.fat} cardio={c.cardio} pump={c.pump} glow={c.daysSinceActive === 0} className="mx-auto h-[360px] w-full pt-6" />
+        <HeroFigure c={c} gear={me.profile.gear} glow={c.daysSinceActive === 0} className="mx-auto h-[360px] w-full pt-6" />
         <div className="relative z-10 -mt-2 px-4 pb-4">
           <p className="mb-2 text-center text-xs text-ink/80">{mood}</p>
           <XpBar into={c.levelInto} needed={c.levelNeeded} />

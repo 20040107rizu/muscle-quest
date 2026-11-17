@@ -15,6 +15,7 @@ export const TIERS: Tier[] = [
   { minLevel: 12, name: "マッチョ", title: "ジムで一目置かれる" },
   { minLevel: 22, name: "ゴリマッチョ", title: "ドアが狭く感じる" },
   { minLevel: 35, name: "レジェンド", title: "生ける彫刻" },
+  { minLevel: 50, name: "神話", title: "人の域を超えた" },
 ];
 
 export function tierFor(level: number): Tier {
@@ -98,4 +99,48 @@ export function computeStreak(sortedUniqueDays: string[], today: string): number
     cursor = addDays(cursor, -1);
   }
   return n;
+}
+
+// ---------- 見た目（画像）の選択 ----------
+
+/** 進化段階 1..6（TIERS の順番） */
+export function heroStage(level: number): number {
+  return TIERS.indexOf(tierFor(level)) + 1;
+}
+
+export const HERO_TYPES = ["balance", "chest", "back", "shoulder", "arm", "leg", "core", "runner"] as const;
+export type HeroType = (typeof HERO_TYPES)[number];
+
+export const HERO_TYPE_LABELS: Record<HeroType, string> = {
+  balance: "バランス型",
+  chest: "胸型",
+  back: "背中型",
+  shoulder: "肩型",
+  arm: "腕型",
+  leg: "脚型",
+  core: "体幹型",
+  runner: "ランナー型",
+};
+
+const STAT_TO_TYPE: Record<StatKey, HeroType> = {
+  chest: "chest",
+  back: "back",
+  shoulders: "shoulder",
+  arms: "arm",
+  legs: "leg",
+  core: "core",
+  cardio: "runner",
+};
+
+/**
+ * 体型タイプ。いちばん育っている部位が2番目の1.3倍以上なら
+ * その部位のタイプ、そうでなければバランス型。
+ */
+export function heroType(stats: Record<StatKey, number>): HeroType {
+  const entries = Object.entries(stats) as [StatKey, number][];
+  const total = entries.reduce((a, [, v]) => a + v, 0);
+  if (total < 300) return "balance";
+  const sorted = [...entries].sort((a, b) => b[1] - a[1]);
+  const [[topKey, topVal], [, second]] = sorted;
+  return topVal >= second * 1.3 ? STAT_TO_TYPE[topKey] : "balance";
 }

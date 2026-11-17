@@ -1,7 +1,8 @@
 /**
  * ボス画像の場所。ダンジョンID → 各階の画像ファイル名（public/bosses/*.webp）。
- * プレビュー版（preview/build.mjs）ではこのモジュールを差し替え、画像を埋め込む。
  */
+import { assetUrl } from "./assets";
+
 export const BOSS_FILES: Record<string, string[]> = {
   cave: ["cave_1_slime", "cave_2_goblin", "cave_3_orc"],
   chest_temple: ["chest_1_sentinel", "chest_2_golem", "chest_3_knight", "chest_4_god"],
@@ -14,5 +15,5 @@ export const BOSS_FILES: Record<string, string[]> = {
 
 export function bossImageUrl(dungeonId: string, floor: number): string | undefined {
   const f = BOSS_FILES[dungeonId]?.[floor];
-  return f ? `/bosses/${f}.webp` : undefined;
+  return f ? assetUrl(`bosses/${f}.webp`) : undefined;
 }

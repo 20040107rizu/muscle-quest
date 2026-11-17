@@ -4,6 +4,7 @@ import { useState } from "react";
 import { GEAR_SLOTS, ITEMS, SLOT_LABELS, type Gear } from "@/domain/items";
 import { TITLES } from "@/domain/quests";
 import { getRepo } from "@/data/hooks";
+import { itemIconUrl } from "./heroImages";
 import { Card } from "./ui/primitives";
 
 /** 獲得した称号・アイテムの装備切り替え */
@@ -60,7 +61,12 @@ export function EquipmentPanel({ gear, titleId, ownedItems, ownedTitles }: { gea
                         onClick={() => run(() => getRepo().equipItem(slot, on ? null : it.id))}
                         className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] ${on ? "border-accent-2 bg-accent-2/15 font-bold" : owned ? "border-line bg-panel-2" : "border-transparent bg-panel-2/50 text-sub/60"}`}
                       >
-                        <span className="inline-block size-2.5 rounded-full" style={{ background: owned ? it.color : "#3a3f4a" }} />
+                        {owned ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={itemIconUrl(it.id)} alt="" width={22} height={22} className="rounded" />
+                        ) : (
+                          <span className="inline-grid size-[22px] place-items-center rounded bg-panel text-[10px]">?</span>
+                        )}
                         {owned ? it.name : "未入手"}
                       </button>
                     );

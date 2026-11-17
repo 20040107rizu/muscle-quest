@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { BossArt } from "@/components/BossArt";
+import { itemIconUrl } from "@/components/heroImages";
 import { Card, Loading } from "@/components/ui/primitives";
 import { findItem } from "@/domain/items";
 import { clearId, currentFloor, findDungeon, findTitle, floorProgress, isUnlocked, type Reward } from "@/domain/quests";
@@ -210,7 +211,8 @@ function RewardModal({ reward, onClose }: { reward: Reward; onClose: () => void 
           <div className="mt-2 rounded-xl bg-panel-2 p-3">
             <p className="text-[10px] text-sub">アイテムを獲得</p>
             <p className="flex items-center justify-center gap-2 font-bold">
-              <span className="inline-block size-3 rounded-full" style={{ background: item.color }} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={itemIconUrl(item.id)} alt="" width={40} height={40} className="rounded-lg" />
               {item.name}
             </p>
             <p className="text-[10px] text-sub">{item.description}</p>

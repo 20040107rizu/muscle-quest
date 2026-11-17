@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Avatar } from "@/components/avatar/Avatar";
+import { HeroFigure } from "@/components/HeroFigure";
 import { EquipmentPanel } from "@/components/EquipmentPanel";
 import { StatBars } from "@/components/StatBars";
 import { Card, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/primitives";
-import { TIERS } from "@/domain/character";
+import { heroImage } from "@/components/heroImages";
+import { HERO_TYPE_LABELS, heroStage, heroType, TIERS } from "@/domain/character";
 import { PRESET_EXERCISES } from "@/domain/exercises";
 import { STAT_LABELS, type MuscleGroup, type StatKey } from "@/domain/types";
 import { useMyData } from "@/data/hooks";
@@ -42,17 +43,12 @@ export default function CharacterPage() {
           <LevelBadge level={c.level} />
           <p className="mt-1 text-xl font-black">{c.tier.name}</p>
           <p className={`mt-1 text-xs font-bold ${condition.color}`}>● {condition.label}</p>
+          <p className="mt-1 text-[11px] text-sub">
+            体型: {HERO_TYPE_LABELS[heroType(c.stats)]}
+            {heroImage(heroType(c.stats), heroStage(c.level)).fallback && <span className="block text-[10px]">（画像準備中・バランス型で表示）</span>}
+          </p>
         </div>
-        <Avatar
-          gear={me.profile.gear}
-          dev={c.dev}
-          fat={c.fat}
-          cardio={c.cardio}
-          pump={c.pump}
-          glow={c.daysSinceActive === 0}
-          highlight={sel === "cardio" ? "legs" : sel}
-          className="mx-auto h-[400px] w-full pt-4"
-        />
+        <HeroFigure c={c} gear={me.profile.gear} glow={c.daysSinceActive === 0} gearSize={30} className="mx-auto h-[400px] w-full pt-4" />
         <div className="px-4 pb-4">
           <p className="mb-2 text-center text-[11px] text-sub">{condition.text}</p>
           <XpBar into={c.levelInto} needed={c.levelNeeded} />
@@ -106,7 +102,8 @@ export default function CharacterPage() {
         <p className="mb-1 font-bold text-ink">育成のしくみ</p>
         <p>・筋トレは「重量×回数」から経験値を計算し、種目ごとに鍛えた部位へ振り分けます。</p>
         <p>・同じ種目を1日に何十セットも行うと経験値が逓減します。いろいろな部位をバランスよく。</p>
-        <p>・ランニングは心肺と脚に入り、体脂肪が落ちて筋肉のカットが見えるようになります。</p>
+        <p>・レベルで体の段階（ビギナー〜神話の6段階）が、いちばん鍛えている部位で体型（胸型・ランナー型など8タイプ）が決まります。</p>
+        <p>・ランニングは心肺と脚に入ります。走り込むとランナー型の引き締まった体になります。</p>
         <p>・4日以上休むと見た目が少ししぼみますが、経験値やレベルは減りません。</p>
       </Card>
     </div>

@@ -51,6 +51,10 @@ input[type="number"] {
   transform-origin: 120px 430px;
   animation: mq-breathe 4.5s ease-in-out infinite;
 }
+.mq-breathe-img {
+  transform-origin: 50% 100%;
+  animation: mq-breathe 4.5s ease-in-out infinite;
+}
 @keyframes mq-aura {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
@@ -84,5 +88,5 @@ input[type="number"] {
 .mq-defeat { animation: mq-defeat 0.6s ease-in forwards; }
 
 @media (prefers-reduced-motion: reduce) {
-  .mq-breathe, .mq-aura, .mq-pop, .mq-rise, .mq-shake, .mq-defeat { animation: none; }
+  .mq-breathe, .mq-breathe-img, .mq-aura, .mq-pop, .mq-rise, .mq-shake, .mq-defeat { animation: none; }
 }

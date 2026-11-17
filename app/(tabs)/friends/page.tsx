@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
-import { Avatar } from "@/components/avatar/Avatar";
+import { HeroFigure } from "@/components/HeroFigure";
 import { Card, LevelBadge, Loading, PageHeader, Segmented, SectionTitle } from "@/components/ui/primitives";
 import { addDays } from "@/domain/dates";
 import { findTitle } from "@/domain/quests";
@@ -43,7 +43,7 @@ export default function FriendsPage() {
           return (
             <Link key={f.user.id} href={`/friends/${f.user.id}`} className="w-28 shrink-0 rounded-2xl border border-line bg-panel p-2 text-center">
               <div className="relative">
-                <Avatar gear={f.gear} dev={f.character.dev} fat={f.character.fat} cardio={f.character.cardio} pump={f.character.pump} className="mx-auto h-28 w-full" />
+                <HeroFigure c={f.character} gear={f.gear} showGear={false} className="mx-auto h-28 w-full" />
                 {activeToday && <span className="absolute right-1 top-1 size-2.5 rounded-full bg-good ring-2 ring-panel" aria-label="今日運動済み" />}
               </div>
               <p className="mt-1 truncate text-sm font-bold">{f.user.name}</p>
