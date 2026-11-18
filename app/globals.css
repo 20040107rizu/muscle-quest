@@ -51,6 +51,10 @@ input[type="number"] {
   transform-origin: 120px 430px;
   animation: mq-breathe 4.5s ease-in-out infinite;
 }
+.mq-breathe-svg {
+  animation: mq-breathe 4.5s ease-in-out infinite;
+  transform-box: view-box;
+}
 .mq-breathe-img {
   transform-origin: 50% 100%;
   animation: mq-breathe 4.5s ease-in-out infinite;
@@ -146,5 +150,5 @@ p.mq-stamp:not(.absolute) { animation-name: mq-stamp-center; }
 @media (prefers-reduced-motion: reduce) {
   .mq-rays, .mq-stamp, .mq-glow-text, .mq-shimmer, .mq-dmg, .mq-hit, .mq-pulse-soft, .mq-flame, .mq-chest-shake { animation: none; }
 
-  .mq-breathe, .mq-breathe-img, .mq-aura, .mq-pop, .mq-rise, .mq-shake, .mq-defeat { animation: none; }
+  .mq-breathe, .mq-breathe-img, .mq-breathe-svg, .mq-aura, .mq-pop, .mq-rise, .mq-shake, .mq-defeat { animation: none; }
 }

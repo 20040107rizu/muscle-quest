@@ -98,8 +98,9 @@ export class LocalRepository implements Repository {
 
   async saveWorkout(input: WorkoutInput, opts: { confirm?: boolean } = {}): Promise<SaveResult> {
     const db = this.db;
-    return db.transaction("rw", [db.workouts, db.runs, db.xpEvents, db.profile, db.exercises], async () => {
+    return db.transaction("rw", [db.workouts, db.runs, db.xpEvents, db.profile, db.exercises, db.questClears], async () => {
       const before = levelFromXp(await this.totalXp()).level;
+      const ownedBefore = await this.ownedItemIds();
       const res = emptyResult(before);
 
       // 同じIDの再送信は何もしない（二重計上防止）
@@ -154,14 +155,16 @@ export class LocalRepository implements Repository {
         prXp,
         prLabel: isPR ? `推定1RM ${newBest.toFixed(1)}kg（前回まで ${prevBest.toFixed(1)}kg）` : undefined,
         comboToday,
+        newItems: await this.newItemsSince(ownedBefore),
       };
     });
   }
 
   async saveRun(input: RunInput, opts: { confirm?: boolean } = {}): Promise<SaveResult> {
     const db = this.db;
-    return db.transaction("rw", [db.runs, db.workouts, db.xpEvents], async () => {
+    return db.transaction("rw", [db.runs, db.workouts, db.xpEvents, db.questClears], async () => {
       const before = levelFromXp(await this.totalXp()).level;
+      const ownedBefore = await this.ownedItemIds();
       const res = emptyResult(before);
       if (await db.runs.get(input.id)) return { ...res, ok: true, duplicate: true };
 
@@ -196,14 +199,16 @@ export class LocalRepository implements Repository {
         prXp,
         prLabel: isPR ? `最長距離 ${run.distanceKm}km（前回まで ${longest}km）` : undefined,
         comboToday,
+        newItems: await this.newItemsSince(ownedBefore),
       };
     });
   }
 
   async claimMission(date: string, missionId: string): Promise<SaveResult> {
     const db = this.db;
-    return db.transaction("rw", [db.workouts, db.runs, db.xpEvents], async () => {
+    return db.transaction("rw", [db.workouts, db.runs, db.xpEvents, db.questClears], async () => {
       const before = levelFromXp(await this.totalXp()).level;
+      const ownedBefore = await this.ownedItemIds();
       const res = emptyResult(before);
       const mission = DAILY_MISSIONS.find((m) => m.id === missionId);
       if (!mission) return { ...res, errors: ["ミッションが見つかりません"] };
@@ -230,7 +235,7 @@ export class LocalRepository implements Repository {
         byStat: {},
       });
       const after = levelFromXp(await this.totalXp()).level;
-      return { ...res, ok: true, xpGained: mission.bonusXp, levelAfter: after };
+      return { ...res, ok: true, xpGained: mission.bonusXp, levelAfter: after, newItems: await this.newItemsSince(ownedBefore) };
     });
   }
 
@@ -332,6 +337,7 @@ export class LocalRepository implements Repository {
       if (!isUnlocked(d, cleared)) return fail("まだ解放されていません");
       if (currentFloor(d, cleared) !== floor) return fail("前の階をクリアしてください");
       // 残りHPは記録から計算し、ここで保存する（画面からは書き換えられない）
+      const ownedBefore = await this.ownedItemIds();
       const prog = floorProgress(d.floors[floor], await this.questStats());
       const id = clearId(dungeonId, floor);
       const remaining = prog.ready ? 0 : Math.round((1 - prog.ratio) * 1000) / 1000;
@@ -339,15 +345,25 @@ export class LocalRepository implements Repository {
       if (!prog.ready) return { ...fail("まだ力が足りない…条件を満たしてから再挑戦しよう"), remaining };
       await db.questClears.put({ id, dungeonId, floor, clearedAt: this.now() });
       cleared.add(id);
-      return { ok: true, errors: [], reward: isDungeonCleared(d, cleared) ? d.reward : null, remaining: 0 };
+      return { ok: true, errors: [], reward: isDungeonCleared(d, cleared) ? d.reward : null, remaining: 0, newItems: await this.newItemsSince(ownedBefore) };
     });
+  }
+
+  /** 今持っているアイテム（クリア状況・レベル・連続日数から計算） */
+  private async ownedItemIds(): Promise<string[]> {
+    return ownedRewards(await this.clearedSet(), await this.questStats()).items;
+  }
+
+  private async newItemsSince(before: string[]): Promise<string[]> {
+    const now = await this.ownedItemIds();
+    return now.filter((id) => !before.includes(id));
   }
 
   async equipItem(slot: GearSlot, itemId: string | null) {
     const p = await this.init();
     if (itemId) {
       const item = findItem(itemId);
-      const owned = ownedRewards(await this.clearedSet()).items;
+      const owned = await this.ownedItemIds();
       if (!item || item.slot !== slot || !owned.includes(itemId)) throw new Error("このアイテムは装備できません");
     }
     const gear = { ...(p.gear ?? {}) };
@@ -358,7 +374,7 @@ export class LocalRepository implements Repository {
 
   async setTitle(titleId: string | null) {
     const p = await this.init();
-    if (titleId && !ownedRewards(await this.clearedSet()).titles.includes(titleId)) throw new Error("この称号はまだ獲得していません");
+    if (titleId && !ownedRewards(await this.clearedSet(), await this.questStats()).titles.includes(titleId)) throw new Error("この称号はまだ獲得していません");
     await this.db.profile.put({ ...p, titleId: titleId ?? undefined });
   }
 

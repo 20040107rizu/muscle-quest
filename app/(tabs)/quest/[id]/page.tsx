@@ -6,9 +6,10 @@ import { useEffect, useRef, useState } from "react";
 import { BossArt } from "@/components/BossArt";
 import { useFx } from "@/components/fx/FxLayer";
 import { sfx } from "@/components/fx/sound";
-import { itemIconUrl } from "@/components/heroImages";
+import { ItemGet } from "@/components/fx/ItemGet";
+import { ItemIcon } from "@/components/ItemIcon";
 import { Card, Loading } from "@/components/ui/primitives";
-import { findItem } from "@/domain/items";
+import { findItem, ITEMS, SLOT_LABELS } from "@/domain/items";
 import { clearId, currentFloor, findDungeon, findTitle, floorProgress, isUnlocked, type Reward } from "@/domain/quests";
 import { getRepo, useMyData } from "@/data/hooks";
 
@@ -26,6 +27,9 @@ export default function DungeonPage() {
   const [hitKey, setHitKey] = useState(0);
   const bossRef = useRef<HTMLDivElement>(null);
   const [battleFloor, setBattleFloor] = useState<number | null>(null);
+  /** 撃破で手に入ったアイテム（ボスのドロップ・踏破報酬） */
+  const [drops, setDrops] = useState<string[]>([]);
+  const [showDrops, setShowDrops] = useState(false);
   const { burst, confetti, shake } = useFx();
 
   if (!me) return <Loading />;
@@ -120,6 +124,7 @@ export default function DungeonPage() {
     confetti(160);
     setPhase("won");
     setReward(r.reward);
+    setDrops(r.newItems ?? []);
   }
 
   function next() {
@@ -206,6 +211,26 @@ export default function DungeonPage() {
         </Card>
       )}
 
+      {floor && prog && fi != null && dropsOf(d.id, fi).length > 0 && (
+        <Card className="flex items-center gap-3 !py-3">
+          <p className="shrink-0 text-xs font-bold">ドロップ</p>
+          <div className="flex flex-1 flex-wrap gap-2">
+            {dropsOf(d.id, fi).map((it) => {
+              const owned = me.owned.items.includes(it.id);
+              return (
+                <div key={it.id} className="flex items-center gap-1.5">
+                  <ItemIcon id={it.id} size={34} />
+                  <div className="leading-tight">
+                    <p className="text-[11px] font-bold">{it.name}</p>
+                    <p className="text-[9px] text-sub">{owned ? "入手済み" : SLOT_LABELS[it.slot] + "の装備"}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
+
       {floor && prog && (
         <Card>
           <p className="mb-3 text-sm font-bold">撃破条件</p>
@@ -271,9 +296,47 @@ export default function DungeonPage() {
         </p>
       </Card>
 
-      {reward && <RewardModal reward={reward} onClose={() => { setReward(null); next(); }} />}
+      {reward && (
+        <RewardModal
+          reward={reward}
+          onClose={() => {
+            setReward(null);
+            // 踏破報酬のアイテムは宝箱で見せたので、それ以外のドロップを続けて見せる
+            const rest = drops.filter((id) => id !== reward.itemId);
+            setDrops(rest);
+            if (rest.length) setShowDrops(true);
+            else next();
+          }}
+        />
+      )}
+      {!reward && phase === "won" && drops.length > 0 && !showDrops && <DropTimer onDone={() => setShowDrops(true)} />}
+      {showDrops && drops.length > 0 && (
+        <ItemGet
+          ids={drops}
+          heading="ボスがアイテムを落とした！"
+          onClose={() => {
+            setShowDrops(false);
+            setDrops([]);
+            next();
+          }}
+        />
+      )}
     </div>
   );
+}
+
+/** その階のボスが落とすアイテム */
+function dropsOf(dungeonId: string, floor: number) {
+  return ITEMS.filter((it) => it.source.kind === "floor" && it.source.dungeonId === dungeonId && it.source.floor === floor);
+}
+
+/** 撃破演出を見せてから、ドロップの画面を出す */
+function DropTimer({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 1500);
+    return () => clearTimeout(t);
+  }, [onDone]);
+  return null;
 }
 
 function Chest({ open }: { open: boolean }) {
@@ -358,8 +421,7 @@ function RewardModal({ reward, onClose }: { reward: Reward; onClose: () => void 
               <div className="mq-pop mt-2 rounded-2xl border border-accent-2/50 bg-panel/90 p-3 [animation-delay:150ms]">
                 <p className="text-[10px] text-sub">アイテムを獲得</p>
                 <p className="flex items-center justify-center gap-3 text-lg font-black">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={itemIconUrl(item.id)} alt="" width={56} height={56} className="rounded-xl shadow-[0_0_20px_rgba(255,209,102,0.7)]" />
+                  <ItemIcon id={item.id} size={56} />
                   {item.name}
                 </p>
                 <p className="text-[10px] text-sub">{item.description}</p>

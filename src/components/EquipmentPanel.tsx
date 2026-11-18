@@ -1,23 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { GEAR_SLOTS, ITEMS, SLOT_LABELS, type Gear } from "@/domain/items";
-import { TITLES } from "@/domain/quests";
+import { GEAR_SLOTS, ITEMS, RARITY_COLORS, SLOT_LABELS, findItem, type Gear, type GearSlot } from "@/domain/items";
+import { itemSourceLabel, TITLES } from "@/domain/quests";
 import { getRepo } from "@/data/hooks";
-import { itemIconUrl } from "./heroImages";
+import { sfx } from "./fx/sound";
+import { ItemIcon } from "./ItemIcon";
 import { Card } from "./ui/primitives";
 
-/** 獲得した称号・アイテムの装備切り替え */
+/** 称号と装備の着せ替え。部位を選んで、持っているアイテムをタップすると体に装着される */
 export function EquipmentPanel({ gear, titleId, ownedItems, ownedTitles }: { gear: Gear; titleId?: string; ownedItems: string[]; ownedTitles: string[] }) {
   const [err, setErr] = useState("");
+  const [slot, setSlot] = useState<GearSlot>("head");
+  const [peek, setPeek] = useState<string | null>(null);
   const run = async (fn: () => Promise<void>) => {
     try {
       setErr("");
       await fn();
+      sfx.tap();
     } catch (e) {
       setErr((e as Error).message);
     }
   };
+  const items = ITEMS.filter((i) => i.slot === slot);
+  const ownedCount = ITEMS.filter((i) => ownedItems.includes(i.id)).length;
+  const peekItem = findItem(peek ?? undefined);
 
   return (
     <Card className="space-y-4">
@@ -42,41 +49,66 @@ export function EquipmentPanel({ gear, titleId, ownedItems, ownedTitles }: { gea
       </div>
 
       <div>
-        <p className="mb-2 text-sm font-bold">装備</p>
-        <div className="space-y-2">
-          {GEAR_SLOTS.map((slot) => {
-            const items = ITEMS.filter((i) => i.slot === slot);
+        <div className="mb-2 flex items-end justify-between">
+          <p className="text-sm font-bold">装備</p>
+          <p className="font-num text-xs text-sub">
+            図鑑 {ownedCount}/{ITEMS.length}
+          </p>
+        </div>
+
+        {/* 部位タブ（装備中のアイコン付き） */}
+        <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-2 [scrollbar-width:none]">
+          {GEAR_SLOTS.map((s) => {
+            const eq = gear[s];
+            const hasNew = ITEMS.some((i) => i.slot === s && ownedItems.includes(i.id));
             return (
-              <div key={slot} className="flex items-center gap-2">
-                <span className="w-16 shrink-0 text-[11px] text-sub">{SLOT_LABELS[slot]}</span>
-                <div className="flex flex-1 flex-wrap gap-1.5">
-                  {items.map((it) => {
-                    const owned = ownedItems.includes(it.id);
-                    const on = gear[slot] === it.id;
-                    return (
-                      <button
-                        key={it.id}
-                        disabled={!owned}
-                        title={owned ? it.description : "クエストで入手"}
-                        onClick={() => run(() => getRepo().equipItem(slot, on ? null : it.id))}
-                        className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] ${on ? "border-accent-2 bg-accent-2/15 font-bold" : owned ? "border-line bg-panel-2" : "border-transparent bg-panel-2/50 text-sub/60"}`}
-                      >
-                        {owned ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={itemIconUrl(it.id)} alt="" width={22} height={22} className="rounded" />
-                        ) : (
-                          <span className="inline-grid size-[22px] place-items-center rounded bg-panel text-[10px]">?</span>
-                        )}
-                        {owned ? it.name : "未入手"}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              <button
+                key={s}
+                onClick={() => {
+                  setSlot(s);
+                  setPeek(null);
+                }}
+                className={`flex shrink-0 flex-col items-center gap-1 rounded-xl px-2 py-1.5 ${slot === s ? "bg-panel-2 ring-1 ring-accent-2" : ""}`}
+              >
+                {eq ? <ItemIcon id={eq} size={34} /> : <span className={`grid size-[34px] place-items-center rounded-lg border border-dashed text-[10px] ${hasNew ? "border-accent-2/60 text-accent-2" : "border-line text-sub"}`}>{hasNew ? "+" : "—"}</span>}
+                <span className={`text-[10px] ${slot === s ? "font-bold text-ink" : "text-sub"}`}>{SLOT_LABELS[s]}</span>
+              </button>
             );
           })}
         </div>
-        <p className="mt-2 text-[10px] text-sub">アイテムはクエストのダンジョンを踏破すると手に入ります。タップで装備・解除。</p>
+
+        <div className="grid grid-cols-4 gap-2">
+          {items.map((it) => {
+            const owned = ownedItems.includes(it.id);
+            const on = gear[slot] === it.id;
+            return (
+              <button
+                key={it.id}
+                onClick={() => {
+                  setPeek(it.id);
+                  if (owned) run(() => getRepo().equipItem(slot, on ? null : it.id));
+                }}
+                className={`flex flex-col items-center gap-1 rounded-xl p-1.5 ${on ? "bg-accent-2/15 ring-2 ring-accent-2" : peek === it.id ? "bg-panel-2" : ""}`}
+              >
+                <ItemIcon id={it.id} size={52} locked={!owned} />
+                <span className={`line-clamp-2 text-center text-[10px] leading-tight ${owned ? "" : "text-sub/60"}`}>{owned ? it.name : "？？？"}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {peekItem && (
+          <div className="mt-3 rounded-xl bg-panel-2 p-3 text-xs">
+            <p className="font-bold">
+              <span className="mr-1.5 rounded px-1.5 py-0.5 font-num text-[10px]" style={{ background: `${RARITY_COLORS[peekItem.rarity]}33`, color: RARITY_COLORS[peekItem.rarity] }}>
+                {peekItem.rarity}
+              </span>
+              {ownedItems.includes(peekItem.id) ? peekItem.name : "？？？"}
+            </p>
+            <p className="mt-1 text-sub">{ownedItems.includes(peekItem.id) ? peekItem.description : `入手方法: ${itemSourceLabel(peekItem)}`}</p>
+          </div>
+        )}
+        <p className="mt-2 text-[10px] text-sub">ボスを倒す・レベルを上げる・連続で運動するとアイテムが手に入ります。持っているアイテムをタップすると体に装着されます（もう一度タップで外す）。</p>
       </div>
       {err && <p className="text-xs text-bad">{err}</p>}
     </Card>

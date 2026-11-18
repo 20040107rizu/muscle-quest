@@ -1,4 +1,5 @@
-import { startOfWeek } from "./dates";
+import { addDays, startOfWeek } from "./dates";
+import { ITEMS, type Item } from "./items";
 import { isAssist } from "./exercises";
 import { bestE1RM } from "./xp";
 import { STAT_LABELS, type Activity, type StatKey } from "./types";
@@ -19,6 +20,8 @@ export interface QuestStats {
   longestRunKm: number;
   /** 種目ID → 推定1RM の最高値 */
   e1rm: Record<string, number>;
+  /** これまでで一番長かった連続運動日数 */
+  longestStreak: number;
 }
 
 export type Requirement =
@@ -213,7 +216,7 @@ export function buildQuestStats(
       longestRunKm = Math.max(longestRunKm, a.run.distanceKm);
     }
   }
-  return { ...base, weekXp, totalSets, totalRunKm: round1(totalRunKm), longestRunKm, e1rm };
+  return { ...base, weekXp, totalSets, totalRunKm: round1(totalRunKm), longestRunKm, e1rm, longestStreak: longestStreak(activities.map((a) => a.date)) };
 }
 
 export interface ReqProgress {
@@ -295,17 +298,63 @@ export function simulateClears(s: QuestStats): Set<string> {
   return cleared;
 }
 
-/** 獲得済みの称号・アイテム */
-export function ownedRewards(cleared: Set<string>) {
-  const titles: string[] = [];
-  const items: string[] = [];
-  for (const d of DUNGEONS) {
-    if (!isDungeonCleared(d, cleared)) continue;
-    if (d.reward.titleId) titles.push(d.reward.titleId);
-    if (d.reward.itemId) items.push(d.reward.itemId);
+/** これまでの最長連続日数 */
+export function longestStreak(dates: string[]): number {
+  const days = [...new Set(dates)].sort();
+  let best = 0;
+  let run = 0;
+  let prev: string | null = null;
+  for (const d of days) {
+    run = prev && addDays(prev, 1) === d ? run + 1 : 1;
+    best = Math.max(best, run);
+    prev = d;
   }
-  // 全ダンジョン制覇の追加報酬
-  if (DUNGEONS.every((d) => isDungeonCleared(d, cleared))) items.push("aura_gold");
+  return best;
+}
+
+/** アイテムの入手条件を満たしているか */
+export function itemUnlocked(item: Item, cleared: Set<string>, progress: { level: number; longestStreak: number }): boolean {
+  const s = item.source;
+  switch (s.kind) {
+    case "dungeon":
+      return isDungeonCleared(findDungeon(s.dungeonId)!, cleared);
+    case "floor":
+      return cleared.has(clearId(s.dungeonId, s.floor));
+    case "level":
+      return progress.level >= s.level;
+    case "streak":
+      return progress.longestStreak >= s.days;
+    case "allDungeons":
+      return DUNGEONS.every((d) => isDungeonCleared(d, cleared));
+  }
+}
+
+/** 入手方法の説明（未入手アイテムのヒント） */
+export function itemSourceLabel(item: Item): string {
+  const s = item.source;
+  switch (s.kind) {
+    case "dungeon":
+      return `${findDungeon(s.dungeonId)?.name}を踏破`;
+    case "floor": {
+      const d = findDungeon(s.dungeonId);
+      return `${d?.floors[s.floor]?.boss}を倒す（${d?.name} ${d?.floors[s.floor]?.name}）`;
+    }
+    case "level":
+      return `レベル${s.level}に到達`;
+    case "streak":
+      return `${s.days}日連続で運動`;
+    case "allDungeons":
+      return "全ダンジョンを踏破";
+  }
+}
+
+/** 獲得済みの称号・アイテム */
+export function ownedRewards(cleared: Set<string>, progress: { level: number; longestStreak: number } = { level: 1, longestStreak: 0 }) {
+  const titles: string[] = [];
+  for (const d of DUNGEONS) {
+    if (isDungeonCleared(d, cleared) && d.reward.titleId) titles.push(d.reward.titleId);
+  }
+  const items = ITEMS.filter((it) => itemUnlocked(it, cleared, progress)).map((it) => it.id);
   return { titles, items };
 }
 

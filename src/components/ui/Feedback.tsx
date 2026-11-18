@@ -2,7 +2,9 @@
 
 import { createContext, useCallback, useContext, useState } from "react";
 import type { SaveResult } from "@/data/repository";
+import { ItemGet } from "../fx/ItemGet";
 import { RewardSequence } from "../fx/RewardSequence";
+import { sfx } from "../fx/sound";
 
 interface Ctx {
   showResult: (r: SaveResult, title: string) => void;
@@ -19,7 +21,16 @@ export function useFeedback() {
 export function FeedbackProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<{ r: SaveResult; title: string; key: number } | null>(null);
   const showResult = useCallback((r: SaveResult, title: string) => setState({ r, title, key: Date.now() }), []);
-  const close = () => setState(null);
+  // ご褒美演出を閉じたあと、新しく手に入ったアイテムがあれば続けて見せる
+  const [items, setItems] = useState<string[] | null>(null);
+  const close = () => {
+    const got = state?.r.newItems ?? [];
+    setState(null);
+    if (got.length) {
+      setItems(got);
+      sfx.chest();
+    }
+  };
   const [ask, setAsk] = useState<{ message: string; ok: string; danger: boolean; resolve: (v: boolean) => void } | null>(null);
   const confirm = useCallback(
     (message: string, opts: { ok?: string; danger?: boolean } = {}) =>
@@ -50,6 +61,7 @@ export function FeedbackProvider({ children }: { children: React.ReactNode }) {
         </div>
       )}
       {state && <RewardSequence key={state.key} r={state.r} title={state.title} onClose={close} />}
+      {items && <ItemGet ids={items} onClose={() => setItems(null)} />}
     </FeedbackCtx.Provider>
   );
 }

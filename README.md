@@ -72,7 +72,10 @@ tests/                   Vitest
 
 - 主人公: `public/hero/{タイプ}_{段階}.webp`。段階はレベルで1〜6（ビギナー〜神話）、タイプはいちばん育った部位で8種類（`src/domain/character.ts` の `heroType`）。
   現在あるのはバランス型（1〜6）と胸型（2〜6）。ほかのタイプはバランス型で代わりに表示（`src/components/heroImages.ts` の `AVAILABLE` に足せば切り替わる）。
-- 装備アイコン: `public/items/{アイテムID}.webp`。ボス: `public/bosses/*.webp`。
+- 装備は体の画像に重ねて描く（`src/components/HeroFigure.tsx`）。頭・首・肩・手首・腰・裾・足の位置と、ショーツ・腰ゴム・靴の塗り替え用マスクは
+  `python3 -I scripts/assets/hero_anchors.py` で体の画像から自動生成（`src/components/heroAnchors.json`, `public/hero/masks/`）。体の画像を追加・差し替えたら再実行する。
+- アイテムは `src/domain/items.ts`（33個・9部位）。入手はボス撃破・ダンジョン踏破・レベル・最長連続日数。
+- 装備アイコン: `public/items/{アイテムID}.webp`（ない場合は `ItemIcon` が自動で描く）。ボス: `public/bosses/*.webp`。
 - 生成AIのシート画像からの切り出しは `scripts/assets/` のスクリプトで行う（`python3 -I scripts/assets/cut_hero_sheet.py シート.png 出力先 名前 人数`）。
 
 ## 不正・重複対策

@@ -26,6 +26,8 @@ export interface SaveResult {
   prLabel?: string;
   /** 今日この記録が何件目か（コンボ表示用） */
   comboToday?: number;
+  /** この記録で新しく手に入ったアイテム（レベル・連続日数の節目など） */
+  newItems?: string[];
 }
 
 export interface ChallengeResult {
@@ -36,6 +38,8 @@ export interface ChallengeResult {
   duplicate?: boolean;
   /** 戦闘後のボスの残りHP（0..1）。挑戦できなかった場合は undefined */
   remaining?: number;
+  /** 撃破で新しく手に入ったアイテム（ボスのドロップ・踏破報酬） */
+  newItems?: string[];
 }
 
 export interface WorkoutInput {

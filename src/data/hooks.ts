@@ -63,7 +63,7 @@ export function useMyData() {
     const cleared = new Set(raw.questClears.map((c) => c.id));
     /** ボスID → 最後に戦ったときの残りHP（未挑戦のボスは含まない） */
     const lastHp = new Map(raw.questAttempts.map((a) => [a.id, a.remaining]));
-    const owned = ownedRewards(cleared);
+    const owned = ownedRewards(cleared, questStats);
     return { ...raw, activities, character, metrics, questStats, cleared, owned, lastHp, today, now };
   }, [raw, now]);
 }
@@ -94,7 +94,7 @@ export function buildFriendView(user: MockUser, now: number): FriendView {
   }
   const character = buildCharacter(events, activities.map((a) => a.date), today);
   const cleared = simulateClears(buildQuestStats(activities, character, today));
-  const owned = ownedRewards(cleared);
+  const owned = ownedRewards(cleared, buildQuestStats(activities, character, today));
   // 一番最後に得た称号・各スロットで最後に得たアイテムを装備
   const gear: Gear = {};
   for (const id of owned.items) {
