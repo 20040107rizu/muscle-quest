@@ -1,6 +1,6 @@
 import type { GearSlot } from "@/domain/items";
 import type { Reward } from "@/domain/quests";
-import type { Activity, Exercise, MuscleGroup, Profile, QuestClear, RunRecord, SetRecord, StatKey, WorkoutEntry, XpEvent } from "@/domain/types";
+import type { Activity, Exercise, MuscleGroup, Profile, QuestAttempt, QuestClear, RunRecord, SetRecord, StatKey, WorkoutEntry, XpEvent } from "@/domain/types";
 
 /**
  * データアクセスの抽象。画面はこのインターフェースだけに依存する。
@@ -26,6 +26,8 @@ export interface ChallengeResult {
   /** この挑戦でダンジョンを踏破した場合の報酬 */
   reward: Reward | null;
   duplicate?: boolean;
+  /** 戦闘後のボスの残りHP（0..1）。挑戦できなかった場合は undefined */
+  remaining?: number;
 }
 
 export interface WorkoutInput {
@@ -62,6 +64,8 @@ export interface Repository {
 
   // ---- クエスト ----
   listQuestClears(): Promise<QuestClear[]>;
+  /** 各ボスと最後に戦ったときの残りHP */
+  listQuestAttempts(): Promise<QuestAttempt[]>;
   /** ボスに挑戦。条件はサーバー側（ここ）で記録から再計算して判定する */
   challengeFloor(dungeonId: string, floor: number): Promise<ChallengeResult>;
   /** 獲得済みのアイテムだけ装備できる。null で外す */

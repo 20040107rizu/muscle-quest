@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
 import { useFeedback } from "@/components/ui/Feedback";
+import { NumberInput } from "@/components/ui/NumberInput";
 import { Card, Initial, LevelBadge, Loading, PageHeader, Segmented, SectionTitle } from "@/components/ui/primitives";
 import { addDays, parseDateKey } from "@/domain/dates";
 import { isAssist } from "@/domain/exercises";
@@ -97,7 +98,7 @@ export default function MyPage() {
             </label>
             <label className="block text-xs text-sub">
               体重 (kg) — 自重種目の負荷計算に使用。友達には公開されません
-              <input type="number" value={bw} onChange={(e) => setBw(Number(e.target.value))} className="mt-1 w-full rounded-lg bg-panel-2 px-3 py-2 font-num text-sm text-ink outline-none" />
+              <NumberInput value={bw} onChange={setBw} min={30} max={250} decimals={1} ariaLabel="体重" className="mt-1 w-full rounded-lg bg-panel-2 px-3 py-2 font-num text-sm text-ink outline-none" />
             </label>
             <button
               onClick={async () => {

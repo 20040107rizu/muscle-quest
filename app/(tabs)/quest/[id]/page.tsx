@@ -28,24 +28,22 @@ export default function DungeonPage() {
   const fi = currentFloor(d, me.cleared);
   const floor = fi != null ? d.floors[fi] : null;
   const prog = floor ? floorProgress(floor, me.questStats) : null;
-  // 開戦前は満タン表示（どれだけ削れるかは戦ってみるまで分からない）
-  const shownHp = hp ?? 1;
+  // 最後に戦ったときの残りHP。未挑戦なら満タン・数値は ???（戦ってみるまで分からない）
+  const saved = fi != null ? me.lastHp.get(clearId(d.id, fi)) : undefined;
+  const shownHp = hp ?? saved ?? 1;
+  const hpKnown = hp != null || saved != null;
 
   async function challenge() {
     if (fi == null || !prog || phase === "fighting") return;
     setPhase("fighting");
     setMsg("");
-    // 攻撃演出: 達成度の分だけボスのHPが削れる
-    setHp(1);
-    await wait(250);
-    setHp(prog.ready ? 0 : 1 - prog.ratio);
-    await wait(900);
-    if (!prog.ready) {
-      setPhase("lost");
-      setMsg("まだ力が足りない…条件を満たしてから再挑戦しよう");
-      return;
-    }
+    // 判定と残りHPの保存はデータ層で行い、結果に合わせてHPを削る演出をする
+    const start = saved ?? 1;
+    setHp(start);
     const r = await getRepo().challengeFloor(d!.id, fi);
+    await wait(250);
+    setHp(r.remaining ?? start);
+    await wait(900);
     if (!r.ok) {
       setPhase("lost");
       setMsg(r.errors.join(" "));
@@ -85,7 +83,7 @@ export default function DungeonPage() {
           <div className="mx-auto mt-2 max-w-[16rem]">
             <div className="flex justify-between text-[10px] text-sub">
               <span>HP</span>
-              <span className="font-num">{hp == null ? "???" : `${Math.round(shownHp * 100)}%`}</span>
+              <span className="font-num">{hpKnown ? `${Math.round(shownHp * 100)}%` : "???"}</span>
             </div>
             <div className="mt-0.5 h-2.5 overflow-hidden rounded-full bg-white/10">
               <div className="h-full rounded-full bg-bad transition-[width] duration-700 ease-out" style={{ width: `${shownHp * 100}%` }} />
@@ -107,7 +105,7 @@ export default function DungeonPage() {
               disabled={phase === "fighting"}
               className="mt-4 w-full rounded-2xl bg-accent-2 py-4 text-base font-black text-bg shadow-[0_8px_24px_-8px_rgba(255,181,71,0.8)] disabled:opacity-60"
             >
-              {phase === "fighting" ? "戦闘中…" : phase === "lost" ? "⚔️ もう一度挑む" : "⚔️ ボスに挑む"}
+              {phase === "fighting" ? "戦闘中…" : phase === "lost" || saved != null ? "⚔️ もう一度挑む" : "⚔️ ボスに挑む"}
             </button>
           )}
           {msg && <p className="mt-2 text-xs text-bad">{msg}</p>}

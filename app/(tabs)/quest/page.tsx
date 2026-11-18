@@ -4,7 +4,7 @@ import Link from "next/link";
 import { BossArt } from "@/components/BossArt";
 import { Card, Loading, PageHeader } from "@/components/ui/primitives";
 import { findItem } from "@/domain/items";
-import { currentFloor, DUNGEONS, findDungeon, findTitle, floorProgress, isDungeonCleared, isUnlocked, TITLES } from "@/domain/quests";
+import { clearId, currentFloor, DUNGEONS, findDungeon, findTitle, floorProgress, isDungeonCleared, isUnlocked, TITLES } from "@/domain/quests";
 import { useMyData } from "@/data/hooks";
 
 export default function QuestPage() {
@@ -49,6 +49,8 @@ export default function QuestPage() {
           const fi = currentFloor(d, me.cleared);
           const floor = fi != null ? d.floors[fi] : null;
           const prog = floor ? floorProgress(floor, me.questStats) : null;
+          // 最後に戦ったときの残りHP（未挑戦なら undefined → ???）
+          const lastHp = fi != null ? me.lastHp.get(clearId(d.id, fi)) : undefined;
           const clearedFloors = d.floors.length - (fi == null ? 0 : d.floors.length - fi);
           const item = findItem(d.reward.itemId);
           const ttl = findTitle(d.reward.titleId);
@@ -83,10 +85,10 @@ export default function QuestPage() {
                         <span>
                           {floor.name}：<b>{floor.boss}</b>
                         </span>
-                        <span className="text-sub">HP ???</span>
+                        <span className="text-sub">{lastHp == null ? "HP ???" : `HP ${Math.round(lastHp * 100)}%`}</span>
                       </div>
                       <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
-                        <div className="h-full w-full rounded-full bg-bad" />
+                        <div className="h-full rounded-full bg-bad" style={{ width: `${Math.max(2, (lastHp ?? 1) * 100)}%` }} />
                       </div>
                     </div>
                   )}

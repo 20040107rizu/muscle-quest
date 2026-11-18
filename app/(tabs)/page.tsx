@@ -8,7 +8,7 @@ import { BossArt } from "@/components/BossArt";
 import { useFeedback } from "@/components/ui/Feedback";
 import { Card, Initial, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/primitives";
 import { DAILY_MISSIONS, missionEventId } from "@/domain/missions";
-import { currentFloor, DUNGEONS, findTitle, floorProgress, isUnlocked } from "@/domain/quests";
+import { clearId, currentFloor, DUNGEONS, findTitle, floorProgress, isUnlocked } from "@/domain/quests";
 import { rank } from "@/domain/ranking";
 import { getRepo, useFriends, useMyData } from "@/data/hooks";
 
@@ -56,6 +56,7 @@ export default function HomePage() {
     })
     .filter((x): x is NonNullable<typeof x> => !!x)
     .sort((a, b) => Number(b.prog.ready) - Number(a.prog.ready) || b.prog.ratio - a.prog.ratio)[0];
+  const questHp = quest ? me.lastHp.get(clearId(quest.d.id, quest.fi)) : undefined;
   const claimed = new Set(me.xpEvents.filter((e) => e.sourceType === "mission").map((e) => e.id));
 
   return (
@@ -137,9 +138,11 @@ export default function HomePage() {
               </p>
               <p className="font-bold">{`${quest.floor.boss} が待ち構えている`}</p>
               <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full w-full rounded-full bg-bad" />
+                <div className="h-full rounded-full bg-bad" style={{ width: `${Math.max(2, (questHp ?? 1) * 100)}%` }} />
               </div>
-              <p className="mt-1 text-[10px] text-sub">HP ??? ・ 鍛えた分だけダメージを与えられる</p>
+              <p className="mt-1 text-[10px] text-sub">
+                {questHp == null ? "HP ???" : `HP ${Math.round(questHp * 100)}%（前回の戦闘）`} ・ 鍛えた分だけダメージを与えられる
+              </p>
             </div>
             <span className="text-sub">›</span>
           </div>

@@ -251,6 +251,10 @@ export class LocalRepository implements Repository {
     return this.db.questClears.toArray();
   }
 
+  listQuestAttempts() {
+    return this.db.questAttempts.toArray();
+  }
+
   private async clearedSet() {
     return new Set((await this.db.questClears.toArray()).map((c) => c.id));
   }
@@ -266,7 +270,7 @@ export class LocalRepository implements Repository {
 
   async challengeFloor(dungeonId: string, floor: number): Promise<ChallengeResult> {
     const db = this.db;
-    return db.transaction("rw", [db.questClears, db.workouts, db.runs, db.xpEvents], async () => {
+    return db.transaction("rw", [db.questClears, db.questAttempts, db.workouts, db.runs, db.xpEvents], async () => {
       const fail = (e: string): ChallengeResult => ({ ok: false, errors: [e], reward: null });
       const d = findDungeon(dungeonId);
       if (!d || !d.floors[floor]) return fail("ダンジョンが見つかりません");
@@ -274,11 +278,15 @@ export class LocalRepository implements Repository {
       if (cleared.has(clearId(dungeonId, floor))) return { ok: true, errors: [], reward: null, duplicate: true };
       if (!isUnlocked(d, cleared)) return fail("まだ解放されていません");
       if (currentFloor(d, cleared) !== floor) return fail("前の階をクリアしてください");
+      // 残りHPは記録から計算し、ここで保存する（画面からは書き換えられない）
       const prog = floorProgress(d.floors[floor], await this.questStats());
-      if (!prog.ready) return fail("まだ力が足りない…もっと鍛えよう");
-      await db.questClears.put({ id: clearId(dungeonId, floor), dungeonId, floor, clearedAt: this.now() });
-      cleared.add(clearId(dungeonId, floor));
-      return { ok: true, errors: [], reward: isDungeonCleared(d, cleared) ? d.reward : null };
+      const id = clearId(dungeonId, floor);
+      const remaining = prog.ready ? 0 : Math.round((1 - prog.ratio) * 1000) / 1000;
+      await db.questAttempts.put({ id, dungeonId, floor, remaining, at: this.now() });
+      if (!prog.ready) return { ...fail("まだ力が足りない…条件を満たしてから再挑戦しよう"), remaining };
+      await db.questClears.put({ id, dungeonId, floor, clearedAt: this.now() });
+      cleared.add(id);
+      return { ok: true, errors: [], reward: isDungeonCleared(d, cleared) ? d.reward : null, remaining: 0 };
     });
   }
 

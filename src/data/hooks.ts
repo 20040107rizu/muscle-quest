@@ -40,7 +40,7 @@ export function useMyData() {
     const repo = getRepo();
     const profile = await repo.getProfile();
     if (!profile) return undefined;
-    const [workouts, runs, xpEvents, customExercises, friendIds, reactions, questClears] = await Promise.all([
+    const [workouts, runs, xpEvents, customExercises, friendIds, reactions, questClears, questAttempts] = await Promise.all([
       repo.listWorkouts(),
       repo.listRuns(),
       repo.listXpEvents(),
@@ -48,8 +48,9 @@ export function useMyData() {
       repo.listFriendIds(),
       repo.listMyReactions(),
       repo.listQuestClears(),
+      repo.listQuestAttempts(),
     ]);
-    return { profile, workouts, runs, xpEvents, customExercises, friendIds, reactions, questClears };
+    return { profile, workouts, runs, xpEvents, customExercises, friendIds, reactions, questClears, questAttempts };
   }, []);
 
   return useMemo(() => {
@@ -60,8 +61,10 @@ export function useMyData() {
     const metrics = computeMetrics(activities, today, bonusXpByDate(raw.xpEvents));
     const questStats = buildQuestStats(activities, character, today);
     const cleared = new Set(raw.questClears.map((c) => c.id));
+    /** ボスID → 最後に戦ったときの残りHP（未挑戦のボスは含まない） */
+    const lastHp = new Map(raw.questAttempts.map((a) => [a.id, a.remaining]));
     const owned = ownedRewards(cleared);
-    return { ...raw, activities, character, metrics, questStats, cleared, owned, today, now };
+    return { ...raw, activities, character, metrics, questStats, cleared, owned, lastHp, today, now };
   }, [raw, now]);
 }
 

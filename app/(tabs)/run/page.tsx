@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { RecordTabs } from "@/components/RecordTabs";
+import { NumberInput } from "@/components/ui/NumberInput";
 import { useFeedback } from "@/components/ui/Feedback";
 import { Card, Loading, SectionTitle } from "@/components/ui/primitives";
 import { addDays, formatDuration, formatPace, startOfMonth } from "@/domain/dates";
@@ -49,13 +50,12 @@ export default function RunPage() {
 
   const num = (v: number, set: (n: number) => void, max: number, label: string) => (
     <label className="flex flex-1 flex-col items-center rounded-xl bg-panel-2 py-2">
-      <input
-        type="number"
-        inputMode="numeric"
+      <NumberInput
         value={v}
+        onChange={set}
         min={0}
         max={max}
-        onChange={(e) => set(Math.max(0, Math.min(max, Math.floor(Number(e.target.value) || 0))))}
+        ariaLabel={label}
         className="w-full bg-transparent text-center font-num text-3xl font-semibold outline-none"
       />
       <span className="text-[10px] text-sub">{label}</span>
@@ -85,12 +85,13 @@ export default function RunPage() {
               −
             </button>
             <label className="flex flex-1 items-baseline justify-center gap-1">
-              <input
-                type="number"
-                inputMode="decimal"
-                step="0.01"
+              <NumberInput
                 value={km}
-                onChange={(e) => setKm(Number(e.target.value) || 0)}
+                onChange={setKm}
+                min={0}
+                max={100}
+                decimals={2}
+                ariaLabel="距離"
                 className="w-28 bg-transparent text-center font-num text-5xl font-bold text-cardio outline-none"
               />
               <span className="text-sm text-sub">km</span>

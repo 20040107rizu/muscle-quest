@@ -100,6 +100,15 @@ export interface Profile {
   gear?: Gear;
 }
 
+/** 最後に戦ったときのボスの残りHP（0..1）。HPは戦って初めて分かる */
+export interface QuestAttempt {
+  id: string; // `${dungeonId}:${floor}`
+  dungeonId: string;
+  floor: number;
+  remaining: number;
+  at: number;
+}
+
 export interface QuestClear {
   id: string; // `${dungeonId}:${floor}`
   dungeonId: string;

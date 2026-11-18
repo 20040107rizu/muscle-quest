@@ -46,6 +46,18 @@ describe("クエスト", () => {
     expect((await repo.challengeFloor("cave", 2)).ok).toBe(false);
   });
 
+  it("戦った後の残りHPが保存され、勝つと0になる", async () => {
+    await repo.saveWorkout({ id: "w1", exerciseId: "squat", date: today, sets: [{ weightKg: 60, reps: 10 }, { weightKg: 60, reps: 10 }] });
+    const lost = await repo.challengeFloor("cave", 0);
+    expect(lost.ok).toBe(false);
+    expect(lost.remaining).toBeCloseTo(0.6, 2); // 5セット中2セット → 残り60%
+    expect((await repo.listQuestAttempts()).find((a) => a.id === "cave:0")?.remaining).toBeCloseTo(0.6, 2);
+    await repo.saveWorkout({ id: "w2", exerciseId: "squat", date: today, sets: Array.from({ length: 3 }, () => ({ weightKg: 60, reps: 10 })) });
+    const won = await repo.challengeFloor("cave", 0);
+    expect(won.ok).toBe(true);
+    expect(won.remaining).toBe(0);
+  });
+
   it("未解放のダンジョンには挑めない", async () => {
     expect((await repo.challengeFloor("chest_temple", 0)).errors[0]).toMatch("解放");
   });

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { NumberInput } from "./NumberInput";
 import { STAT_LABELS, type StatKey } from "@/domain/types";
 
 export function Card({ className = "", children }: { className?: string; children: React.ReactNode }) {
@@ -120,12 +121,13 @@ export function Stepper({
       </button>
       <label className="flex min-w-0 flex-1 items-baseline justify-center gap-0.5">
         <span className="sr-only">{label}</span>
-        <input
-          inputMode="decimal"
-          type="number"
-          value={Number.isFinite(value) ? value : ""}
-          onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value))}
-          onBlur={() => onChange(clamp(value))}
+        <NumberInput
+          value={value}
+          onChange={onChange}
+          min={min}
+          max={max}
+          decimals={decimals}
+          ariaLabel={label}
           className="w-full min-w-0 bg-transparent text-center font-num text-xl font-semibold outline-none"
         />
         <span className="text-[10px] text-sub">{unit}</span>
