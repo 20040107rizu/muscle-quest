@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ITEMS, RARITY_COLORS, findItem } from "@/domain/items";
 import { findTitle, itemSourceLabel, TITLES } from "@/domain/quests";
-import { getRepo } from "@/data/hooks";
+import { wearAura } from "@/data/hooks";
 import { sfx } from "./fx/sound";
 import { ItemIcon } from "./ItemIcon";
 import { Card } from "./ui/primitives";
@@ -57,7 +57,7 @@ export function AuraTitlePanel({ aura, titleId, ownedItems, ownedTitles }: { aur
                 key={it.id}
                 onClick={() => {
                   setPeek(it.id);
-                  if (owned) run(() => getRepo().setAura(on ? null : it.id));
+                  if (owned) run(() => wearAura(on ? null : it.id));
                 }}
                 className={`flex flex-col items-center gap-1 rounded-xl p-1.5 ${on ? "bg-accent-2/15 ring-2 ring-accent-2" : peek === it.id ? "bg-panel-2" : ""}`}
               >

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { findItem, RARITY_COLORS } from "@/domain/items";
-import { getRepo, useMyData } from "@/data/hooks";
+import { useMyData, wearAura } from "@/data/hooks";
 import { HeroFigure } from "../HeroFigure";
 import { ItemIcon } from "../ItemIcon";
 import { FxImg, FxRays } from "./FxImg";
@@ -52,7 +52,7 @@ export function ItemGet({ ids, onClose, heading }: { ids: string[]; onClose: () 
           <button
             disabled={isOn}
             onClick={async () => {
-              await getRepo().setAura(item.id);
+              await wearAura(item.id);
               setEquipped((e) => ({ ...e, [item.id]: true }));
               sfx.coin();
             }}

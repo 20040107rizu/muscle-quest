@@ -6,7 +6,10 @@ import { buildCharacter, type CharacterState } from "@/domain/character";
 import { toDateKey } from "@/domain/dates";
 import { computeMetrics, type UserMetrics } from "@/domain/ranking";
 import type { Activity, XpBreakdown } from "@/domain/types";
-import { buildQuestStats, ownedRewards, simulateClears } from "@/domain/quests";
+import { buildQuestStats, DUNGEONS, ownedRewards, simulateClears, TITLES } from "@/domain/quests";
+import { ITEMS } from "@/domain/items";
+import { addDays } from "@/domain/dates";
+import { DEMO_XP, demoDates, isDemo, setDemoAura, setDemoTitle, useDemo } from "./demo";
 import { sumStats } from "@/domain/xp";
 import { bonusXpByDate, toActivities } from "./activities";
 import { LocalRepository } from "./local/localRepository";
@@ -30,8 +33,20 @@ export function useNow() {
   return now;
 }
 
+/** 称号をつける（見本モード中は見本の中だけで切り替える） */
+export async function wearTitle(titleId: string | null) {
+  if (isDemo()) return setDemoTitle(titleId);
+  await getRepo().setTitle(titleId);
+}
+/** オーラをまとう（見本モード中は見本の中だけで切り替える） */
+export async function wearAura(auraId: string | null) {
+  if (isDemo()) return setDemoAura(auraId);
+  await getRepo().setAura(auraId);
+}
+
 export function useMyData() {
   const now = useNow();
+  const demo = useDemo();
   useEffect(() => {
     getRepo().init();
   }, []);
@@ -63,8 +78,32 @@ export function useMyData() {
     /** ボスID → 最後に戦ったときの残りHP（未挑戦のボスは含まない） */
     const lastHp = new Map(raw.questAttempts.map((a) => [a.id, a.remaining]));
     const owned = ownedRewards(cleared, questStats);
+    if (demo.on) {
+      // 見本モード: 記録はそのまま、レベル・称号・オーラ・ダンジョンを全部そろった状態で表示する
+      const per = Math.round(DEMO_XP / 7);
+      const byStat: XpBreakdown = { chest: per, back: per, shoulders: per, arms: per, legs: per, core: per, cardio: per };
+      const demoChar = buildCharacter(
+        [...raw.xpEvents, { total: DEMO_XP, byStat, date: addDays(today, -60) }],
+        [...activities.map((a) => a.date), ...demoDates(today)],
+        today,
+      );
+      const allCleared = new Set(DUNGEONS.flatMap((d) => d.floors.map((_, i) => `${d.id}:${i}`)));
+      return {
+        ...raw,
+        profile: { ...raw.profile, titleId: demo.titleId, aura: demo.aura },
+        activities,
+        character: demoChar,
+        metrics,
+        questStats: buildQuestStats(activities, demoChar, today),
+        cleared: allCleared,
+        owned: { titles: TITLES.map((t) => t.id), items: ITEMS.map((i) => i.id) },
+        lastHp,
+        today,
+        now,
+      };
+    }
     return { ...raw, activities, character, metrics, questStats, cleared, owned, lastHp, today, now };
-  }, [raw, now]);
+  }, [raw, now, demo]);
 }
 
 export interface FriendView {

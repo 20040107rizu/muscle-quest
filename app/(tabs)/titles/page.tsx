@@ -6,7 +6,7 @@ import { sfx } from "@/components/fx/sound";
 import { Card, Loading, PageHeader } from "@/components/ui/primitives";
 import { RarityMark, TitlePlate } from "@/components/ui/TitlePlate";
 import { DUNGEONS, findTitle, TITLES } from "@/domain/quests";
-import { getRepo, useMyData } from "@/data/hooks";
+import { useMyData, wearTitle } from "@/data/hooks";
 
 /** 称号の入手方法（いまはダンジョン踏破で手に入る） */
 function howToGet(titleId: string): string {
@@ -28,7 +28,7 @@ export default function TitlesPage() {
   async function wear(id: string | null) {
     try {
       setErr("");
-      await getRepo().setTitle(id);
+      await wearTitle(id);
       sfx.coin();
     } catch (e) {
       setErr((e as Error).message);

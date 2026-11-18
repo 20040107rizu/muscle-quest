@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
 import { useFeedback } from "@/components/ui/Feedback";
 import { NumberInput } from "@/components/ui/NumberInput";
+import { DemoToggle } from "@/components/ui/DemoBanner";
 import { isSoundOn, setSoundOn, sfx } from "@/components/fx/sound";
 import { Card, Initial, LevelBadge, Loading, PageHeader, Segmented, SectionTitle } from "@/components/ui/primitives";
 import { addDays, parseDateKey } from "@/domain/dates";
@@ -234,6 +235,8 @@ export default function MyPage() {
         <span className="text-sm font-bold">称号図鑑</span>
         <span className="text-xs text-sub">見る ›</span>
       </Link>
+
+      <DemoToggle />
 
       <SoundToggle />
 

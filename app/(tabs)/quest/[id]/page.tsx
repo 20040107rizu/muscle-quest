@@ -13,7 +13,7 @@ import { ItemGet } from "@/components/fx/ItemGet";
 import { FxImg, FxRays } from "@/components/fx/FxImg";
 import { Card, Loading } from "@/components/ui/primitives";
 import { clearId, currentFloor, findDungeon, findTitle, floorProgress, isUnlocked, type Reward } from "@/domain/quests";
-import { getRepo, useMyData } from "@/data/hooks";
+import { getRepo, useMyData, wearTitle } from "@/data/hooks";
 
 type Phase = "idle" | "fighting" | "won" | "lost";
 
@@ -371,7 +371,7 @@ function RewardModal({ reward, onClose }: { reward: Reward; onClose: () => void 
                 variant="gold"
                 disabled={equipped}
                 onClick={async () => {
-                  if (title) await getRepo().setTitle(title.id);
+                  if (title) await wearTitle(title.id);
                   setEquipped(true);
                   sfx.coin();
                 }}
