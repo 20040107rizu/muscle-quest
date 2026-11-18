@@ -13,6 +13,7 @@ import { Card, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/
 import { buildFriendView, getRepo, useMyData } from "@/data/hooks";
 import { findMockUser } from "@/data/mock/friends";
 import { findTitle } from "@/domain/quests";
+import { BattlePanel } from "@/components/Battle";
 
 export default function FriendDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -82,6 +83,8 @@ export default function FriendDetailPage() {
         <p className="mb-2 text-sm font-bold">部位ステータス</p>
         <StatBars c={c} />
       </Card>
+
+      {isFriend && <BattlePanel friend={view} />}
 
       <section>
         <SectionTitle>今日のトレーニング</SectionTitle>

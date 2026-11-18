@@ -231,6 +231,11 @@ export default function MyPage() {
         </Card>
       )}
 
+      <Link href="/body" className="skin-card flex items-center justify-between px-4 py-3">
+        <span className="text-sm font-bold">体の記録（体重・写真）</span>
+        <span className="text-xs text-sub">見る ›</span>
+      </Link>
+
       <Link href="/titles" className="skin-card flex items-center justify-between px-4 py-3">
         <span className="text-sm font-bold">称号図鑑</span>
         <span className="text-xs text-sub">見る ›</span>

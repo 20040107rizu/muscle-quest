@@ -5,14 +5,8 @@ import { useState } from "react";
 import { sfx } from "@/components/fx/sound";
 import { Card, Loading, PageHeader } from "@/components/ui/primitives";
 import { RarityMark, TitlePlate } from "@/components/ui/TitlePlate";
-import { DUNGEONS, findTitle, TITLES } from "@/domain/quests";
+import { findTitle, titleHowToGet, TITLES } from "@/domain/quests";
 import { useMyData, wearTitle } from "@/data/hooks";
-
-/** 称号の入手方法（いまはダンジョン踏破で手に入る） */
-function howToGet(titleId: string): string {
-  const d = DUNGEONS.find((x) => x.reward.titleId === titleId);
-  return d ? `「${d.name}」を踏破する（全${d.floors.length}階のボスを倒す）` : "条件は準備中";
-}
 
 /**
  * 称号図鑑。持っている称号はタップで付け替えられる。
@@ -76,7 +70,7 @@ export default function TitlesPage() {
                   </span>
                 )}
                 <p className={`mt-1 text-[11px] ${has ? "text-sub" : "text-ink/80"}`}>
-                  {has ? (on ? "つけています（タップではずす）" : "タップでつける") : `入手条件：${howToGet(t.id)}`}
+                  {has ? (on ? "つけています（タップではずす）" : "タップでつける") : `入手条件：${titleHowToGet(t.id)}`}
                 </p>
               </div>
             </button>

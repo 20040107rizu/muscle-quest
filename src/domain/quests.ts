@@ -1,4 +1,5 @@
 import { addDays, startOfWeek } from "./dates";
+import { WEEKLY_BOSSES } from "./weekly";
 import { ITEMS, type Item } from "./items";
 import { isAssist } from "./exercises";
 import { bestE1RM } from "./xp";
@@ -76,7 +77,18 @@ export const TITLES: Title[] = [
   { id: "wind_runner", name: "風の走者", rarity: "SR" },
   { id: "unyielding", name: "不屈の魂", rarity: "SSR" },
   { id: "muscle_king", name: "筋肉覇王", rarity: "UR" },
+  // 週替わりボスの限定称号
+  ...WEEKLY_BOSSES.map((b) => ({ id: b.titleId, name: b.titleName, rarity: b.rarity })),
 ];
+
+/** 称号の入手条件（持っていない称号の説明） */
+export function titleHowToGet(titleId: string): string {
+  const d = DUNGEONS.find((x) => x.reward.titleId === titleId);
+  if (d) return `「${d.name}」を踏破する（全${d.floors.length}階のボスを倒す）`;
+  const w = WEEKLY_BOSSES.find((b) => b.titleId === titleId);
+  if (w) return `週替わりボス「${w.name}」の週に、友達みんなで倒す（自分も1回以上運動する）`;
+  return "条件は準備中";
+}
 
 export function findTitle(id: string | undefined): Title | undefined {
   return id ? TITLES.find((t) => t.id === id) : undefined;
@@ -350,11 +362,12 @@ export function itemSourceLabel(item: Item): string {
 }
 
 /** 獲得済みの称号・オーラ */
-export function ownedRewards(cleared: Set<string>, progress: ItemProgress = { level: 1, longestStreak: 0 }) {
+export function ownedRewards(cleared: Set<string>, progress: ItemProgress = { level: 1, longestStreak: 0 }, weeklyBossIds: string[] = []) {
   const titles: string[] = [];
   for (const d of DUNGEONS) {
     if (isDungeonCleared(d, cleared) && d.reward.titleId) titles.push(d.reward.titleId);
   }
+  for (const b of WEEKLY_BOSSES) if (weeklyBossIds.includes(b.id)) titles.push(b.titleId);
   const items = ITEMS.filter((it) => itemUnlocked(it, progress)).map((it) => it.id);
   return { titles, items };
 }

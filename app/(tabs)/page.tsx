@@ -7,6 +7,8 @@ import { SkinButton, SkinFace } from "@/components/ui/SkinButton";
 import Link from "next/link";
 import { useMemo } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
+import { chestOpened, DailyChest } from "@/components/DailyChest";
+import { WeeklyBossCard } from "@/components/WeeklyBossCard";
 import { HeroFigure } from "@/components/HeroFigure";
 import { BossArt } from "@/components/BossArt";
 import { FxImg } from "@/components/fx/FxImg";
@@ -135,6 +137,10 @@ export default function HomePage() {
           <SkinFace variant="run" className="h-14 w-full text-sm"><UiIcon name="run" className="mr-1" />ランを記録</SkinFace>
         </Link>
       </div>
+
+      <DailyChest today={me.today} friendCode={me.profile.friendCode} moved={todayActs.length > 0} opened={chestOpened(me.xpEvents, me.today)} />
+
+      <WeeklyBossCard compact />
 
       {/* クエスト */}
       {quest && (

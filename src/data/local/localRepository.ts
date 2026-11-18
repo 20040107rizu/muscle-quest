@@ -2,10 +2,13 @@ import { validateRun, validateSets } from "@/domain/antiCheat";
 import { toDateKey } from "@/domain/dates";
 import { findExercise, makeCustomExercise } from "@/domain/exercises";
 import { DAILY_MISSIONS, missionEventId } from "@/domain/missions";
-import type { Exercise, MuscleGroup, Profile, XpEvent } from "@/domain/types";
+import type { Activity, BodyLog, Exercise, MuscleGroup, Profile, WorkoutMenu, XpEvent } from "@/domain/types";
 import { applyDailyCap, bestE1RM, computeRunXp, computeWorkoutXp, levelFromXp } from "@/domain/xp";
 import { critBonus, isCritical, PR_BONUS } from "@/domain/bonus";
-import { findMockUserByCode, MOCK_DEFAULT_FRIENDS } from "../mock/friends";
+import { findMockUser, findMockUserByCode, mockActivities, MOCK_DEFAULT_FRIENDS } from "../mock/friends";
+import { chestEventId, rollChest } from "@/domain/chest";
+import { weeklyBossFor } from "@/domain/weekly";
+import { battleEnd, MAX_ACTIVE_BATTLES } from "@/domain/battle";
 import { toActivities } from "../activities";
 import { buildCharacter } from "@/domain/character";
 import { findItem } from "@/domain/items";
@@ -349,9 +352,13 @@ export class LocalRepository implements Repository {
     });
   }
 
-  /** 今持っているアイテム（クリア状況・レベル・連続日数から計算） */
+  /** 今持っているオーラ（レベル・連続日数・走行距離から計算） */
   private async ownedItemIds(): Promise<string[]> {
     return ownedRewards(await this.clearedSet(), await this.questStats()).items;
+  }
+
+  private async weeklyBossIds() {
+    return (await this.db.weeklyClears.toArray()).map((c) => c.bossId);
   }
 
   private async newItemsSince(before: string[]): Promise<string[]> {
@@ -367,8 +374,120 @@ export class LocalRepository implements Repository {
 
   async setTitle(titleId: string | null) {
     const p = await this.init();
-    if (titleId && !ownedRewards(await this.clearedSet(), await this.questStats()).titles.includes(titleId)) throw new Error("この称号はまだ獲得していません");
+    if (titleId && !ownedRewards(await this.clearedSet(), await this.questStats(), await this.weeklyBossIds()).titles.includes(titleId)) throw new Error("この称号はまだ獲得していません");
     await this.db.profile.put({ ...p, titleId: titleId ?? undefined });
+  }
+
+  // ---------- 筋トレメニュー ----------
+
+  listMenus() {
+    return this.db.menus.orderBy("createdAt").toArray();
+  }
+
+  async saveMenu(name: string, exerciseIds: string[]): Promise<WorkoutMenu> {
+    const trimmed = name.trim().slice(0, 20);
+    if (!trimmed) throw new Error("メニュー名を入力してください");
+    const custom = await this.db.exercises.toArray();
+    const ids = [...new Set(exerciseIds)].filter((id) => findExercise(id, custom)).slice(0, 12);
+    if (!ids.length) throw new Error("種目を1つ以上入れてください");
+    const menu: WorkoutMenu = { id: uuid(), name: trimmed, exerciseIds: ids, createdAt: this.now() };
+    await this.db.menus.put(menu);
+    return menu;
+  }
+
+  async deleteMenu(id: string) {
+    await this.db.menus.delete(id);
+  }
+
+  // ---------- 体重・写真 ----------
+
+  listBodyLogs(): Promise<BodyLog[]> {
+    return this.db.bodyLogs.orderBy("date").toArray();
+  }
+
+  async saveBodyLog(date: string, patch: { weightKg?: number; photo?: string | null }) {
+    const today = this.today();
+    if (date > today) throw new Error("未来の日付には記録できません");
+    if (patch.weightKg != null && (patch.weightKg < 30 || patch.weightKg > 250)) throw new Error("体重は30〜250kgで入力してください");
+    if (patch.photo && patch.photo.length > 1_500_000) throw new Error("写真が大きすぎます");
+    const cur = (await this.db.bodyLogs.get(date)) ?? { id: date, date, updatedAt: 0 };
+    const next: BodyLog = { ...cur, updatedAt: this.now() };
+    if (patch.weightKg != null) next.weightKg = Math.round(patch.weightKg * 10) / 10;
+    if (patch.photo === null) delete next.photo;
+    else if (patch.photo) next.photo = patch.photo;
+    if (next.weightKg == null && !next.photo) await this.db.bodyLogs.delete(date);
+    else await this.db.bodyLogs.put(next);
+    // 最新の体重は経験値の計算（自重種目など）にも使う
+    if (patch.weightKg != null) {
+      const latest = (await this.db.bodyLogs.orderBy("date").reverse().toArray()).find((l) => l.weightKg != null);
+      if (latest?.date === date) await this.updateProfile({ bodyweightKg: next.weightKg });
+    }
+  }
+
+  // ---------- 毎日の宝箱 ----------
+
+  async openDailyChest(date: string): Promise<SaveResult> {
+    const db = this.db;
+    return db.transaction("rw", [db.workouts, db.runs, db.xpEvents, db.profile, db.questClears], async () => {
+      const before = levelFromXp(await this.totalXp()).level;
+      const ownedBefore = await this.ownedItemIds();
+      const res = emptyResult(before);
+      if (date !== this.today()) return { ...res, errors: ["今日の宝箱だけ開けられます"] };
+      const p = await this.init();
+      const roll = rollChest(p.friendCode, date);
+      if (await db.xpEvents.get(chestEventId(date))) return { ...res, ok: true, duplicate: true, chest: roll };
+      const moved = (await db.workouts.where("date").equals(date).count()) + (await db.runs.where("date").equals(date).count());
+      if (!moved) return { ...res, errors: ["今日1回運動すると開けられます"] };
+      await this.putXp("bonus", `chest:${date}`, date, this.now(), roll.xp, {});
+      const after = levelFromXp(await this.totalXp()).level;
+      return { ...res, ok: true, xpGained: roll.xp, levelAfter: after, chest: roll, newItems: await this.newItemsSince(ownedBefore) };
+    });
+  }
+
+  // ---------- 週替わりボス ----------
+
+  listWeeklyClears() {
+    return this.db.weeklyClears.toArray();
+  }
+
+  /** その週に稼いだ経験値（筋トレ・ランの分だけ） */
+  private async myXpBetween(from: string, to: string) {
+    const [workouts, runs, xpEvents] = await Promise.all([this.db.workouts.toArray(), this.db.runs.toArray(), this.db.xpEvents.toArray()]);
+    return sumXpBetween(toActivities(workouts, runs, xpEvents), from, to);
+  }
+
+  async claimWeeklyBoss(date: string) {
+    const today = this.today();
+    if (date !== today) return { ok: false, error: "今週のボスだけ受け取れます" };
+    const { boss, weekKey } = weeklyBossFor(today);
+    if (await this.db.weeklyClears.get(weekKey)) return { ok: true, titleId: boss.titleId };
+    const mine = await this.myXpBetween(weekKey, today);
+    if (mine <= 0) return { ok: false, error: "今週まだ運動していません。1回運動すると受け取れます" };
+    let team = mine;
+    for (const id of await this.listFriendIds()) {
+      const u = findMockUser(id);
+      if (u) team += sumXpBetween(mockActivities(u, this.now()), weekKey, today);
+    }
+    if (team < boss.hp) return { ok: false, error: "まだ倒せていません" };
+    await this.db.weeklyClears.put({ id: weekKey, bossId: boss.id, clearedAt: this.now() });
+    return { ok: true, titleId: boss.titleId };
+  }
+
+  // ---------- 友達との対決 ----------
+
+  listBattles() {
+    return this.db.battles.orderBy("start").reverse().toArray();
+  }
+
+  async startBattle(friendId: string) {
+    if (!(await this.db.friendships.get(friendId))) return { ok: false, error: "友達ではありません" };
+    const today = this.today();
+    const all = await this.db.battles.toArray();
+    const active = all.filter((b) => b.end >= today);
+    if (active.some((b) => b.friendId === friendId)) return { ok: false, error: "この友達とは対決中です" };
+    if (active.length >= MAX_ACTIVE_BATTLES) return { ok: false, error: `同時に対決できるのは${MAX_ACTIVE_BATTLES}人までです` };
+    await this.db.battles.put({ id: `${friendId}:${today}`, friendId, start: today, end: battleEnd(today), createdAt: this.now() });
+    return { ok: true };
   }
 
   async resetAll() {
@@ -377,3 +496,7 @@ export class LocalRepository implements Repository {
 }
 
 export const newId = uuid;
+
+function sumXpBetween(acts: Activity[], from: string, to: string) {
+  return acts.filter((a) => a.date >= from && a.date <= to).reduce((s, a) => s + a.xp, 0);
+}

@@ -8,7 +8,7 @@ import { RecordTabs } from "@/components/RecordTabs";
 import { Card, Loading, SectionTitle, Stepper } from "@/components/ui/primitives";
 import { addDays } from "@/domain/dates";
 import { EXERCISE_GROUP_ORDER, isAssist, PRESET_EXERCISES, primaryGroup } from "@/domain/exercises";
-import type { Exercise, MuscleGroup, SetRecord, WorkoutEntry } from "@/domain/types";
+import type { Exercise, MuscleGroup, SetRecord, WorkoutEntry, WorkoutMenu } from "@/domain/types";
 import { bestE1RM, computeWorkoutXp, volumeOf } from "@/domain/xp";
 import { getRepo, useMyData } from "@/data/hooks";
 import { newId } from "@/data/local/localRepository";
@@ -16,34 +16,72 @@ import { newId } from "@/data/local/localRepository";
 export default function WorkoutPage() {
   const me = useMyData();
   const [selected, setSelected] = useState<Exercise | null>(null);
+  /** メニューを進めている途中なら、そのメニューと何種目目か */
+  const [run, setRun] = useState<{ menu: WorkoutMenu; index: number } | null>(null);
 
   if (!me) return <Loading />;
   const all = [...PRESET_EXERCISES, ...me.customExercises];
+  const find = (id: string) => all.find((e) => e.id === id);
+
+  function startMenu(menu: WorkoutMenu, index = 0) {
+    for (let i = index; i < menu.exerciseIds.length; i++) {
+      const ex = find(menu.exerciseIds[i]);
+      if (ex) {
+        setRun({ menu, index: i });
+        setSelected(ex);
+        return;
+      }
+    }
+    setRun(null);
+    setSelected(null);
+  }
 
   return (
     <div className="space-y-4 pt-4">
       <RecordTabs active="workout" />
       {selected ? (
         <SetEditor
-          key={selected.id}
+          key={`${selected.id}:${run?.index ?? ""}`}
           exercise={selected}
           history={me.workouts.filter((w) => w.exerciseId === selected.id)}
           today={me.today}
           bodyweightKg={me.profile.bodyweightKg}
           todaySetsSameExercise={me.workouts.filter((w) => w.exerciseId === selected.id && w.date === me.today).reduce((a, w) => a + w.sets.length, 0)}
-          onBack={() => setSelected(null)}
+          menuStep={run ? { name: run.menu.name, index: run.index, total: run.menu.exerciseIds.length } : undefined}
+          onNext={run ? () => startMenu(run.menu, run.index + 1) : undefined}
+          onBack={() => {
+            setRun(null);
+            setSelected(null);
+          }}
         />
       ) : (
-        <ExercisePicker exercises={all} recent={me.workouts} onPick={setSelected} />
+        <ExercisePicker exercises={all} recent={me.workouts} menus={me.menus} todayIds={me.workouts.filter((w) => w.date === me.today).map((w) => w.exerciseId).reverse()} onPick={setSelected} onStartMenu={startMenu} />
       )}
       <TodayList entries={me.workouts.filter((w) => w.date === me.today)} />
     </div>
   );
 }
 
-function ExercisePicker({ exercises, recent, onPick }: { exercises: Exercise[]; recent: WorkoutEntry[]; onPick: (e: Exercise) => void }) {
+function ExercisePicker({
+  exercises,
+  recent,
+  menus,
+  todayIds,
+  onPick,
+  onStartMenu,
+}: {
+  exercises: Exercise[];
+  recent: WorkoutEntry[];
+  menus: WorkoutMenu[];
+  todayIds: string[];
+  onPick: (e: Exercise) => void;
+  onStartMenu: (m: WorkoutMenu) => void;
+}) {
   const [group, setGroup] = useState<MuscleGroup | "all">("all");
   const [adding, setAdding] = useState(false);
+  const [building, setBuilding] = useState(false);
+  const { confirm: ask } = useFeedback();
+  const nameOf = (id: string) => exercises.find((e) => e.id === id)?.name ?? "（削除された種目）";
   const [q, setQ] = useState("");
 
   const recentEx = useMemo(() => {
@@ -56,6 +94,37 @@ function ExercisePicker({ exercises, recent, onPick }: { exercises: Exercise[]; 
 
   return (
     <div className="space-y-4">
+      <section>
+        <SectionTitle>マイメニュー</SectionTitle>
+        <div className="space-y-2">
+          {menus.map((m) => (
+            <div key={m.id} className="skin-card flex items-center gap-2 p-3">
+              <button onClick={() => onStartMenu(m)} className="min-w-0 flex-1 text-left">
+                <p className="text-sm font-black">{m.name}</p>
+                <p className="truncate text-[11px] text-sub">{m.exerciseIds.map(nameOf).join(" → ")}</p>
+              </button>
+              <SkinButton onClick={() => onStartMenu(m)} className="h-10 w-20 shrink-0 text-xs">
+                始める
+              </SkinButton>
+              <button
+                aria-label="メニューを削除"
+                onClick={async () => (await ask(`メニュー「${m.name}」を削除しますか？`, { ok: "削除する", danger: true })) && getRepo().deleteMenu(m.id)}
+                className="shrink-0 px-1 text-sub"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+          {building ? (
+            <MenuBuilder exercises={exercises} initial={todayIds} onDone={() => setBuilding(false)} />
+          ) : (
+            <button onClick={() => setBuilding(true)} className="w-full rounded-xl border border-dashed border-line py-3 text-sm text-sub">
+              ＋ メニューを作る{todayIds.length > 0 ? "（今日やった種目から）" : ""}
+            </button>
+          )}
+        </div>
+      </section>
+
       {recentEx.length > 0 && (
         <section>
           <SectionTitle>最近の種目</SectionTitle>
@@ -113,6 +182,70 @@ function ExercisePicker({ exercises, recent, onPick }: { exercises: Exercise[]; 
   );
 }
 
+/** メニュー作り。タップした順に種目が並ぶ */
+function MenuBuilder({ exercises, initial, onDone }: { exercises: Exercise[]; initial: string[]; onDone: () => void }) {
+  const [name, setName] = useState("");
+  const [ids, setIds] = useState<string[]>(() => [...new Set(initial)]);
+  const [group, setGroup] = useState<MuscleGroup | "all">("all");
+  const [err, setErr] = useState("");
+  const toggle = (id: string) => setIds((x) => (x.includes(id) ? x.filter((y) => y !== id) : [...x, id]));
+  const list = exercises.filter((e) => group === "all" || primaryGroup(e) === group);
+  return (
+    <Card className="space-y-3">
+      <p className="text-sm font-bold">メニューを作る</p>
+      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="例: 胸の日" maxLength={20} className="w-full skin-input px-2 py-1.5 text-sm outline-none" />
+      <div>
+        <p className="mb-1.5 text-xs text-sub">やる順番（タップで外す）</p>
+        {ids.length ? (
+          <div className="flex flex-wrap gap-1.5">
+            {ids.map((id, i) => (
+              <button key={id} onClick={() => toggle(id)} className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-white">
+                {i + 1}. {exercises.find((e) => e.id === id)?.name ?? id} ✕
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-sub">下の一覧から種目をタップして追加</p>
+        )}
+      </div>
+      <div className="flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
+        {[{ group: "all" as const, label: "すべて" }, ...EXERCISE_GROUP_ORDER].map((g) => (
+          <button key={g.group} onClick={() => setGroup(g.group)} className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${group === g.group ? "bg-ink text-bg" : "bg-panel-2 text-sub"}`}>
+            {g.label}
+          </button>
+        ))}
+      </div>
+      <div className="max-h-56 overflow-y-auto rounded-xl bg-panel-2">
+        {list.map((e) => (
+          <button key={e.id} onClick={() => toggle(e.id)} className="flex w-full items-center justify-between border-b border-line px-3 py-2.5 text-left text-sm last:border-0">
+            {e.name}
+            <span className={`text-xs font-bold ${ids.includes(e.id) ? "text-accent" : "text-sub"}`}>{ids.includes(e.id) ? `${ids.indexOf(e.id) + 1}番目` : "＋"}</span>
+          </button>
+        ))}
+      </div>
+      {err && <p className="text-xs text-bad">{err}</p>}
+      <div className="grid grid-cols-2 gap-2">
+        <SkinButton variant="gray" onClick={onDone} className="h-11 w-full text-sm">
+          やめる
+        </SkinButton>
+        <SkinButton
+          onClick={async () => {
+            try {
+              await getRepo().saveMenu(name, ids);
+              onDone();
+            } catch (e) {
+              setErr((e as Error).message);
+            }
+          }}
+          className="h-11 w-full text-sm"
+        >
+          保存する
+        </SkinButton>
+      </div>
+    </Card>
+  );
+}
+
 function AddExerciseForm({ onDone }: { onDone: () => void }) {
   const [name, setName] = useState("");
   const [group, setGroup] = useState<MuscleGroup>("chest");
@@ -165,6 +298,8 @@ function SetEditor({
   today,
   bodyweightKg,
   todaySetsSameExercise,
+  menuStep,
+  onNext,
   onBack,
 }: {
   exercise: Exercise;
@@ -172,6 +307,10 @@ function SetEditor({
   today: string;
   bodyweightKg: number;
   todaySetsSameExercise: number;
+  /** メニューを進めている途中なら、その情報 */
+  menuStep?: { name: string; index: number; total: number };
+  /** メニューの次の種目へ（最後なら終わり） */
+  onNext?: () => void;
   onBack: () => void;
 }) {
   const { showResult, confirm: ask } = useFeedback();
@@ -182,7 +321,8 @@ function SetEditor({
   const minAssist = history.length ? Math.min(...history.flatMap((h) => h.sets.map((s) => s.weightKg))) : null;
   const defaultSet: SetRecord =
     prev?.sets[prev.sets.length - 1] ?? { weightKg: exercise.bodyweight ? 0 : assist ? Math.round(bodyweightKg * 0.5 / 5) * 5 : 20, reps: 10 };
-  const [sets, setSets] = useState<SetRecord[]>([{ ...defaultSet }]);
+  // 前回の記録があれば、全セットの重さ・回数を最初から入れておく
+  const [sets, setSets] = useState<SetRecord[]>(() => (prev ? prev.sets.map((s) => ({ ...s })) : [{ ...defaultSet }]));
   const [date, setDate] = useState(today);
   // 保存するまで同じIDを使う → 連打・再送信しても1回分しか記録されない
   const [draftId, setDraftId] = useState(() => newId());
@@ -210,14 +350,15 @@ function SetEditor({
     setErrors([]);
     if (!r.duplicate) showResult(r, `${exercise.name} を記録しました`);
     setDraftId(newId());
-    onBack();
+    if (onNext) onNext();
+    else onBack();
   }
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <button onClick={onBack} className="text-sm text-sub">
-          ‹ 種目を変更
+          {menuStep ? "‹ メニューをやめる" : "‹ 種目を変更"}
         </button>
         <select value={date} onChange={(e) => setDate(e.target.value)} className="rounded-lg bg-panel px-2 py-1 text-xs text-ink outline-none">
           {Array.from({ length: 8 }, (_, i) => addDays(today, -i)).map((d, i) => (
@@ -228,6 +369,19 @@ function SetEditor({
         </select>
       </div>
 
+      {menuStep && (
+        <div className="skin-tag flex items-center justify-between px-2 py-1 text-xs">
+          <span className="font-bold">
+            {menuStep.name}　{menuStep.index + 1} / {menuStep.total}種目
+          </span>
+          {onNext && (
+            <button onClick={onNext} className="text-sub">
+              {menuStep.index + 1 < menuStep.total ? "この種目を飛ばす ›" : "メニューを終える"}
+            </button>
+          )}
+        </div>
+      )}
+
       <Card>
         <p className="text-lg font-black">{exercise.name}</p>
         {prev ? (
@@ -237,9 +391,7 @@ function SetEditor({
               <span>{assist ? `最小アシスト ${minAssist}kg` : `推定MAX ${best.toFixed(1)}kg`}</span>
             </div>
             <p className="mt-1 font-num text-sm">{summarizeSets(prev.sets, assist)}</p>
-            <button onClick={() => setSets(prev.sets.map((s) => ({ ...s })))} className="mt-2 rounded-lg bg-bg px-3 py-1.5 text-[11px] font-bold text-accent">
-              前回と同じメニューを入力
-            </button>
+            <p className="mt-1.5 text-[11px] text-accent-2">前回の重さと回数を入れてあります。変えたいところだけ直してください</p>
           </div>
         ) : (
           <p className="mt-1 text-xs text-sub">初めての種目です。無理のない重量から始めましょう</p>
@@ -326,7 +478,7 @@ function SetEditor({
       )}
 
       <SkinButton onClick={() => save()} disabled={saving} className="h-16 w-full text-base">
-        {saving ? "保存中…" : `${sets.length}セットを記録する`}
+        {saving ? "保存中…" : menuStep && menuStep.index + 1 < menuStep.total ? `${sets.length}セットを記録して次へ` : `${sets.length}セットを記録する`}
       </SkinButton>
     </div>
   );

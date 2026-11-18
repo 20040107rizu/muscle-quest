@@ -1,11 +1,11 @@
 "use client";
 
-import { UiIcon } from "@/components/ui/UiIcon";
 import { TitlePlate } from "@/components/ui/TitlePlate";
-import { SkinGauge } from "@/components/ui/SkinGauge";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
+import { WeeklyBossCard } from "@/components/WeeklyBossCard";
+import { BattleList } from "@/components/Battle";
 import { HeroFigure } from "@/components/HeroFigure";
 import { Card, LevelBadge, Loading, PageHeader, Segmented, SectionTitle } from "@/components/ui/primitives";
 import { addDays } from "@/domain/dates";
@@ -31,11 +31,6 @@ export default function FriendsPage() {
 
   if (!me) return <Loading />;
 
-  // 協力: 仲間全員の週間XPを合計して目標達成を目指す
-  const members = friends.length + 1;
-  const teamGoal = members * 2500;
-  const teamXp = me.metrics.weekXp + friends.reduce((a, f) => a + f.metrics.weekXp, 0);
-
   return (
     <div className="space-y-5">
       <PageHeader title="友達" sub={`あなたのフレンドコード: ${me.profile.friendCode}`} />
@@ -60,20 +55,9 @@ export default function FriendsPage() {
         })}
       </div>
 
-      <Card className="!p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-bold"><UiIcon name="cheer" className="mr-1" />みんなで週間チャレンジ</p>
-          <p className="text-[10px] text-sub">{members}人で協力</p>
-        </div>
-        <p className="mt-1 font-num text-2xl font-bold">
-          {teamXp.toLocaleString()}
-          <span className="text-sm text-sub"> / {teamGoal.toLocaleString()} XP</span>
-        </p>
-        <SkinGauge kind="xp" value={teamXp / teamGoal} h={16} className="mt-2" />
-        <p className="mt-1.5 text-[11px] text-sub">
-          {teamXp >= teamGoal ? "達成！全員のキャラにボーナス演出（今後実装）" : `あと ${(teamGoal - teamXp).toLocaleString()} XP で達成。あなたの貢献 ${me.metrics.weekXp.toLocaleString()} XP`}
-        </p>
-      </Card>
+      <WeeklyBossCard />
+
+      <BattleList />
 
       <section>
         <SectionTitle>タイムライン</SectionTitle>

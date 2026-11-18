@@ -54,7 +54,7 @@ export function useMyData() {
     const repo = getRepo();
     const profile = await repo.getProfile();
     if (!profile) return undefined;
-    const [workouts, runs, xpEvents, customExercises, friendIds, reactions, questClears, questAttempts] = await Promise.all([
+    const [workouts, runs, xpEvents, customExercises, friendIds, reactions, questClears, questAttempts, menus, bodyLogs, battles, weeklyClears] = await Promise.all([
       repo.listWorkouts(),
       repo.listRuns(),
       repo.listXpEvents(),
@@ -63,8 +63,12 @@ export function useMyData() {
       repo.listMyReactions(),
       repo.listQuestClears(),
       repo.listQuestAttempts(),
+      repo.listMenus(),
+      repo.listBodyLogs(),
+      repo.listBattles(),
+      repo.listWeeklyClears(),
     ]);
-    return { profile, workouts, runs, xpEvents, customExercises, friendIds, reactions, questClears, questAttempts };
+    return { profile, workouts, runs, xpEvents, customExercises, friendIds, reactions, questClears, questAttempts, menus, bodyLogs, battles, weeklyClears };
   }, []);
 
   return useMemo(() => {
@@ -77,7 +81,7 @@ export function useMyData() {
     const cleared = new Set(raw.questClears.map((c) => c.id));
     /** ボスID → 最後に戦ったときの残りHP（未挑戦のボスは含まない） */
     const lastHp = new Map(raw.questAttempts.map((a) => [a.id, a.remaining]));
-    const owned = ownedRewards(cleared, questStats);
+    const owned = ownedRewards(cleared, questStats, raw.weeklyClears.map((c) => c.bossId));
     if (demo.on) {
       // 見本モード: 記録はそのまま、レベル・称号・オーラ・ダンジョンを全部そろった状態で表示する
       const per = Math.round(DEMO_XP / 7);

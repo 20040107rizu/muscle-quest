@@ -120,3 +120,21 @@ export interface ValidationResult {
   /** 警告は確認すれば保存可能 */
   warnings: string[];
 }
+
+/** 保存した筋トレメニュー（例: 胸の日）。順番どおりに種目を進める */
+export interface WorkoutMenu {
+  id: string;
+  name: string;
+  exerciseIds: string[];
+  createdAt: number;
+}
+
+/** 体重と体の写真（写真はこの端末の中だけに保存し、友達には送らない） */
+export interface BodyLog {
+  id: string; // 日付 YYYY-MM-DD（1日1件）
+  date: string;
+  weightKg?: number;
+  /** 縮小した写真（data URL） */
+  photo?: string;
+  updatedAt: number;
+}

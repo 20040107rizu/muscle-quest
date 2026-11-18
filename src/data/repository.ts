@@ -1,5 +1,8 @@
 import type { Reward } from "@/domain/quests";
-import type { Activity, Exercise, MuscleGroup, Profile, QuestAttempt, QuestClear, RunRecord, SetRecord, StatKey, WorkoutEntry, XpEvent } from "@/domain/types";
+import type { Activity, BodyLog, Exercise, MuscleGroup, Profile, QuestAttempt, QuestClear, RunRecord, SetRecord, StatKey, WorkoutEntry, WorkoutMenu, XpEvent } from "@/domain/types";
+import type { Battle } from "@/domain/battle";
+import type { ChestTier } from "@/domain/chest";
+import type { WeeklyClear } from "@/domain/weekly";
 
 /**
  * データアクセスの抽象。画面はこのインターフェースだけに依存する。
@@ -27,6 +30,8 @@ export interface SaveResult {
   comboToday?: number;
   /** この記録で新しく手に入ったオーラ（レベル・連続日数の節目など） */
   newItems?: string[];
+  /** 毎日の宝箱を開けたときの中身 */
+  chest?: { tier: ChestTier; xp: number };
 }
 
 export interface ChallengeResult {
@@ -82,6 +87,29 @@ export interface Repository {
   /** 獲得済みのオーラだけまとえる。null で外す */
   setAura(auraId: string | null): Promise<void>;
   setTitle(titleId: string | null): Promise<void>;
+
+  // ---- 筋トレメニュー ----
+  listMenus(): Promise<WorkoutMenu[]>;
+  saveMenu(name: string, exerciseIds: string[]): Promise<WorkoutMenu>;
+  deleteMenu(id: string): Promise<void>;
+
+  // ---- 体重・写真（写真は端末の中だけ） ----
+  listBodyLogs(): Promise<BodyLog[]>;
+  /** その日の体重・写真を保存（どちらか片方だけでもよい）。今日の体重はプロフィールの体重にも反映 */
+  saveBodyLog(date: string, patch: { weightKg?: number; photo?: string | null }): Promise<void>;
+
+  // ---- 毎日の宝箱 ----
+  /** 今日1回以上運動していれば開けられる（1日1回） */
+  openDailyChest(date: string): Promise<SaveResult>;
+
+  // ---- 週替わりボス ----
+  listWeeklyClears(): Promise<WeeklyClear[]>;
+  /** 今週のボスの討伐報酬を受け取る。HPは自分と友達の今週の経験値から計算する */
+  claimWeeklyBoss(date: string): Promise<{ ok: boolean; error?: string; titleId?: string }>;
+
+  // ---- 友達との対決 ----
+  listBattles(): Promise<Battle[]>;
+  startBattle(friendId: string): Promise<{ ok: boolean; error?: string }>;
 
   // ---- ソーシャル ----
   listFriendIds(): Promise<string[]>;

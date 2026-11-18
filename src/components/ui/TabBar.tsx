@@ -6,7 +6,7 @@ import { assetUrl } from "../assets";
 
 /** アイコンは画像生成AIが描いたもの（public/ui/tab_*。選択中は *_on） */
 const TABS = [
-  { href: "/", label: "ホーム", icon: "home", match: (p: string) => p === "/" || p.startsWith("/character") || p.startsWith("/me") || p.startsWith("/titles") },
+  { href: "/", label: "ホーム", icon: "home", match: (p: string) => p === "/" || p.startsWith("/character") || p.startsWith("/me") || p.startsWith("/titles") || p.startsWith("/body") },
   { href: "/quest", label: "クエスト", icon: "quest", match: (p: string) => p.startsWith("/quest") },
   { href: "/workout", label: "記録", icon: "record", match: (p: string) => p.startsWith("/workout") || p.startsWith("/run") },
   { href: "/friends", label: "友達", icon: "friends", match: (p: string) => p.startsWith("/friends") },
