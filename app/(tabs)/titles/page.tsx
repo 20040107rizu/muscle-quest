@@ -67,6 +67,7 @@ export default function TitlesPage() {
         <p className="text-[10px] text-sub">いまつけている称号</p>
         <div className="mt-2 flex min-h-14 items-center justify-center">{current ? <TitleView title={current} size="full" /> : <p className="text-sm text-sub">なし</p>}</div>
         {current?.def && <p className="mt-1 text-xs italic text-ink/80">「{current.def.flavor}」</p>}
+        {current && <p className="mt-1 text-[11px] text-good">達成：{titleHowToGet(current.id)}</p>}
         {current && (
           <button onClick={() => wear(null)} className="mt-2 text-[11px] text-sub underline">
             はずす
@@ -125,6 +126,7 @@ export default function TitlesPage() {
               {has ? (
                 <>
                   {t.def && <p className="text-[11px] italic text-ink/80">「{t.def.flavor}」</p>}
+                  <p className="text-[11px] text-good">達成：{titleHowToGet(t.id)}</p>
                   <p className="text-[10px] text-sub">{on ? "つけています（タップではずす）" : "タップでつける"}</p>
                 </>
               ) : (
