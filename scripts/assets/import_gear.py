@@ -82,12 +82,17 @@ for f in files:
     if not m:
         continue
     item, sheet = m.group(1), m.group(2)
-    ref = np.array(Image.open(os.path.join(sheets_dir, f"{sheet}.png")).convert("RGB")).astype(np.int16)
-    img = Image.open(f).convert("RGB")
+    def flat(im):
+        """透過部分を黒として合成した RGB（透明な画素の中身の色に左右されないように）"""
+        a = np.array(im.convert("RGBA")).astype(np.int16)
+        return (a[..., :3] * a[..., 3:4] // 255).astype(np.int16), a[..., 3]
+
+    ref, _ = flat(Image.open(os.path.join(sheets_dir, f"{sheet}.png")))
+    img = Image.open(f)
     if img.size != (ref.shape[1], ref.shape[0]):
         print("SKIP size differs", os.path.basename(f), img.size)
         continue
-    eq = np.array(img).astype(np.int16)
+    eq, eq_alpha = flat(img)
     d = np.abs(eq - ref).max(axis=2)
     strong = d > 40
     # 小さなノイズを除いた「確かに描き足された」部分
@@ -99,7 +104,9 @@ for f in files:
             keep[list(ys), list(xs)] = True
     near = np.array(Image.fromarray((keep * 255).astype("uint8")).filter(ImageFilter.MaxFilter(7))) > 0
     alpha = np.clip((d.astype(float) - 12) / 28, 0, 1) * near
-    rgba = np.dstack([eq.astype(np.uint8), (alpha * 255).astype(np.uint8)])
+    alpha = alpha * (eq_alpha / 255.0)
+    color = np.array(img.convert("RGB"))
+    rgba = np.dstack([color, (alpha * 255).astype(np.uint8)])
 
     boxes = hero_boxes(sheet)
     centers = [((b["col"][0] + b["col"][1]) / 2) for b in boxes]
