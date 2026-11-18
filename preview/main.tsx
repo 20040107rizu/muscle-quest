@@ -11,6 +11,7 @@ import MyPage from "../app/(tabs)/me/page";
 import QuestPage from "../app/(tabs)/quest/page";
 import DungeonPage from "../app/(tabs)/quest/[id]/page";
 import { usePath } from "./shims/router";
+import TitleFxPage from "../app/(tabs)/title-fx/page";
 
 function Router() {
   const path = usePath();
@@ -22,6 +23,7 @@ function Router() {
   else if (path === "/ranking") page = <RankingPage />;
   else if (path === "/character") page = <CharacterPage />;
   else if (path === "/me") page = <MyPage />;
+  else if (path === "/title-fx") page = <TitleFxPage />;
   else if (path === "/quest") page = <QuestPage />;
   else if (path.startsWith("/quest/")) page = <DungeonPage key={path} />;
   return <TabsLayout>{page}</TabsLayout>;

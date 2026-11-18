@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
 import { useFeedback } from "@/components/ui/Feedback";
@@ -228,6 +229,11 @@ export default function MyPage() {
           })}
         </Card>
       )}
+
+      <Link href="/title-fx" className="flex items-center justify-between rounded-2xl border border-line bg-panel px-4 py-3">
+        <span className="text-sm font-bold">称号エフェクト図鑑</span>
+        <span className="text-xs text-sub">見る ›</span>
+      </Link>
 
       <SoundToggle />
 
