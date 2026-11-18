@@ -242,7 +242,7 @@ for sheet, ids in ICONS.items():
     for pid, arr in zip(ids, parts):
         save_webp(square(arr, 160), os.path.join(PUB, "items", f"{pid}.webp"), q=90)
         # 体に重ねる装備は大きめの元画像も保存
-        if pid.startswith(("crown", "necklace", "cape", "hand")):
+        if pid.startswith(("crown", "necklace", "cape", "hand", "headband", "wrist", "belt")):
             save_webp(arr, os.path.join(PUB, "items", f"{pid}_wear.webp"), max_side=360, q=90)
     print(sheet, "→", ids)
 

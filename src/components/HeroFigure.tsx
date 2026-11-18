@@ -4,6 +4,8 @@ import { useId } from "react";
 import { heroStage, heroType, type CharacterState } from "@/domain/character";
 import { findItem, type Gear, type Item } from "@/domain/items";
 import ANCHORS from "./heroAnchors.json";
+import WEAR_ASPECT from "./wearAspect.json";
+import { WEAR_FIT } from "./wearFit";
 import { fxUrl, heroImage, heroMaskUrl, itemWearUrl } from "./heroImages";
 
 /**
@@ -64,6 +66,9 @@ export function HeroFigure({
   const a = ANCHOR_MAP[img.name];
   const it = (slot: keyof Gear) => findItem(gear?.[slot]);
   const aura = it("aura");
+  const worn = (["cape", "hand", "waist", "neck", "wrist", "head"] as const).map((s) => it(s)).filter((x): x is Item => !!x && !!WEAR_FIT[x.id]);
+  const wearBehind = worn.filter((x) => WEAR_FIT[x.id].behind);
+  const wearFront = worn.filter((x) => !WEAR_FIT[x.id].behind);
   const shrunk = c.pump < 1;
 
   if (!a) {
@@ -144,7 +149,8 @@ export function HeroFigure({
             filter: shrunk ? "saturate(0.75) brightness(0.9)" : undefined,
           }}
         >
-          {it("cape") && <WearCape a={a} item={it("cape")!} uid={uid} />}
+          {/* 体の後ろ: マント・手に握る物（拳が持ち手に重なる） */}
+          {wearBehind.map((item) => <Wear key={item.id} a={a} item={item} uid={uid} />)}
 
           <image href={img.url} x="0" y="0" width={W} height={H} />
 
@@ -156,11 +162,8 @@ export function HeroFigure({
             </g>
           )}
 
-          {it("waist") && <Belt a={a} item={it("waist")!} uid={uid} />}
-          {it("neck") && <WearNecklace a={a} item={it("neck")!} uid={uid} />}
-          {it("head") && (it("head")!.look === "crown" ? <WearCrown a={a} item={it("head")!} uid={uid} /> : <Head a={a} item={it("head")!} uid={uid} />)}
-          {it("wrist") && [a.wristL, a.wristR].map((w, i) => w && <Wristband key={i} a={a} w={w} item={it("wrist")!} uid={uid} />)}
-          {it("hand") && a.wristR && <WearHand a={a} w={a.wristR} item={it("hand")!} />}
+          {wearBehind.filter((x) => WEAR_FIT[x.id].frontTop).map((item) => <Wear key={`${item.id}-front`} a={a} item={item} uid={uid} front />)}
+          {wearFront.map((item) => <Wear key={item.id} a={a} item={item} uid={uid} />)}
         </g>
         </g>
       </svg>
@@ -168,68 +171,84 @@ export function HeroFigure({
   );
 }
 
-// ---------- 生成した装備の絵を体に重ねる ----------
+// ---------- 生成した装備の絵を体に重ねる（位置・大きさは wearFit.ts） ----------
 
-function WearCape({ a, item, uid }: { a: Anchor; item: Item; uid: string }) {
+function Wear({ a, item, uid, front = false }: { a: Anchor; item: Item; uid: string; front?: boolean }) {
+  const fit = WEAR_FIT[item.id];
+  const aspect = (WEAR_ASPECT as Record<string, number>)[item.id] ?? 1;
   const W = a.w;
   const H = a.h;
-  // 幅は腰ゴムの幅を基準にする（神話段階の光る輪郭に影響されない）
-  const w = (a.waistX1 - a.waistX0) * W * 2.6;
-  const top = a.shoulder * H - 0.035 * H;
-  const bottom = Math.min(H * 0.9, a.hem * H + 0.24 * H);
+  const waistW = (a.waistX1 - a.waistX0) * W;
+  // 神話段階の光る輪郭などで測定値が膨らむことがあるので、腰ゴムの幅を基準に妥当な範囲へ収める
+  const clamp = (v: number, lo: number, hi: number) => Math.min(waistW * hi, Math.max(waistW * lo, v));
+  const headRef = clamp(a.headW * W, 0.68, 0.86);
+  const neckRef = clamp(a.neckW * W, 0.4, 0.5);
+  const wristRef = (w: Wrist) => clamp(w.w * W, 0.17, 0.3);
+  const spots: { x: number; y: number; ref: number; flip: boolean }[] = [];
+  switch (fit.base) {
+    case "head":
+      spots.push({ x: a.cx * W, y: a.forehead * H, ref: headRef, flip: false });
+      break;
+    case "crown":
+      spots.push({ x: a.cx * W, y: a.forehead * H, ref: headRef, flip: false });
+      break;
+    case "neck":
+      spots.push({ x: a.cx * W, y: a.shoulder * H, ref: neckRef, flip: false });
+      break;
+    case "shoulder":
+      spots.push({ x: a.cx * W, y: a.shoulder * H - 0.02 * H, ref: waistW, flip: false });
+      break;
+    case "waist":
+      spots.push({ x: ((a.waistX0 + a.waistX1) / 2) * W, y: ((a.waistTop + a.waistBottom) / 2) * H, ref: waistW, flip: false });
+      break;
+    case "wrist":
+      if (a.wristR) spots.push({ x: a.wristR.x * W, y: a.wristR.y * H, ref: wristRef(a.wristR), flip: false });
+      if (a.wristL && fit.pair) spots.push({ x: a.wristL.x * W, y: a.wristL.y * H, ref: wristRef(a.wristL), flip: true });
+      break;
+    case "fist":
+      if (a.wristR) spots.push({ x: a.wristR.fistX * W, y: a.wristR.fistY * H, ref: wristRef(a.wristR), flip: false });
+      break;
+  }
   return (
-    <image
-      href={itemWearUrl(item.id)}
-      x={a.cx * W - w / 2}
-      y={top}
-      width={w}
-      height={bottom - top}
-      preserveAspectRatio="none"
-      filter={item.glow ? `url(#glow-${uid})` : undefined}
-    />
-  );
-}
-
-function WearCrown({ a, item, uid }: { a: Anchor; item: Item; uid: string }) {
-  const W = a.w;
-  const H = a.h;
-  const w = Math.min(a.headW * W * 1.05, (a.waistX1 - a.waistX0) * W * 0.6);
-  const h = w * 0.85;
-  const bottom = a.headTop * H + 0.04 * H;
-  return <image href={itemWearUrl(item.id)} x={a.cx * W - w / 2} y={bottom - h} width={w} height={h} preserveAspectRatio="xMidYMax meet" filter={item.glow ? `url(#glow-${uid})` : undefined} />;
-}
-
-/** ネックレスの絵は輪っか全体なので、首の後ろに回る上側を隠してU字に見せる */
-function WearNecklace({ a, item, uid }: { a: Anchor; item: Item; uid: string }) {
-  const W = a.w;
-  const H = a.h;
-  const w = (a.waistX1 - a.waistX0) * W * 0.78;
-  const h = w * 1.05;
-  const hide = 0.3;
-  const top = a.shoulder * H - h * hide + 0.005 * H;
-  const x = a.cx * W - w / 2;
-  return (
-    <g>
-      <clipPath id={`neck-${uid}`}>
-        <rect x={x - 2} y={top + h * hide} width={w + 4} height={h} />
-      </clipPath>
-      <image href={itemWearUrl(item.id)} x={x} y={top} width={w} height={h} preserveAspectRatio="xMidYMin meet" clipPath={`url(#neck-${uid})`} />
+    <g filter={item.glow ? `url(#glow-${uid})` : undefined}>
+      {spots.map((sp, i) => {
+        const w = sp.ref * fit.scale;
+        const h = w * aspect;
+        const y0 = sp.y + (fit.dy ?? 0) * sp.ref - fit.refY * h;
+        const x0 = sp.x - fit.refX * w;
+        const clipId = `wear-${uid}-${item.id}-${i}${front ? "f" : ""}`;
+        // 前面に重ねる襟の部分だけ（マント）
+        const clipY = front ? y0 : y0 + (fit.clipTop ?? 0) * h;
+        const clipH = front ? (fit.frontTop ?? 0) * h : h;
+        const useClip = front || fit.clipTop != null;
+        const rot = (fit.rotate ?? 0) * (sp.flip ? -1 : 1);
+        const tf = [`rotate(${rot} ${sp.x} ${sp.y})`, sp.flip ? `translate(${2 * sp.x} 0) scale(-1 1)` : ""].join(" ");
+        return (
+          <g key={i} transform={tf}>
+            {useClip && (
+              <clipPath id={clipId}>
+                <rect x={x0 - 4} y={clipY} width={w + 8} height={clipH} />
+              </clipPath>
+            )}
+            <image
+              href={itemWearUrl(item.id)}
+              x={x0}
+              y={y0}
+              width={w}
+              height={h}
+              preserveAspectRatio="none"
+              clipPath={useClip ? `url(#${clipId})` : undefined}
+            />
+          </g>
+        );
+      })}
     </g>
   );
 }
 
-function WearHand({ a, w, item }: { a: Anchor; w: Wrist; item: Item }) {
-  const W = a.w;
-  const H = a.h;
-  const fx = w.fistX * W;
-  const fy = w.fistY * H;
-  if (item.look === "kettlebell") {
-    const s = 0.2 * W;
-    return <image href={itemWearUrl(item.id)} x={fx - s / 2} y={fy - 0.012 * H} width={s} height={s} preserveAspectRatio="xMidYMin meet" />;
-  }
-  const s = 0.3 * W;
-  return <image href={itemWearUrl(item.id)} x={fx - s / 2} y={fy - s / 2} width={s} height={s} preserveAspectRatio="xMidYMid meet" />;
-}
+
+
+
 
 /** その部位を新しい色で塗り、元画像の陰影を掛け合わせる */
 function Recolor({ uid, part, img, W, H, fill }: { uid: string; part: "shorts" | "band" | "shoes"; img: string; W: number; H: number; fill: string }) {
@@ -243,89 +262,7 @@ function Recolor({ uid, part, img, W, H, fill }: { uid: string; part: "shorts" |
 
 
 
-function Head({ a, item, uid }: { a: Anchor; item: Item; uid: string }) {
-  const W = a.w;
-  const H = a.h;
-  const cx = a.cx * W;
-  const hw = (a.headW * W) / 2;
-  if (item.look === "crown") {
-    const base = a.headTop * H + 0.03 * H;
-    const cw = hw * 0.95;
-    const ch = 0.058 * H;
-    return (
-      <g filter={`url(#glow-${uid})`}>
-        <path
-          d={`M${cx - cw},${base} L${cx - cw},${base - ch * 0.55} L${cx - cw * 0.55},${base - ch * 0.25} L${cx - cw * 0.3},${base - ch} L${cx},${base - ch * 0.35} L${cx + cw * 0.3},${base - ch} L${cx + cw * 0.55},${base - ch * 0.25} L${cx + cw},${base - ch * 0.55} L${cx + cw},${base} Z`}
-          fill={item.color}
-          stroke="#7a4f12"
-          strokeWidth="1.2"
-        />
-        <circle cx={cx} cy={base - ch * 0.2} r={0.008 * H} fill={item.color2} />
-        <circle cx={cx - cw * 0.3} cy={base - ch} r={0.005 * H} fill="#fff" />
-        <circle cx={cx + cw * 0.3} cy={base - ch} r={0.005 * H} fill="#fff" />
-      </g>
-    );
-  }
-  // ハチマキ
-  const y = a.forehead * H;
-  const bh = 0.024 * H;
-  const x0 = cx - hw * 1.02;
-  const x1 = cx + hw * 1.02;
-  return (
-    <g>
-      <path d={`M${x1 - 2},${y + bh * 0.3} l${0.07 * W},${0.022 * H} l-${0.02 * W},${0.012 * H} Z M${x1 - 2},${y + bh * 0.6} l${0.05 * W},${0.04 * H} l-${0.022 * W},${0.004 * H} Z`} fill={item.color} stroke="#000" strokeOpacity="0.4" strokeWidth="1" />
-      <path d={`M${x0},${y + 2} Q${cx},${y - bh * 0.35} ${x1},${y + 2} L${x1},${y + bh} Q${cx},${y + bh * 0.65} ${x0},${y + bh} Z`} fill={item.color} stroke="#000" strokeOpacity="0.45" strokeWidth="1" />
-      <path d={`M${x0},${y + bh * 0.55} Q${cx},${y + bh * 0.15} ${x1},${y + bh * 0.55}`} fill="none" stroke="#000" strokeOpacity="0.12" strokeWidth="1.5" />
-      {item.color2 && <circle cx={cx} cy={y + bh * 0.42} r={bh * 0.32} fill={item.color2} />}
-    </g>
-  );
-}
 
 
-function Belt({ a, item, uid }: { a: Anchor; item: Item; uid: string }) {
-  const W = a.w;
-  const H = a.h;
-  const x0 = a.waistX0 * W - 0.012 * W;
-  const x1 = a.waistX1 * W + 0.012 * W;
-  const t = a.waistTop * H;
-  const b = a.waistBottom * H;
-  const pad = (b - t) * 0.35;
-  const cx = (x0 + x1) / 2;
-  const by = t - pad;
-  const bh = b - t + pad * 2;
-  return (
-    <g filter={item.glow ? `url(#glow-${uid})` : undefined}>
-      <rect x={x0} y={by} width={x1 - x0} height={bh} rx="2" fill={item.color} stroke="#000" strokeOpacity="0.5" strokeWidth="1" />
-      <path d={`M${x0 + 2},${by + 2} H${x1 - 2} M${x0 + 2},${by + bh - 2} H${x1 - 2}`} stroke={item.color2} strokeOpacity="0.6" strokeWidth="0.8" strokeDasharray="2 2" />
-      {item.look === "champion" ? (
-        <g>
-          <ellipse cx={cx} cy={by + bh / 2} rx={(x1 - x0) * 0.24} ry={bh * 1.25} fill={item.color2} stroke="#7a4f12" strokeWidth="1.5" />
-          <ellipse cx={cx} cy={by + bh / 2} rx={(x1 - x0) * 0.17} ry={bh * 0.85} fill="none" stroke="#7a4f12" strokeWidth="1" />
-          <circle cx={cx} cy={by + bh / 2} r={bh * 0.4} fill="#ff5d6c" />
-          {[-1, 1].map((s) => (
-            <ellipse key={s} cx={cx + s * (x1 - x0) * 0.33} cy={by + bh / 2} rx={(x1 - x0) * 0.07} ry={bh * 0.7} fill={item.color2} stroke="#7a4f12" strokeWidth="1" />
-          ))}
-        </g>
-      ) : (
-        <rect x={cx - bh * 0.7} y={by - bh * 0.1} width={bh * 1.4} height={bh * 1.2} rx="2" fill="none" stroke={item.color2} strokeWidth={bh * 0.22} />
-      )}
-    </g>
-  );
-}
 
-function Wristband({ a, w, item, uid }: { a: Anchor; w: Wrist; item: Item; uid: string }) {
-  const W = a.w;
-  const H = a.h;
-  const bw = Math.max(w.w * W * 1.25, 0.06 * W);
-  const bh = 0.028 * H;
-  const x = w.x * W - bw / 2;
-  const y = w.y * H - bh / 2;
-  return (
-    <g filter={item.glow ? `url(#glow-${uid})` : undefined}>
-      <rect x={x} y={y} width={bw} height={bh} rx={bh * 0.3} fill={item.color} stroke="#000" strokeOpacity="0.5" strokeWidth="1" />
-      <rect x={x + 1} y={y + bh * 0.15} width={bw - 2} height={bh * 0.2} rx="1" fill="#fff" opacity="0.25" />
-      {item.color2 && <rect x={x} y={y + bh * 0.55} width={bw} height={bh * 0.18} fill={item.color2} opacity="0.9" />}
-    </g>
-  );
-}
 

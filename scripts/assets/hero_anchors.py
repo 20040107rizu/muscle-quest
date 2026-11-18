@@ -200,3 +200,12 @@ for p in sorted(glob.glob(os.path.join(HERO, "*.webp"))):
 with open(OUT, "w") as f:
     json.dump(result, f, ensure_ascii=False, indent=1)
 print("wrote", OUT)
+
+# 体に重ねる装備画像（*_wear.webp）の縦横比。HeroFigure の位置合わせに使う
+wear = {}
+for p in sorted(glob.glob(os.path.join(ROOT, "public", "items", "*_wear.webp"))):
+    w_, h_ = Image.open(p).size
+    wear[os.path.basename(p)[: -len("_wear.webp")]] = round(h_ / w_, 4)
+with open(os.path.join(ROOT, "src", "components", "wearAspect.json"), "w") as f:
+    json.dump(wear, f, indent=1)
+print("wrote wearAspect.json", len(wear))
