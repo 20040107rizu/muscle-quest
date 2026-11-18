@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
 import { HeroFigure } from "@/components/HeroFigure";
 import { BossArt } from "@/components/BossArt";
+import { FxImg } from "@/components/fx/FxImg";
 import { useFeedback } from "@/components/ui/Feedback";
 import { Card, Initial, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/primitives";
 import { DAILY_MISSIONS, missionEventId } from "@/domain/missions";
@@ -68,9 +69,12 @@ export default function HomePage() {
         <div className="flex items-center gap-2">
           <div className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm ${c.streak >= 3 ? "bg-accent/20 ring-1 ring-accent/50" : "bg-panel"}`}>
             {/* 連続日数が伸びるほど炎が大きく燃える */}
-            <span aria-hidden className={c.streak > 0 ? "mq-flame" : "opacity-40 grayscale"} style={{ fontSize: `${Math.min(1.9, 1 + c.streak * 0.08)}em` }}>
-              🔥
-            </span>
+            <FxImg
+              name="flame"
+              alt=""
+              className={c.streak > 0 ? "mq-flame" : "opacity-40 grayscale"}
+              style={{ width: `${Math.min(2.1, 1.1 + c.streak * 0.09)}em`, height: `${Math.min(2.1, 1.1 + c.streak * 0.09)}em` }}
+            />
             <span className="font-num font-bold">{c.streak}</span>
             <span className="text-[10px] text-sub">日連続</span>
           </div>

@@ -58,8 +58,11 @@ def analyze(path):
     # 腰ゴム（オレンジ）: 肌（ピンク・金色）と区別するため、赤みと彩度が強いものだけ
     orange = m & (r > 190) & (g > 60) & (g < 150) & (b < 90) & (r - g > 85) & (g - b > 20)
     orange[int(0.6 * H):] = False  # シューズのオレンジは除く
+    # 光る輪郭（体の左右の端）を除くため、中央の列だけで数え、横に長く続く行だけを腰ゴムとみなす
+    xs_all = np.arange(W)[None, :]
+    orange &= np.abs(xs_all - W / 2) < 0.3 * W
     counts = orange.sum(axis=1)
-    orows = np.nonzero(counts > 8)[0]
+    orows = np.nonzero(counts > max(8, 0.12 * W))[0]
     # 連続した行のかたまりのうち、いちばん画素が多いものを腰ゴムとする
     blocks, cur = [], [orows[0]]
     for y in orows[1:]:

@@ -4,7 +4,7 @@ import { useId } from "react";
 import { heroStage, heroType, type CharacterState } from "@/domain/character";
 import { findItem, type Gear, type Item } from "@/domain/items";
 import ANCHORS from "./heroAnchors.json";
-import { heroImage, heroMaskUrl } from "./heroImages";
+import { fxUrl, heroImage, heroMaskUrl, itemWearUrl } from "./heroImages";
 
 /**
  * 主人公の表示（イラスト＋着せ替え）。
@@ -119,7 +119,20 @@ export function HeroFigure({
         </defs>
 
         {/* オーラ（いちばん後ろ） */}
+        {/* 鍛えた日のパンプは柔らかい光、オーラ装備は専用の絵を体の後ろに */}
         {showAura && <ellipse className="mq-aura" cx={cx} cy={Y(0.48)} rx={W * 0.75} ry={H * 0.55} fill={`url(#aura-${uid})`} />}
+        {aura && (
+          <image
+            className="mq-aura"
+            href={fxUrl(aura.id)}
+            x={cx - W * 0.68}
+            y={-H * 0.05}
+            width={W * 1.36}
+            height={H * 1.07}
+            preserveAspectRatio="none"
+            opacity={0.95}
+          />
+        )}
         {/* 足元の影 */}
         <ellipse cx={cx} cy={H - Y(0.008)} rx={W * 0.38} ry={Y(0.012)} fill="#000" opacity={0.45} />
 
@@ -131,7 +144,7 @@ export function HeroFigure({
             filter: shrunk ? "saturate(0.75) brightness(0.9)" : undefined,
           }}
         >
-          {it("cape") && <Cape a={a} item={it("cape")!} uid={uid} />}
+          {it("cape") && <WearCape a={a} item={it("cape")!} uid={uid} />}
 
           <image href={img.url} x="0" y="0" width={W} height={H} />
 
@@ -144,16 +157,78 @@ export function HeroFigure({
           )}
 
           {it("waist") && <Belt a={a} item={it("waist")!} uid={uid} />}
-          {it("neck") && <Necklace a={a} item={it("neck")!} uid={uid} />}
-          {it("cape") && <CapeClasps a={a} item={it("cape")!} />}
-          {it("head") && <Head a={a} item={it("head")!} uid={uid} />}
+          {it("neck") && <WearNecklace a={a} item={it("neck")!} uid={uid} />}
+          {it("head") && (it("head")!.look === "crown" ? <WearCrown a={a} item={it("head")!} uid={uid} /> : <Head a={a} item={it("head")!} uid={uid} />)}
           {it("wrist") && [a.wristL, a.wristR].map((w, i) => w && <Wristband key={i} a={a} w={w} item={it("wrist")!} uid={uid} />)}
-          {it("hand") && a.wristR && <HandItem a={a} w={a.wristR} item={it("hand")!} />}
+          {it("hand") && a.wristR && <WearHand a={a} w={a.wristR} item={it("hand")!} />}
         </g>
         </g>
       </svg>
     </div>
   );
+}
+
+// ---------- 生成した装備の絵を体に重ねる ----------
+
+function WearCape({ a, item, uid }: { a: Anchor; item: Item; uid: string }) {
+  const W = a.w;
+  const H = a.h;
+  // 幅は腰ゴムの幅を基準にする（神話段階の光る輪郭に影響されない）
+  const w = (a.waistX1 - a.waistX0) * W * 2.6;
+  const top = a.shoulder * H - 0.035 * H;
+  const bottom = Math.min(H * 0.9, a.hem * H + 0.24 * H);
+  return (
+    <image
+      href={itemWearUrl(item.id)}
+      x={a.cx * W - w / 2}
+      y={top}
+      width={w}
+      height={bottom - top}
+      preserveAspectRatio="none"
+      filter={item.glow ? `url(#glow-${uid})` : undefined}
+    />
+  );
+}
+
+function WearCrown({ a, item, uid }: { a: Anchor; item: Item; uid: string }) {
+  const W = a.w;
+  const H = a.h;
+  const w = Math.min(a.headW * W * 1.05, (a.waistX1 - a.waistX0) * W * 0.6);
+  const h = w * 0.85;
+  const bottom = a.headTop * H + 0.04 * H;
+  return <image href={itemWearUrl(item.id)} x={a.cx * W - w / 2} y={bottom - h} width={w} height={h} preserveAspectRatio="xMidYMax meet" filter={item.glow ? `url(#glow-${uid})` : undefined} />;
+}
+
+/** ネックレスの絵は輪っか全体なので、首の後ろに回る上側を隠してU字に見せる */
+function WearNecklace({ a, item, uid }: { a: Anchor; item: Item; uid: string }) {
+  const W = a.w;
+  const H = a.h;
+  const w = (a.waistX1 - a.waistX0) * W * 0.78;
+  const h = w * 1.05;
+  const hide = 0.3;
+  const top = a.shoulder * H - h * hide + 0.005 * H;
+  const x = a.cx * W - w / 2;
+  return (
+    <g>
+      <clipPath id={`neck-${uid}`}>
+        <rect x={x - 2} y={top + h * hide} width={w + 4} height={h} />
+      </clipPath>
+      <image href={itemWearUrl(item.id)} x={x} y={top} width={w} height={h} preserveAspectRatio="xMidYMin meet" clipPath={`url(#neck-${uid})`} />
+    </g>
+  );
+}
+
+function WearHand({ a, w, item }: { a: Anchor; w: Wrist; item: Item }) {
+  const W = a.w;
+  const H = a.h;
+  const fx = w.fistX * W;
+  const fy = w.fistY * H;
+  if (item.look === "kettlebell") {
+    const s = 0.2 * W;
+    return <image href={itemWearUrl(item.id)} x={fx - s / 2} y={fy - 0.012 * H} width={s} height={s} preserveAspectRatio="xMidYMin meet" />;
+  }
+  const s = 0.3 * W;
+  return <image href={itemWearUrl(item.id)} x={fx - s / 2} y={fy - s / 2} width={s} height={s} preserveAspectRatio="xMidYMid meet" />;
 }
 
 /** その部位を新しい色で塗り、元画像の陰影を掛け合わせる */
@@ -166,55 +241,7 @@ function Recolor({ uid, part, img, W, H, fill }: { uid: string; part: "shorts" |
   );
 }
 
-function Cape({ a, item, uid }: { a: Anchor; item: Item; uid: string }) {
-  const W = a.w;
-  const H = a.h;
-  const cx = a.cx * W;
-  const top = a.shoulder * H - 0.005 * H;
-  const half = (a.shoulderW * W) / 2;
-  const bottom = Math.min(H * 0.86, a.hem * H + 0.2 * H);
-  const spread = half * 1.25;
-  const d = `M${cx - half * 0.55},${top}
-    C${cx - half * 1.05},${top + 0.02 * H} ${cx - spread * 1.05},${bottom - 0.25 * H} ${cx - spread},${bottom}
-    Q${cx - spread * 0.5},${bottom + 0.02 * H} ${cx},${bottom - 0.01 * H}
-    Q${cx + spread * 0.5},${bottom + 0.02 * H} ${cx + spread},${bottom}
-    C${cx + spread * 1.05},${bottom - 0.25 * H} ${cx + half * 1.05},${top + 0.02 * H} ${cx + half * 0.55},${top} Z`;
-  return (
-    <g filter={item.glow ? `url(#glow-${uid})` : undefined}>
-      <defs>
-        <linearGradient id={`cape-${uid}`} x1="0" x2="1">
-          <stop offset="0" stopColor={item.color} stopOpacity="0.85" />
-          <stop offset="0.5" stopColor={item.color} />
-          <stop offset="1" stopColor={item.color} stopOpacity="0.85" />
-        </linearGradient>
-      </defs>
-      <path d={d} fill={`url(#cape-${uid})`} stroke="#000" strokeOpacity="0.5" strokeWidth="1.5" />
-      <path d={d} fill="#000" opacity="0.18" transform={`translate(0 ${0.004 * H})`} />
-      {item.color2 && (
-        <path
-          d={`M${cx - spread},${bottom} Q${cx - spread * 0.5},${bottom + 0.02 * H} ${cx},${bottom - 0.01 * H} Q${cx + spread * 0.5},${bottom + 0.02 * H} ${cx + spread},${bottom}`}
-          fill="none"
-          stroke={item.color2}
-          strokeWidth={0.008 * H}
-        />
-      )}
-    </g>
-  );
-}
 
-function CapeClasps({ a, item }: { a: Anchor; item: Item }) {
-  const cx = a.cx * a.w;
-  const y = a.shoulder * a.h + 0.004 * a.h;
-  const dx = a.neckW * a.w * 0.95;
-  const r = 0.011 * a.h;
-  return (
-    <g>
-      {[-1, 1].map((s) => (
-        <circle key={s} cx={cx + s * dx} cy={y} r={r} fill={item.color2 ?? "#ffd166"} stroke="#000" strokeOpacity="0.5" strokeWidth="1" />
-      ))}
-    </g>
-  );
-}
 
 function Head({ a, item, uid }: { a: Anchor; item: Item; uid: string }) {
   const W = a.w;
@@ -254,31 +281,6 @@ function Head({ a, item, uid }: { a: Anchor; item: Item; uid: string }) {
   );
 }
 
-function Necklace({ a, item, uid }: { a: Anchor; item: Item; uid: string }) {
-  const W = a.w;
-  const H = a.h;
-  const cx = a.cx * W;
-  const nx = a.neckW * W * 0.55;
-  const top = a.neck * H + (a.shoulder - a.neck) * H * 0.75;
-  const low = a.shoulder * H + 0.065 * H;
-  const chain = `M${cx - nx},${top} Q${cx - nx * 0.9},${low} ${cx},${low} Q${cx + nx * 0.9},${low} ${cx + nx},${top}`;
-  return (
-    <g filter={item.look === "chain" ? `url(#glow-${uid})` : undefined}>
-      <path d={chain} fill="none" stroke="#000" strokeOpacity="0.35" strokeWidth={item.look === "chain" ? 4 : 2.5} transform="translate(0 1)" />
-      <path d={chain} fill="none" stroke={item.look === "fang" ? item.color2 : item.color} strokeWidth={item.look === "chain" ? 3.2 : 1.8} strokeDasharray={item.look === "chain" ? "3 1.5" : undefined} />
-      {item.look === "fang" && (
-        <path d={`M${cx - 0.012 * W},${low - 1} Q${cx},${low + 0.04 * H} ${cx + 0.01 * W},${low + 0.045 * H} Q${cx + 0.006 * W},${low + 0.015 * H} ${cx + 0.012 * W},${low - 1} Z`} fill={item.color} stroke="#5a3a26" strokeWidth="1" />
-      )}
-      {item.look === "pendant" && (
-        <g>
-          <circle cx={cx} cy={low + 0.016 * H} r={0.014 * H} fill={item.color} stroke="#5b6372" strokeWidth="1" />
-          <circle cx={cx} cy={low + 0.016 * H} r={0.008 * H} fill={item.color2} />
-        </g>
-      )}
-      {item.look === "chain" && <rect x={cx - 0.018 * W} y={low - 0.004 * H} width={0.036 * W} height={0.03 * H} rx="2" fill={item.color} stroke="#7a4f12" strokeWidth="1" />}
-    </g>
-  );
-}
 
 function Belt({ a, item, uid }: { a: Anchor; item: Item; uid: string }) {
   const W = a.w;
@@ -327,38 +329,3 @@ function Wristband({ a, w, item, uid }: { a: Anchor; w: Wrist; item: Item; uid: 
   );
 }
 
-function HandItem({ a, w, item }: { a: Anchor; w: Wrist; item: Item }) {
-  const W = a.w;
-  const H = a.h;
-  const fx = w.fistX * W;
-  const fy = w.fistY * H;
-  const fw = Math.max(w.w * W * 1.5, 0.07 * W);
-  if (item.look === "kettlebell") {
-    const r = 0.04 * H;
-    const by = fy + 0.012 * H + r;
-    return (
-      <g>
-        <path d={`M${fx - fw * 0.55},${fy} Q${fx - fw * 0.6},${by - r * 0.6} ${fx - r * 0.5},${by - r * 0.85} M${fx + fw * 0.55},${fy} Q${fx + fw * 0.6},${by - r * 0.6} ${fx + r * 0.5},${by - r * 0.85}`} fill="none" stroke={item.color} strokeWidth={0.012 * H} strokeLinecap="round" />
-        <circle cx={fx} cy={by} r={r} fill={item.color} stroke="#000" strokeOpacity="0.6" strokeWidth="1.2" />
-        <ellipse cx={fx - r * 0.35} cy={by - r * 0.35} rx={r * 0.3} ry={r * 0.18} fill="#fff" opacity="0.25" />
-        <rect x={fx - r * 0.55} y={by + r * 0.05} width={r * 1.1} height={r * 0.22} rx="1" fill={item.color2} />
-      </g>
-    );
-  }
-  // ダンベル（拳を横に貫く）
-  const len = fw * 1.6;
-  const ph = 0.06 * H;
-  const pw = 0.035 * W;
-  return (
-    <g>
-      {[-1, 1].map((s) => (
-        <g key={s}>
-          <rect x={s < 0 ? fx - len : fx + fw / 2} y={fy - 0.006 * H} width={len - fw / 2} height={0.012 * H} fill={item.color2} stroke="#000" strokeOpacity="0.4" strokeWidth="0.8" />
-          <rect x={s < 0 ? fx - len - pw : fx + len} y={fy - ph / 2} width={pw} height={ph} rx="2" fill={item.color} stroke="#000" strokeOpacity="0.6" strokeWidth="1" />
-          <rect x={s < 0 ? fx - len - pw * 1.7 : fx + len + pw} y={fy - ph * 0.38} width={pw * 0.7} height={ph * 0.76} rx="2" fill={item.color} stroke="#000" strokeOpacity="0.6" strokeWidth="1" />
-          <rect x={s < 0 ? fx - len - pw + 1 : fx + len + 1} y={fy - ph / 2 + 2} width={pw * 0.25} height={ph - 4} fill="#fff" opacity="0.25" />
-        </g>
-      ))}
-    </g>
-  );
-}

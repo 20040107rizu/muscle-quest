@@ -5,6 +5,10 @@ export const metadata: Metadata = {
   title: "MUSCLE QUEST",
   description: "筋トレとランニングで、自分の分身を育てるフィットネス育成アプリ",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/icons/favicon-48.png", sizes: "48x48" }, { url: "/icons/icon-192.png", sizes: "192x192" }],
+    apple: "/icons/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {

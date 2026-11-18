@@ -17,7 +17,7 @@ const assetsPlugin = {
     b.onResolve({ filter: /(^|\/)assets$/ }, () => ({ path: "inline-assets", namespace: "assets" }));
     b.onLoad({ filter: /.*/, namespace: "assets" }, async () => {
       const data = {};
-      for (const dir of ["bosses", "hero", "hero/masks", "items"]) {
+      for (const dir of ["bosses", "hero", "hero/masks", "items", "fx"]) {
         for (const f of await readdir(path.join(root, "public", dir))) {
           if (!f.endsWith(".webp")) continue;
           data[`${dir}/${f}`] = "data:image/webp;base64," + (await readFile(path.join(root, "public", dir, f))).toString("base64");

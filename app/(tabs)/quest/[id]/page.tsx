@@ -7,6 +7,7 @@ import { BossArt } from "@/components/BossArt";
 import { useFx } from "@/components/fx/FxLayer";
 import { sfx } from "@/components/fx/sound";
 import { ItemGet } from "@/components/fx/ItemGet";
+import { FxImg, FxRays } from "@/components/fx/FxImg";
 import { ItemIcon } from "@/components/ItemIcon";
 import { Card, Loading } from "@/components/ui/primitives";
 import { findItem, ITEMS, SLOT_LABELS } from "@/domain/items";
@@ -25,6 +26,7 @@ export default function DungeonPage() {
   const [msg, setMsg] = useState("");
   const [dmgs, setDmgs] = useState<{ id: number; value: number; crit: boolean; x: number }[]>([]);
   const [hitKey, setHitKey] = useState(0);
+  const [sparks, setSparks] = useState<{ id: number; kind: string; size: number; x: number; y: number }[]>([]);
   const bossRef = useRef<HTMLDivElement>(null);
   const [battleFloor, setBattleFloor] = useState<number | null>(null);
   /** 撃破で手に入ったアイテム（ボスのドロップ・踏破報酬） */
@@ -53,6 +55,12 @@ export default function DungeonPage() {
     const x = 50 + (Math.random() - 0.5) * 40;
     setDmgs((list) => [...list, { id, value, crit, x }]);
     setTimeout(() => setDmgs((list) => list.filter((dm) => dm.id !== id)), 950);
+  }
+
+  function spawnSpark(kind: string, size: number) {
+    const id = Math.random();
+    setSparks((list) => [...list, { id, kind, size, x: 50 + (Math.random() - 0.5) * 30, y: 45 + (Math.random() - 0.5) * 30 }]);
+    setTimeout(() => setSparks((list) => list.filter((s) => s.id !== id)), 420);
   }
 
   function bossCenter() {
@@ -97,6 +105,7 @@ export default function DungeonPage() {
       setHp(Math.max(0, cur));
       setHitKey((k) => k + 1);
       spawnDamage(Math.max(1, Math.round(part * BOSS_HP)), crit);
+      spawnSpark(crit ? "hit_crit" : i % 2 ? "slash" : "hit", crit ? 190 : 120);
       sfx.hit(crit ? 1.6 : 1, crit);
       const c = bossCenter();
       burst(c.x + (Math.random() - 0.5) * 60, c.y + (Math.random() - 0.5) * 60, {
@@ -161,14 +170,24 @@ export default function DungeonPage() {
                 className={`mq-dmg pointer-events-none absolute top-1/3 font-num font-bold italic ${dm.crit ? "text-5xl text-accent-2" : dm.value === 0 ? "text-2xl text-sub" : "text-3xl text-white"}`}
                 style={{ left: `${dm.x}%`, textShadow: "0 2px 0 #000, 0 0 12px rgba(0,0,0,0.8)" }}
               >
-                {dm.value === 0 ? "MISS" : dm.value.toLocaleString()}
-                {dm.crit && <span className="block text-sm not-italic tracking-widest">CRITICAL!</span>}
+                {dm.value === 0 ? <FxImg name="logo_miss" alt="MISS" className="w-32" /> : dm.value.toLocaleString()}
+                {dm.crit && <FxImg name="logo_critical" alt="CRITICAL!" className="mx-auto w-36" />}
               </span>
             ))}
+            {sparks.map((sp) => (
+              <FxImg
+                key={sp.id}
+                name={sp.kind}
+                alt=""
+                className="mq-spark pointer-events-none absolute"
+                style={{ left: `${sp.x}%`, top: `${sp.y}%`, width: sp.size, height: sp.size }}
+              />
+            ))}
             {phase === "won" && (
-              <p className="mq-stamp pointer-events-none absolute left-1/2 top-1/3 whitespace-nowrap font-num text-6xl font-bold italic text-accent-2 drop-shadow-[0_0_20px_rgba(255,181,71,0.9)]">
-                CLEAR!!
-              </p>
+              <>
+                <FxImg name="explosion" alt="" className="mq-boom pointer-events-none absolute left-1/2 top-1/2 w-72" />
+                <FxImg name="logo_clear" alt="CLEAR!!" className="mq-stamp pointer-events-none absolute left-1/2 top-1/3 w-64 drop-shadow-[0_0_20px_rgba(255,181,71,0.9)]" />
+              </>
             )}
           </div>
           <p className="text-lg font-black">{floor.boss}</p>
@@ -339,39 +358,6 @@ function DropTimer({ onDone }: { onDone: () => void }) {
   return null;
 }
 
-function Chest({ open }: { open: boolean }) {
-  return (
-    <svg viewBox="0 0 120 100" className="h-36 w-44" aria-hidden>
-      <defs>
-        <linearGradient id="chest-wood" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#a8672f" />
-          <stop offset="1" stopColor="#5a3415" />
-        </linearGradient>
-        <linearGradient id="chest-gold" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#fff1a8" />
-          <stop offset="1" stopColor="#c8921e" />
-        </linearGradient>
-        <radialGradient id="chest-light">
-          <stop offset="0" stopColor="#fff6c8" stopOpacity="1" />
-          <stop offset="1" stopColor="#ffb547" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      {open && <ellipse cx="60" cy="40" rx="58" ry="40" fill="url(#chest-light)" />}
-      {/* 箱 */}
-      <rect x="14" y="48" width="92" height="44" rx="6" fill="url(#chest-wood)" stroke="#2a1608" strokeWidth="2" />
-      <rect x="14" y="48" width="92" height="8" fill="url(#chest-gold)" />
-      <rect x="22" y="48" width="8" height="44" fill="url(#chest-gold)" />
-      <rect x="90" y="48" width="8" height="44" fill="url(#chest-gold)" />
-      {/* ふた */}
-      <g transform={open ? "translate(0 -26) rotate(-18 14 48)" : undefined} style={{ transition: "transform 0.35s cubic-bezier(.2,.9,.3,1.4)" }}>
-        <path d="M14 48 Q14 18 60 18 Q106 18 106 48 Z" fill="url(#chest-wood)" stroke="#2a1608" strokeWidth="2" />
-        <path d="M22 48 Q22 24 26 21 L32 20 Q30 30 30 48 Z M98 48 Q98 24 94 21 L88 20 Q90 30 90 48 Z" fill="url(#chest-gold)" />
-        <rect x="52" y="38" width="16" height="16" rx="3" fill="url(#chest-gold)" stroke="#7a4f12" strokeWidth="1.5" />
-        <circle cx="60" cy="46" r="2.5" fill="#5a3415" />
-      </g>
-    </svg>
-  );
-}
 
 function RewardModal({ reward, onClose }: { reward: Reward; onClose: () => void }) {
   const title = findTitle(reward.titleId);
@@ -401,11 +387,11 @@ function RewardModal({ reward, onClose }: { reward: Reward; onClose: () => void 
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-black/85 p-6" role="dialog" aria-modal>
-      {opened && <div className="mq-rays pointer-events-none absolute left-1/2 top-1/2 size-[180vmax] -translate-x-1/2 -translate-y-1/2" aria-hidden />}
+      {opened && <FxRays />}
       <div className="relative w-full max-w-sm text-center">
-        <p className="mq-glow-text font-num text-3xl font-bold italic tracking-wider text-accent-2">DUNGEON CLEAR!!</p>
+        <FxImg name="logo_dungeonclear" alt="DUNGEON CLEAR!!" className="mq-stamp-center mx-auto w-56 drop-shadow-[0_0_20px_rgba(255,181,71,0.8)]" />
         <button ref={chestRef} onClick={openChest} className={`mx-auto mt-3 block ${opened ? "" : "mq-chest-shake"}`} aria-label="宝箱を開ける">
-          <Chest open={opened} />
+          <FxImg name={opened ? "chest_open" : "chest_closed"} alt="" className={`h-40 w-48 object-contain ${opened ? "mq-pop drop-shadow-[0_0_30px_rgba(255,209,102,0.9)]" : ""}`} />
         </button>
         {!opened ? (
           <p className="mq-pulse-soft mt-1 text-sm font-bold text-ink">タップして宝箱を開けろ！</p>

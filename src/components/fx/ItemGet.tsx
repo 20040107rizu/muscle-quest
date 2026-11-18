@@ -5,12 +5,13 @@ import { findItem, RARITY_COLORS } from "@/domain/items";
 import { getRepo, useMyData } from "@/data/hooks";
 import { HeroFigure } from "../HeroFigure";
 import { ItemIcon } from "../ItemIcon";
+import { FxImg, FxRays } from "./FxImg";
 import { sfx } from "./sound";
 
 /**
  * アイテム入手の演出。1つずつ表示し、その場で「装着して見る」と体に着けた姿をプレビューできる。
  */
-export function ItemGet({ ids, onClose, heading = "ITEM GET!" }: { ids: string[]; onClose: () => void; heading?: string }) {
+export function ItemGet({ ids, onClose, heading }: { ids: string[]; onClose: () => void; heading?: string }) {
   const me = useMyData();
   const [i, setI] = useState(0);
   const [equipped, setEquipped] = useState<Record<string, boolean>>({});
@@ -23,11 +24,10 @@ export function ItemGet({ ids, onClose, heading = "ITEM GET!" }: { ids: string[]
 
   return (
     <div className="fixed inset-0 z-[55] grid place-items-center overflow-hidden bg-black/85 p-6" role="dialog" aria-modal>
-      <div className="mq-rays pointer-events-none absolute left-1/2 top-1/2 size-[180vmax] -translate-x-1/2 -translate-y-1/2" aria-hidden style={{ filter: `drop-shadow(0 0 0 ${rc})` }} />
+      <FxRays />
       <div key={item.id} className="relative w-full max-w-sm text-center">
-        <p className="mq-glow-text font-num text-3xl font-bold italic tracking-wider" style={{ color: rc }}>
-          {heading}
-        </p>
+        <FxImg name="logo_itemget" alt="ITEM GET!" className="mq-stamp-center mx-auto w-60 drop-shadow-[0_0_20px_rgba(255,181,71,0.8)]" />
+        {heading && <p className="mt-1 text-sm font-bold text-ink">{heading}</p>}
         {ids.length > 1 && (
           <p className="font-num text-xs text-sub">
             {i + 1} / {ids.length}

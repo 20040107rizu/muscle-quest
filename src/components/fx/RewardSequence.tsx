@@ -5,6 +5,7 @@ import { tierFor } from "@/domain/character";
 import type { SaveResult } from "@/data/repository";
 import { useMyData } from "@/data/hooks";
 import { HeroFigure } from "../HeroFigure";
+import { FxImg, FxRays } from "./FxImg";
 import { StatChips } from "../ui/primitives";
 import { useFx } from "./FxLayer";
 import { sfx } from "./sound";
@@ -109,11 +110,9 @@ export function RewardSequence({ r, title, onClose }: { r: SaveResult; title: st
   if (levelView) {
     return (
       <div className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-black/85 p-6" role="dialog" aria-modal onClick={done ? onClose : skip}>
-        <div className="mq-rays pointer-events-none absolute left-1/2 top-1/2 size-[180vmax] -translate-x-1/2 -translate-y-1/2" aria-hidden />
+        <FxRays />
         <div className="relative w-full max-w-sm text-center" onClick={(e) => e.stopPropagation()}>
-          <p className="mq-stamp font-num text-6xl font-bold italic tracking-tight text-transparent [-webkit-text-stroke:1px_#fff3] bg-gradient-to-b from-[#fff6c8] via-accent-2 to-accent bg-clip-text drop-shadow-[0_0_24px_rgba(255,181,71,0.8)]">
-            LEVEL UP!
-          </p>
+          <FxImg name="logo_levelup" alt="LEVEL UP!" className="mq-stamp-center mx-auto w-[88%] drop-shadow-[0_0_24px_rgba(255,181,71,0.8)]" />
           <p className="mq-pop mt-2 font-num text-7xl font-bold [animation-delay:200ms]">
             <span className="text-sub">{r.levelBefore}</span>
             <span className="mx-3 text-4xl text-accent-2">▶</span>
@@ -121,7 +120,8 @@ export function RewardSequence({ r, title, onClose }: { r: SaveResult; title: st
           </p>
           {evolved && me && (
             <div className="mq-rise mt-3 [animation-delay:500ms]">
-              <p className="mq-glow-text text-2xl font-black text-accent-2">進化!! {tierFor(r.levelAfter).name}</p>
+              <FxImg name="logo_evolution" alt="EVOLUTION!!" className="mq-stamp-center mx-auto w-[75%]" />
+              <p className="mq-glow-text text-2xl font-black text-accent-2">{tierFor(r.levelAfter).name}</p>
               <p className="text-xs text-sub">{tierFor(r.levelAfter).title}</p>
               <HeroFigure c={{ ...me.character, level: r.levelAfter, pump: 1.04 }} gear={me.profile.gear} glow className="mx-auto mt-2 h-64 w-48" />
             </div>
@@ -144,20 +144,22 @@ export function RewardSequence({ r, title, onClose }: { r: SaveResult; title: st
         <p className="text-sm font-bold text-sub">{title}</p>
 
         <div className="relative mt-2">
-          <p className={`font-num text-6xl font-bold tabular-nums ${showCrit ? "mq-glow-text text-accent-2" : "text-ink"}`}>
-            +{xp}
+          <p className={`flex items-center justify-center gap-2 font-num text-6xl font-bold tabular-nums ${showCrit ? "mq-glow-text text-accent-2" : "text-ink"}`}>
+            <FxImg name="xp_orb" alt="" className="mq-pulse-soft size-12" />+{xp}
             <span className="ml-1 text-xl text-sub">XP</span>
           </p>
           {showCrit && (
-            <p className="mq-stamp pointer-events-none absolute -top-4 left-1/2 -translate-x-1/2 -rotate-12 whitespace-nowrap rounded-lg border-2 border-accent bg-bg/80 px-3 py-0.5 text-2xl font-black italic text-accent">
-              会心！×1.5
-            </p>
+            <div className="mq-stamp pointer-events-none absolute -top-9 left-1/2 w-56 -translate-x-1/2 -rotate-12">
+              <FxImg name="logo_critical" alt="CRITICAL!" className="w-full drop-shadow-[0_0_14px_rgba(255,107,44,0.9)]" />
+              <p className="-mt-1 text-center text-lg font-black italic text-accent-2 [text-shadow:0_2px_0_#000]">会心！ XP ×1.5</p>
+            </div>
           )}
         </div>
 
         {showPR && (
           <div className="mq-rise mt-3 rounded-xl bg-gradient-to-r from-[#7a5a12] via-[#e9c25a] to-[#7a5a12] px-3 py-2 text-bg">
-            <p className="text-sm font-black">🏆 自己ベスト更新!! +{pr}XP</p>
+            <FxImg name="logo_newrecord" alt="NEW RECORD!" className="mq-stamp-center mx-auto -mt-8 w-40 drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]" />
+            <p className="text-sm font-black">自己ベスト更新!! +{pr}XP</p>
             {r.prLabel && <p className="text-[10px] font-bold opacity-80">{r.prLabel}</p>}
           </div>
         )}
