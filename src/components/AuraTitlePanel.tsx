@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { ITEMS, RARITY_COLORS, findItem } from "@/domain/items";
-import { itemSourceLabel, TITLES } from "@/domain/quests";
+import { findTitle, itemSourceLabel, TITLES } from "@/domain/quests";
 import { getRepo } from "@/data/hooks";
 import { sfx } from "./fx/sound";
 import { ItemIcon } from "./ItemIcon";
@@ -23,27 +24,21 @@ export function AuraTitlePanel({ aura, titleId, ownedItems, ownedTitles }: { aur
     }
   };
   const peekItem = findItem(peek ?? undefined);
+  const current = findTitle(titleId);
 
   return (
     <Card className="space-y-4">
       <div>
-        <p className="mb-2 text-sm font-bold">称号</p>
-        <div className="flex flex-wrap gap-1.5">
-          {TITLES.map((t) => {
-            const owned = ownedTitles.includes(t.id);
-            const on = titleId === t.id;
-            return (
-              <button
-                key={t.id}
-                disabled={!owned}
-                onClick={() => run(() => getRepo().setTitle(on ? null : t.id))}
-                className={`rounded-lg p-0.5 ${on ? "ring-2 ring-accent-2" : ""} ${owned ? "" : "opacity-40 grayscale"}`}
-              >
-                <TitlePlate name={owned ? t.name : "？？？"} rarity={t.rarity} size="sm" />
-              </button>
-            );
-          })}
+        <div className="mb-2 flex items-end justify-between">
+          <p className="text-sm font-bold">称号</p>
+          <p className="font-num text-xs text-sub">
+            {ownedTitles.length}/{TITLES.length}
+          </p>
         </div>
+        <Link href="/titles" className="flex items-center justify-between gap-2 rounded-xl bg-panel-2 px-3 py-2.5">
+          {current ? <TitlePlate name={current.name} rarity={current.rarity} size="sm" /> : <span className="text-xs text-sub">つけていません</span>}
+          <span className="shrink-0 text-xs text-sub">称号図鑑で付け替える ›</span>
+        </Link>
       </div>
 
       <div>

@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "./title-fx.css";
 
 @theme {
   --color-bg: #0b0d11;
