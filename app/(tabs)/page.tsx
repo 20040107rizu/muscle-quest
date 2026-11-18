@@ -1,5 +1,6 @@
 "use client";
 
+import { SkinButton, SkinFace } from "@/components/ui/SkinButton";
 import Link from "next/link";
 import { useMemo } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
@@ -124,11 +125,11 @@ export default function HomePage() {
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <Link href="/workout" className="rounded-2xl bg-accent py-3.5 text-center text-sm font-bold text-white shadow-[0_8px_24px_-8px_rgba(255,107,44,0.7)]">
-          🏋️ 筋トレを記録
+        <Link href="/workout" className="group/skin block">
+          <SkinFace className="h-14 w-full text-sm">🏋️ 筋トレを記録</SkinFace>
         </Link>
-        <Link href="/run" className="rounded-2xl bg-cardio/90 py-3.5 text-center text-sm font-bold text-bg shadow-[0_8px_24px_-8px_rgba(76,201,240,0.6)]">
-          🏃 ランを記録
+        <Link href="/run" className="group/skin block">
+          <SkinFace variant="run" className="h-14 w-full text-sm">🏃 ランを記録</SkinFace>
         </Link>
       </div>
 

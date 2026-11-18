@@ -1,5 +1,6 @@
 "use client";
 
+import { SkinButton } from "../ui/SkinButton";
 import { useEffect, useRef, useState } from "react";
 import { tierFor } from "@/domain/character";
 import type { SaveResult } from "@/data/repository";
@@ -127,9 +128,9 @@ export function RewardSequence({ r, title, onClose }: { r: SaveResult; title: st
             </div>
           )}
           <p className="mt-4 font-num text-2xl font-bold text-accent">+{total} XP</p>
-          <button className="mt-5 w-full rounded-2xl bg-accent-2 py-4 text-base font-black text-bg shadow-[0_0_30px_rgba(255,181,71,0.6)]" onClick={onClose}>
+          <SkinButton variant="gold" className="mt-5 h-16 w-full text-base" onClick={onClose}>
             やったぜ！
-          </button>
+          </SkinButton>
         </div>
       </div>
     );
@@ -170,9 +171,9 @@ export function RewardSequence({ r, title, onClose }: { r: SaveResult; title: st
         {showChips && r.capped && <p className="mt-3 text-xs text-accent-2">本日の獲得上限に達したため一部のみ反映されました</p>}
         {showChips && r.xpGained === 0 && !r.capped && <p className="mt-3 text-xs text-sub">同じ種目のやりすぎで経験値が逓減しています</p>}
 
-        <button className={`mt-5 w-full rounded-xl bg-accent py-3 text-sm font-bold text-white transition-opacity ${done ? "opacity-100" : "opacity-40"}`} onClick={(e) => { e.stopPropagation(); if (done) onClose(); else skip(); }}>
+        <SkinButton variant={done ? "primary" : "gray"} className="mt-5 h-12 w-full text-sm" onClick={(e) => { e.stopPropagation(); if (done) onClose(); else skip(); }}>
           {done ? "OK" : "スキップ"}
-        </button>
+        </SkinButton>
       </div>
     </div>
   );

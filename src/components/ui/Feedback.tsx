@@ -1,5 +1,6 @@
 "use client";
 
+import { SkinButton } from "./SkinButton";
 import { createContext, useCallback, useContext, useState } from "react";
 import type { SaveResult } from "@/data/repository";
 import { ItemGet } from "../fx/ItemGet";
@@ -50,12 +51,12 @@ export function FeedbackProvider({ children }: { children: React.ReactNode }) {
           <div className="mq-rise w-full max-w-sm rounded-3xl border border-line bg-panel p-5" onClick={(e) => e.stopPropagation()}>
             <p className="whitespace-pre-line text-sm leading-relaxed">{ask.message}</p>
             <div className="mt-5 grid grid-cols-2 gap-2">
-              <button className="rounded-xl bg-panel-2 py-3 text-sm font-bold text-sub" onClick={() => answer(false)}>
+              <SkinButton variant="gray" className="h-12 w-full text-sm" onClick={() => answer(false)}>
                 キャンセル
-              </button>
-              <button className={`rounded-xl py-3 text-sm font-bold text-white ${ask.danger ? "bg-bad" : "bg-accent"}`} onClick={() => answer(true)} autoFocus>
+              </SkinButton>
+              <SkinButton variant={ask.danger ? "danger" : "primary"} className="h-12 w-full text-sm" onClick={() => answer(true)} autoFocus>
                 {ask.ok}
-              </button>
+              </SkinButton>
             </div>
           </div>
         </div>

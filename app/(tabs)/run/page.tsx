@@ -1,5 +1,6 @@
 "use client";
 
+import { SkinButton, SkinFace } from "@/components/ui/SkinButton";
 import { useState } from "react";
 import { RecordTabs } from "@/components/RecordTabs";
 import { NumberInput } from "@/components/ui/NumberInput";
@@ -142,9 +143,9 @@ export default function RunPage() {
           </div>
         )}
 
-        <button onClick={() => save()} disabled={saving} className="w-full rounded-2xl bg-cardio py-4 text-base font-black text-bg disabled:opacity-60">
+        <SkinButton variant="run" onClick={() => save()} disabled={saving} className="h-16 w-full text-base">
           {saving ? "保存中…" : "ランを記録する"}
-        </button>
+        </SkinButton>
       </Card>
 
       <section>

@@ -1,5 +1,6 @@
 "use client";
 
+import { SkinButton, SkinFace } from "@/components/ui/SkinButton";
 import { useMemo, useState } from "react";
 import { summarizeSets } from "@/components/ActivityCard";
 import { useFeedback } from "@/components/ui/Feedback";
@@ -324,9 +325,9 @@ function SetEditor({
         </div>
       )}
 
-      <button onClick={() => save()} disabled={saving} className="w-full rounded-2xl bg-accent py-4 text-base font-black text-white shadow-[0_8px_24px_-8px_rgba(255,107,44,0.7)] disabled:opacity-60">
+      <SkinButton onClick={() => save()} disabled={saving} className="h-16 w-full text-base">
         {saving ? "保存中…" : `${sets.length}セットを記録する`}
-      </button>
+      </SkinButton>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { SkinButton, SkinFace } from "@/components/ui/SkinButton";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -206,19 +207,15 @@ export default function DungeonPage() {
           {phase === "won" ? (
             <div className="mq-pop mt-4">
               {!reward && (
-                <button onClick={next} className="mt-3 w-full rounded-xl bg-accent py-3 text-sm font-bold text-white">
+                <SkinButton onClick={next} className="mt-3 h-12 w-full text-sm">
                   次の階へ
-                </button>
+                </SkinButton>
               )}
             </div>
           ) : (
-            <button
-              onClick={challenge}
-              disabled={phase === "fighting"}
-              className={`mt-4 w-full rounded-2xl bg-accent-2 py-4 text-lg font-black text-bg shadow-[0_8px_24px_-8px_rgba(255,181,71,0.8)] disabled:opacity-60 ${phase === "idle" ? "mq-pulse-soft" : ""}`}
-            >
+            <SkinButton variant="gold" onClick={challenge} disabled={phase === "fighting"} className={`mt-4 h-16 w-full text-lg ${phase === "idle" ? "mq-pulse-soft" : ""}`}>
               {phase === "fighting" ? "戦闘中…" : phase === "lost" || saved != null ? "⚔️ もう一度挑む" : "⚔️ ボスに挑む"}
-            </button>
+            </SkinButton>
           )}
           {msg && <p className="mt-2 text-xs text-bad">{msg}</p>}
         </div>
@@ -414,7 +411,8 @@ function RewardModal({ reward, onClose }: { reward: Reward; onClose: () => void 
               </div>
             )}
             <div className="mt-4 grid gap-2">
-              <button
+              <SkinButton
+                variant="gold"
                 disabled={equipped}
                 onClick={async () => {
                   if (item) await getRepo().equipItem(item.slot, item.id);
@@ -422,13 +420,13 @@ function RewardModal({ reward, onClose }: { reward: Reward; onClose: () => void 
                   setEquipped(true);
                   sfx.coin();
                 }}
-                className="w-full rounded-2xl bg-accent-2 py-4 text-base font-black text-bg shadow-[0_0_30px_rgba(255,181,71,0.5)] disabled:opacity-60"
+                className="h-14 w-full text-base"
               >
                 {equipped ? "装備した！" : "今すぐ装備する"}
-              </button>
-              <button onClick={onClose} className="w-full rounded-xl bg-panel-2 py-3 text-sm">
+              </SkinButton>
+              <SkinButton variant="gray" onClick={onClose} className="h-12 w-full text-sm">
                 閉じる
-              </button>
+              </SkinButton>
             </div>
           </>
         )}
