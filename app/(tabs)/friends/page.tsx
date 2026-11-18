@@ -41,7 +41,7 @@ export default function FriendsPage() {
         {friends.map((f) => {
           const activeToday = f.metrics.todayXp > 0;
           return (
-            <Link key={f.user.id} href={`/friends/${f.user.id}`} className="w-28 shrink-0 rounded-2xl border border-line bg-panel p-2 text-center">
+            <Link key={f.user.id} href={`/friends/${f.user.id}`} className="w-28 shrink-0 skin-card p-1 text-center">
               <div className="relative">
                 <HeroFigure c={f.character} gear={f.gear} showGear={false} className="mx-auto h-28 w-full" />
                 {activeToday && <span className="absolute right-1 top-1 size-2.5 rounded-full bg-good ring-2 ring-panel" aria-label="今日運動済み" />}
@@ -110,7 +110,7 @@ export default function FriendsPage() {
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="フレンドコード (例: MQ-2004)"
-              className="flex-1 rounded-xl bg-panel-2 px-3 py-2.5 font-num text-base uppercase outline-none"
+              className="flex-1 skin-input px-2 py-1.5 font-num text-base uppercase outline-none"
             />
             <button
               onClick={async () => {

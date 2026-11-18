@@ -138,7 +138,7 @@ export function RewardSequence({ r, title, onClose }: { r: SaveResult; title: st
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/75 p-6 backdrop-blur-sm" onClick={done ? onClose : skip} role="dialog" aria-modal>
-      <div ref={card} className="mq-pop relative w-full max-w-sm overflow-hidden rounded-3xl border border-line bg-panel p-6 text-center" onClick={(e) => { e.stopPropagation(); skip(); }}>
+      <div ref={card} className="mq-pop relative w-full max-w-sm overflow-hidden skin-dialog p-4 text-center" onClick={(e) => { e.stopPropagation(); skip(); }}>
         {(r.comboToday ?? 0) >= 2 && (
           <p className="mq-pop absolute right-3 top-3 rounded-full bg-accent px-2.5 py-1 font-num text-xs font-bold italic text-white">{r.comboToday} COMBO!</p>
         )}

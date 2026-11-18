@@ -168,3 +168,11 @@ p.mq-stamp:not(.absolute) { animation-name: mq-stamp-center; }
 
   .mq-breathe, .mq-breathe-img, .mq-breathe-svg, .mq-aura, .mq-pop, .mq-rise, .mq-shake, .mq-defeat { animation: none; }
 }
+
+/* ===== 画像生成AIの枠（U2）。四隅と縁はそのまま、中央だけ伸ばす ===== */
+.skin-card { border-style: solid; border-width: 12px; border-image: url(/ui/frame_card.webp) 34 fill / 12px stretch; background: none !important; border-radius: 0 !important; }
+.skin-card-hot { border-style: solid; border-width: 14px; border-image: url(/ui/frame_card_hot.webp) 38 fill / 14px stretch; background: none !important; border-radius: 0 !important; }
+.skin-dialog { border-style: solid; border-width: 24px 28px; border-image: url(/ui/frame_dialog.webp) 70 80 fill / 24px 28px stretch; background: none !important; border-radius: 0 !important; }
+.skin-input { border-style: solid; border-width: 10px; border-image: url(/ui/frame_input.webp) 30 fill / 10px stretch; background: none !important; border-radius: 0 !important; }
+.skin-header { border-style: solid; border-width: 10px; border-image: url(/ui/frame_header.webp) 30 fill / 10px stretch; background: none !important; border-radius: 0 !important; }
+.skin-tag { border-style: solid; border-width: 8px 12px; border-image: url(/ui/frame_tag.webp) 40 46 fill / 8px 12px stretch; background: none !important; border-radius: 0 !important; }

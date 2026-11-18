@@ -156,7 +156,7 @@ export default function RunPage() {
             { l: "累計距離", v: totalKm.toFixed(1), u: "km" },
             { l: "累計時間", v: formatDuration(totalS), u: "" },
           ].map((x) => (
-            <div key={x.l} className="rounded-2xl border border-line bg-panel px-3 py-2.5">
+            <div key={x.l} className="skin-card px-2 py-1.5">
               <p className="text-[10px] text-sub">{x.l}</p>
               <p className="font-num text-xl font-bold">
                 {x.v}

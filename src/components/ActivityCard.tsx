@@ -79,7 +79,7 @@ export function ActivityCard({
     </div>
   );
   return (
-    <article className="mq-rise rounded-2xl border border-line bg-panel p-3.5">
+    <article className="mq-rise skin-card p-2.5">
       <div className="flex items-start justify-between">
         {userHref ? <Link href={userHref}>{head}</Link> : head}
         <div className="flex items-center gap-2">

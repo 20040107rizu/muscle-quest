@@ -52,13 +52,20 @@ const js = await build({
 const cssIn = await readFile(path.join(root, "app/globals.css"), "utf8");
 const css = await postcss([tailwind({ base: root })]).process(cssIn, { from: path.join(root, "app/globals.css") });
 
+// CSS の url(/ui/...) も画像を埋め込む
+let cssText = css.css;
+for (const m of new Set(cssText.match(/url\(\/ui\/[^)]+\)/g) ?? [])) {
+  const file = m.slice(5, -1);
+  const b64 = (await readFile(path.join(root, "public", file))).toString("base64");
+  cssText = cssText.split(m).join(`url(data:image/webp;base64,${b64})`);
+}
 const code = js.outputFiles[0].text.replace(/<\/script/gi, "<\\/script");
 const html = `<title>MUSCLE QUEST</title>
 <meta name="theme-color" content="#0b0d11">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap">
-<style>:root{color-scheme:dark;background:#0b0d11}${css.css}</style>
+<style>:root{color-scheme:dark;background:#0b0d11}${cssText}</style>
 <div id="root"></div>
 <script>${code}</script>
 `;

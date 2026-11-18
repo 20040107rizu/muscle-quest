@@ -96,11 +96,11 @@ export default function MyPage() {
           <div className="mt-3 space-y-2 border-t border-line pt-3">
             <label className="block text-xs text-sub">
               表示名
-              <input value={name} onChange={(e) => setName(e.target.value)} maxLength={20} className="mt-1 w-full rounded-lg bg-panel-2 px-3 py-2 text-sm text-ink outline-none" />
+              <input value={name} onChange={(e) => setName(e.target.value)} maxLength={20} className="mt-1 w-full skin-input px-2 py-1 text-sm text-ink outline-none" />
             </label>
             <label className="block text-xs text-sub">
               体重 (kg) — 自重種目の負荷計算に使用。友達には公開されません
-              <NumberInput value={bw} onChange={setBw} min={30} max={250} decimals={1} ariaLabel="体重" className="mt-1 w-full rounded-lg bg-panel-2 px-3 py-2 font-num text-sm text-ink outline-none" />
+              <NumberInput value={bw} onChange={setBw} min={30} max={250} decimals={1} ariaLabel="体重" className="mt-1 w-full skin-input px-2 py-1 font-num text-sm text-ink outline-none" />
             </label>
             <button
               onClick={async () => {
@@ -124,7 +124,7 @@ export default function MyPage() {
           { l: "連続日数", v: c.streak, u: "日" },
           { l: "総経験値", v: c.totalXp.toLocaleString(), u: "XP" },
         ].map((x) => (
-          <div key={x.l} className="rounded-2xl border border-line bg-panel px-3 py-2.5">
+          <div key={x.l} className="skin-card px-2 py-1.5">
             <p className="text-[10px] text-sub">{x.l}</p>
             <p className="font-num text-xl font-bold">
               {x.v}

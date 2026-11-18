@@ -269,7 +269,7 @@ export default function DungeonPage() {
               </div>
             ))}
           </div>
-          <p className="mt-3 rounded-lg bg-panel-2 px-3 py-2 text-[11px] text-sub">💡 {floor.hint}</p>
+          <p className="mt-3 skin-tag px-2 py-1 text-[11px] text-sub">💡 {floor.hint}</p>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <Link href="/workout" className="rounded-xl bg-accent/15 py-2.5 text-center text-xs font-bold text-accent">
               筋トレで鍛える

@@ -114,7 +114,7 @@ export default function HomePage() {
           { label: "セット数", value: sets, unit: "set", color: "text-ink" },
           { label: "走行距離", value: km.toFixed(1), unit: "km", color: "text-cardio" },
         ].map((t) => (
-          <div key={t.label} className="rounded-2xl border border-line bg-panel px-3 py-2.5">
+          <div key={t.label} className="skin-card px-2 py-1.5">
             <p className="text-[10px] text-sub">{t.label}</p>
             <p className={`font-num text-2xl font-bold ${t.color}`}>
               {t.value}
@@ -135,7 +135,7 @@ export default function HomePage() {
 
       {/* クエスト */}
       {quest && (
-        <Link href={`/quest/${quest.d.id}`} className="block rounded-2xl border border-line bg-panel p-4" style={{ backgroundImage: `linear-gradient(120deg, ${quest.d.color}26, transparent 65%)` }}>
+        <Link href={`/quest/${quest.d.id}`} className="block skin-card-hot p-3" style={{ backgroundImage: `linear-gradient(120deg, ${quest.d.color}26, transparent 65%)` }}>
           <div className="flex items-center gap-3">
             <span className="shrink-0">
               <BossArt dungeonId={quest.d.id} floor={quest.fi} size={64} />

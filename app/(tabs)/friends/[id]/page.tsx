@@ -66,7 +66,7 @@ export default function FriendDetailPage() {
           { l: "累計", v: view.metrics.activeDays, u: "日" },
           { l: "今月ラン", v: view.metrics.monthRunKm, u: "km" },
         ].map((x) => (
-          <div key={x.l} className="rounded-xl border border-line bg-panel py-2">
+          <div key={x.l} className="skin-card py-1">
             <p className="text-[10px] text-sub">{x.l}</p>
             <p className="font-num text-lg font-bold">
               {x.v.toLocaleString()}

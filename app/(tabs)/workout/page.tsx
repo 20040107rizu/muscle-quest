@@ -61,7 +61,7 @@ function ExercisePicker({ exercises, recent, onPick }: { exercises: Exercise[]; 
           <SectionTitle>最近の種目</SectionTitle>
           <div className="grid grid-cols-2 gap-2">
             {recentEx.map((e) => (
-              <button key={e.id} onClick={() => onPick(e)} className="rounded-xl border border-line bg-panel px-3 py-3 text-left text-sm font-bold active:bg-panel-2">
+              <button key={e.id} onClick={() => onPick(e)} className="skin-card px-2 py-2 text-left text-sm font-bold active:bg-panel-2">
                 {e.name}
               </button>
             ))}
@@ -75,7 +75,7 @@ function ExercisePicker({ exercises, recent, onPick }: { exercises: Exercise[]; 
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="種目を検索"
-          className="mb-2 w-full rounded-xl border border-line bg-panel px-3 py-2.5 text-sm outline-none focus:border-accent"
+          className="mb-2 w-full skin-input px-2 py-1.5 text-sm outline-none"
         />
         <div className="mb-3 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
           {[{ group: "all" as const, label: "すべて" }, ...EXERCISE_GROUP_ORDER].map((g) => (
@@ -121,7 +121,7 @@ function AddExerciseForm({ onDone }: { onDone: () => void }) {
   return (
     <Card className="space-y-3">
       <p className="text-sm font-bold">種目を追加</p>
-      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="例: ケーブルクロスオーバー" maxLength={30} className="w-full rounded-xl bg-panel-2 px-3 py-2.5 text-sm outline-none" />
+      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="例: ケーブルクロスオーバー" maxLength={30} className="w-full skin-input px-2 py-1.5 text-sm outline-none" />
       <div>
         <p className="mb-1.5 text-xs text-sub">メインで鍛える部位（キャラのどこが育つか）</p>
         <div className="grid grid-cols-3 gap-1.5">

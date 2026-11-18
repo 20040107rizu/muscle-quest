@@ -5,7 +5,7 @@ import { NumberInput } from "./NumberInput";
 import { STAT_LABELS, type StatKey } from "@/domain/types";
 
 export function Card({ className = "", children }: { className?: string; children: React.ReactNode }) {
-  return <section className={`rounded-2xl border border-line bg-panel p-4 ${className}`}>{children}</section>;
+  return <section className={`skin-card p-3 ${className}`}>{children}</section>;
 }
 
 export function SectionTitle({ children, href, more = "すべて見る" }: { children: React.ReactNode; href?: string; more?: string }) {
@@ -23,7 +23,7 @@ export function SectionTitle({ children, href, more = "すべて見る" }: { chi
 
 export function PageHeader({ title, sub, right }: { title: string; sub?: string; right?: React.ReactNode }) {
   return (
-    <header className="flex items-end justify-between px-1 pb-3 pt-4">
+    <header className="skin-header mb-1 mt-4 flex items-end justify-between px-2 py-1.5">
       <div>
         <h1 className="text-xl font-black tracking-tight">{title}</h1>
         {sub && <p className="mt-0.5 text-xs text-sub">{sub}</p>}
@@ -59,7 +59,7 @@ export function XpBar({ into, needed, className = "" }: { into: number; needed: 
 
 export function LevelBadge({ level, size = "md" }: { level: number; size?: "sm" | "md" }) {
   return (
-    <span className={`inline-flex items-baseline gap-0.5 rounded-md bg-accent/15 font-num font-bold text-accent ${size === "sm" ? "px-1.5 text-xs" : "px-2 py-0.5 text-sm"}`}>
+    <span className={`skin-tag inline-flex items-baseline gap-0.5 font-num font-bold text-accent ${size === "sm" ? "px-0.5 text-xs" : "px-1 text-sm"}`}>
       <span className="text-[0.7em]">Lv.</span>
       {level}
     </span>

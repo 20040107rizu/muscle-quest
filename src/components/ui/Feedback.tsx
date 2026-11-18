@@ -48,7 +48,7 @@ export function FeedbackProvider({ children }: { children: React.ReactNode }) {
       {children}
       {ask && (
         <div className="fixed inset-0 z-[60] grid place-items-end bg-black/60 p-4 backdrop-blur-sm sm:place-items-center" onClick={() => answer(false)} role="alertdialog" aria-modal>
-          <div className="mq-rise w-full max-w-sm rounded-3xl border border-line bg-panel p-5" onClick={(e) => e.stopPropagation()}>
+          <div className="mq-rise w-full max-w-sm skin-dialog p-3" onClick={(e) => e.stopPropagation()}>
             <p className="whitespace-pre-line text-sm leading-relaxed">{ask.message}</p>
             <div className="mt-5 grid grid-cols-2 gap-2">
               <SkinButton variant="gray" className="h-12 w-full text-sm" onClick={() => answer(false)}>
