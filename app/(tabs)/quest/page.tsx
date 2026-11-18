@@ -1,5 +1,8 @@
 "use client";
 
+import { UiIcon } from "@/components/ui/UiIcon";
+import { TitlePlate } from "@/components/ui/TitlePlate";
+import { SkinGauge } from "@/components/ui/SkinGauge";
 import Link from "next/link";
 import { BossArt } from "@/components/BossArt";
 import { Card, Loading, PageHeader } from "@/components/ui/primitives";
@@ -20,7 +23,7 @@ export default function QuestPage() {
       <Card className="flex items-center gap-4 !p-4">
         <div className="flex-1">
           <p className="text-[10px] text-sub">称号</p>
-          <p className="font-bold">{title ? `【${title.name}】` : "なし"}</p>
+          <p className="font-bold">{title ? <TitlePlate name={title.name} rarity={title.rarity} size="sm" /> : "なし"}</p>
         </div>
         <div className="text-center">
           <p className="text-[10px] text-sub">踏破</p>
@@ -64,7 +67,7 @@ export default function QuestPage() {
                   {/* 挑戦中のボス / 踏破済みは最終ボス / 未解放は最終ボスのシルエット */}
                   <BossArt dungeonId={d.id} floor={fi ?? d.floors.length - 1} size={60} dim={!unlocked} />
                   {done && <span className="absolute -bottom-1 -right-1 text-base" aria-label="踏破済み">🏆</span>}
-                  {!unlocked && <span className="absolute -bottom-1 -right-1 text-base" aria-label="未解放">🔒</span>}
+                  {!unlocked && <UiIcon name="lock" alt="未解放" className="absolute -bottom-1 -right-1 !h-6" />}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
@@ -87,9 +90,7 @@ export default function QuestPage() {
                         </span>
                         <span className="text-sub">{lastHp == null ? "HP ???" : `HP ${Math.round(lastHp * 100)}%`}</span>
                       </div>
-                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
-                        <div className="h-full rounded-full bg-bad" style={{ width: `${Math.max(2, (lastHp ?? 1) * 100)}%` }} />
-                      </div>
+                      <SkinGauge kind="hp" value={Math.max(0.02, lastHp ?? 1)} h={12} className="mt-1" />
                     </div>
                   )}
                   {done && <p className="mt-1.5 text-[11px] font-bold text-accent-2">踏破済み</p>}

@@ -1,5 +1,8 @@
 "use client";
 
+import { UiIcon } from "@/components/ui/UiIcon";
+import { TitlePlate } from "@/components/ui/TitlePlate";
+import { SkinGauge } from "@/components/ui/SkinGauge";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
@@ -50,7 +53,7 @@ export default function FriendsPage() {
               <div className="mt-0.5 flex items-center justify-center gap-1">
                 <LevelBadge level={f.character.level} size="sm" />
               </div>
-              {findTitle(f.titleId) && <p className="mt-0.5 truncate text-[9px] text-accent-2">【{findTitle(f.titleId)!.name}】</p>}
+              {findTitle(f.titleId) && <TitlePlate name={findTitle(f.titleId)!.name} rarity={findTitle(f.titleId)!.rarity} size="sm" className="mt-0.5" />}
               <p className="mt-1 text-[10px] text-sub">{activeToday ? `今日 +${f.metrics.todayXp}XP` : "今日はまだ"}</p>
             </Link>
           );
@@ -59,16 +62,14 @@ export default function FriendsPage() {
 
       <Card className="!p-4">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-bold">🤝 みんなで週間チャレンジ</p>
+          <p className="text-sm font-bold"><UiIcon name="cheer" className="mr-1" />みんなで週間チャレンジ</p>
           <p className="text-[10px] text-sub">{members}人で協力</p>
         </div>
         <p className="mt-1 font-num text-2xl font-bold">
           {teamXp.toLocaleString()}
           <span className="text-sm text-sub"> / {teamGoal.toLocaleString()} XP</span>
         </p>
-        <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-white/10">
-          <div className="h-full rounded-full bg-gradient-to-r from-good to-cardio" style={{ width: `${Math.min(100, (teamXp / teamGoal) * 100)}%` }} />
-        </div>
+        <SkinGauge kind="xp" value={teamXp / teamGoal} h={16} className="mt-2" />
         <p className="mt-1.5 text-[11px] text-sub">
           {teamXp >= teamGoal ? "達成！全員のキャラにボーナス演出（今後実装）" : `あと ${(teamGoal - teamXp).toLocaleString()} XP で達成。あなたの貢献 ${me.metrics.weekXp.toLocaleString()} XP`}
         </p>

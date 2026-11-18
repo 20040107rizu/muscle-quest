@@ -1,5 +1,6 @@
 "use client";
 
+import { SkinGauge } from "./SkinGauge";
 import Link from "next/link";
 import { NumberInput } from "./NumberInput";
 import { STAT_LABELS, type StatKey } from "@/domain/types";
@@ -37,11 +38,7 @@ export function XpBar({ into, needed, className = "" }: { into: number; needed: 
   const pct = Math.min(100, (into / needed) * 100);
   return (
     <div className={className}>
-      <div className="h-2.5 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/5">
-        <div className="relative h-full rounded-full bg-gradient-to-r from-accent to-accent-2 shadow-[0_0_12px_rgba(255,140,60,0.7)] transition-[width] duration-700" style={{ width: `${pct}%` }}>
-          <div className="mq-shimmer absolute inset-0 rounded-full" />
-        </div>
-      </div>
+      <SkinGauge kind="xp" value={pct / 100} h={16} shimmer />
       <div className="mt-1 flex justify-between text-[10px] text-sub">
         <span className="font-num text-xs">
           {into} / {needed} XP

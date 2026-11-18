@@ -61,19 +61,22 @@ export interface Dungeon {
   reward: Reward;
 }
 
+export type TitleRarity = "N" | "R" | "SR" | "SSR" | "UR";
+
 export interface Title {
   id: string;
   name: string;
+  rarity: TitleRarity;
 }
 
 export const TITLES: Title[] = [
-  { id: "adventurer", name: "駆け出しの冒険者" },
-  { id: "iron_chest", name: "鋼の胸板" },
-  { id: "demon_back", name: "鬼の背中" },
-  { id: "earth_shaker", name: "大地を揺らす者" },
-  { id: "wind_runner", name: "風の走者" },
-  { id: "unyielding", name: "不屈の魂" },
-  { id: "muscle_king", name: "筋肉覇王" },
+  { id: "adventurer", name: "駆け出しの冒険者", rarity: "N" },
+  { id: "iron_chest", name: "鋼の胸板", rarity: "R" },
+  { id: "demon_back", name: "鬼の背中", rarity: "R" },
+  { id: "earth_shaker", name: "大地を揺らす者", rarity: "SR" },
+  { id: "wind_runner", name: "風の走者", rarity: "SR" },
+  { id: "unyielding", name: "不屈の魂", rarity: "SSR" },
+  { id: "muscle_king", name: "筋肉覇王", rarity: "UR" },
 ];
 
 export function findTitle(id: string | undefined): Title | undefined {

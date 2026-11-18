@@ -1,5 +1,7 @@
 "use client";
 
+import { TitlePlate } from "@/components/ui/TitlePlate";
+import { SkinGauge } from "@/components/ui/SkinGauge";
 import { SkinButton, SkinFace } from "@/components/ui/SkinButton";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -197,11 +199,7 @@ export default function DungeonPage() {
               <span>HP</span>
               <span className="font-num">{hpKnown ? `${Math.round(shownHp * 100)}%` : "???"}</span>
             </div>
-            <div className="mt-0.5 h-3 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10">
-              <div className="relative h-full rounded-full bg-gradient-to-r from-[#ff3b4f] to-[#ff7a59] transition-[width] duration-200 ease-out" style={{ width: `${shownHp * 100}%` }}>
-                <div className="mq-shimmer absolute inset-0 rounded-full" />
-              </div>
-            </div>
+            <SkinGauge kind="hp" value={shownHp} h={20} shimmer className="mt-0.5" fillClassName="!duration-200 ease-out" />
           </div>
 
           {phase === "won" ? (
@@ -263,9 +261,7 @@ export default function DungeonPage() {
                     {r.unit}
                   </span>
                 </div>
-                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
-                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, (r.current / r.target) * 100)}%`, background: r.done ? "#3ddc97" : d.color }} />
-                </div>
+                <SkinGauge kind="ms" value={r.current / r.target} h={12} className="mt-1" />
               </div>
             ))}
           </div>
@@ -397,7 +393,7 @@ function RewardModal({ reward, onClose }: { reward: Reward; onClose: () => void 
             {title && (
               <div className="mq-pop mt-2 rounded-2xl border border-accent-2/50 bg-panel/90 p-3">
                 <p className="text-[10px] text-sub">称号を獲得</p>
-                <p className="mq-glow-text text-xl font-black text-accent-2">【{title.name}】</p>
+                <TitlePlate name={title.name} rarity={title.rarity} size="lg" />
               </div>
             )}
             {item && (

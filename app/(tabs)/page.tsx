@@ -1,5 +1,8 @@
 "use client";
 
+import { UiIcon } from "@/components/ui/UiIcon";
+import { TitlePlate } from "@/components/ui/TitlePlate";
+import { SkinGauge } from "@/components/ui/SkinGauge";
 import { SkinButton, SkinFace } from "@/components/ui/SkinButton";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -92,7 +95,7 @@ export default function HomePage() {
           <LevelBadge level={c.level} />
           <p className="mt-1.5 text-lg font-black">{c.tier.name}</p>
           <p className="text-[11px] text-sub">{c.tier.title}</p>
-          {title && <p className="mt-1 text-[11px] font-bold text-accent-2">【{title.name}】</p>}
+          {title && <TitlePlate name={title.name} rarity={title.rarity} size="sm" className="mt-1" />}
         </div>
         <div className="absolute right-4 top-4 z-10 text-right text-[10px] text-sub">
           <p>パワー</p>
@@ -126,10 +129,10 @@ export default function HomePage() {
 
       <div className="grid grid-cols-2 gap-2">
         <Link href="/workout" className="group/skin block">
-          <SkinFace className="h-14 w-full text-sm">🏋️ 筋トレを記録</SkinFace>
+          <SkinFace className="h-14 w-full text-sm"><UiIcon name="workout" className="mr-1" />筋トレを記録</SkinFace>
         </Link>
         <Link href="/run" className="group/skin block">
-          <SkinFace variant="run" className="h-14 w-full text-sm">🏃 ランを記録</SkinFace>
+          <SkinFace variant="run" className="h-14 w-full text-sm"><UiIcon name="run" className="mr-1" />ランを記録</SkinFace>
         </Link>
       </div>
 
@@ -145,9 +148,7 @@ export default function HomePage() {
                 クエスト ・ {quest.d.name} {quest.floor.name}
               </p>
               <p className="font-bold">{`${quest.floor.boss} が待ち構えている`}</p>
-              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full rounded-full bg-bad" style={{ width: `${Math.max(2, (questHp ?? 1) * 100)}%` }} />
-              </div>
+              <SkinGauge kind="hp" value={Math.max(0.02, questHp ?? 1)} h={12} className="mt-1.5" />
               <p className="mt-1 text-[10px] text-sub">
                 {questHp == null ? "HP ???" : `HP ${Math.round(questHp * 100)}%（前回の戦闘）`} ・ 鍛えた分だけダメージを与えられる
               </p>
@@ -169,9 +170,7 @@ export default function HomePage() {
               <div key={m.id} className="flex items-center gap-3">
                 <div className="flex-1">
                   <p className={`text-sm ${got ? "text-sub line-through" : ""}`}>{m.label}</p>
-                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
-                    <div className="h-full rounded-full bg-accent-2" style={{ width: `${(p.current / p.target) * 100}%` }} />
-                  </div>
+                  <SkinGauge kind="ms" value={p.current / p.target} h={12} className="mt-1" />
                 </div>
                 <button
                   disabled={!done || got}

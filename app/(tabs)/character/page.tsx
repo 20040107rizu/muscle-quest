@@ -1,5 +1,6 @@
 "use client";
 
+import { UiIcon } from "@/components/ui/UiIcon";
 import Link from "next/link";
 import { useState } from "react";
 import { HeroFigure } from "@/components/HeroFigure";
@@ -84,7 +85,7 @@ export default function CharacterPage() {
             return (
               <div key={t.name} className={`flex items-center gap-3 border-b border-line px-4 py-3 last:border-0 ${current ? "bg-accent/10" : ""}`}>
                 <span className={`grid size-8 place-items-center rounded-full text-xs font-bold ${reached ? "bg-accent text-white" : "bg-panel-2 text-sub"}`}>
-                  {reached ? "✓" : "🔒"}
+                  {reached ? "✓" : <UiIcon name="lock" alt="未到達" />}
                 </span>
                 <div className="flex-1">
                   <p className={`text-sm font-bold ${reached ? "" : "text-sub"}`}>{t.name}</p>
