@@ -1,45 +1,38 @@
 /**
- * 装備アイテム。主人公の体に重ねて表示される（src/components/HeroFigure.tsx）。
+ * 装備アイテム。絵は画像生成AIが主人公の体に直接描いたもの（public/gear/{id}/{体の画像名}.webp）。
  * 入手方法（source）はすべて「実際に鍛えた結果」で、ここから所持品が計算される。
  */
-export const GEAR_SLOTS = ["head", "neck", "cape", "wrist", "hand", "waist", "shorts", "shoes", "aura"] as const;
+export const GEAR_SLOTS = ["head", "face", "neck", "shoulder", "cape", "chest", "wrist", "hand", "waist", "shorts", "shoes", "legs", "aura"] as const;
 export type GearSlot = (typeof GEAR_SLOTS)[number];
 export type Gear = Partial<Record<GearSlot, string>>;
 
 export const SLOT_LABELS: Record<GearSlot, string> = {
   head: "頭",
+  face: "顔",
   neck: "首",
+  shoulder: "肩",
   cape: "背中",
+  chest: "胸",
   wrist: "手首",
   hand: "手",
   waist: "腰",
   shorts: "ショーツ",
-  shoes: "シューズ",
+  shoes: "靴",
+  legs: "脚",
   aura: "オーラ",
 };
 
-/** 見た目の種類（描き方の違い） */
-export type ItemLook =
-  | "headband"
-  | "crown"
-  | "chain"
-  | "fang"
-  | "pendant"
-  | "cape"
-  | "wristband"
-  | "dumbbell"
-  | "kettlebell"
-  | "belt"
-  | "champion"
-  | "recolor"
-  | "camo"
-  | "aura";
+/** 体型によって形が変わらない部位（バランス型の絵を位置だけ合わせて使える） */
+export const BODY_INDEPENDENT_SLOTS: GearSlot[] = ["head", "face", "neck"];
 
 export type ItemSource =
   | { kind: "dungeon"; dungeonId: string }
   | { kind: "floor"; dungeonId: string; floor: number }
   | { kind: "level"; level: number }
   | { kind: "streak"; days: number }
+  | { kind: "activeDays"; days: number }
+  | { kind: "totalSets"; sets: number }
+  | { kind: "totalRunKm"; km: number }
   | { kind: "allDungeons" };
 
 export type Rarity = "N" | "R" | "SR" | "SSR";
@@ -48,64 +41,121 @@ export interface Item {
   id: string;
   name: string;
   slot: GearSlot;
-  look: ItemLook;
   description: string;
-  /** メインの色 */
-  color: string;
-  /** サブの色（結び目・バックル・腰ゴムなど） */
-  color2?: string;
   rarity: Rarity;
   source: ItemSource;
-  /** public/items/{id}.webp のアイコン画像があるか（なければ自動で描く）。王冠・首・背中・手は {id}_wear.webp を体に重ねる */
-  icon?: boolean;
-  /** 光る */
-  glow?: boolean;
 }
 
-export const ITEMS: Item[] = [
+const f = (dungeonId: string, floor: number): ItemSource => ({ kind: "floor", dungeonId, floor });
+const dg = (dungeonId: string): ItemSource => ({ kind: "dungeon", dungeonId });
+const lv = (level: number): ItemSource => ({ kind: "level", level });
+const sk = (days: number): ItemSource => ({ kind: "streak", days });
+const ad = (days: number): ItemSource => ({ kind: "activeDays", days });
+const ts = (sets: number): ItemSource => ({ kind: "totalSets", sets });
+const km = (n: number): ItemSource => ({ kind: "totalRunKm", km: n });
+
+type Row = [id: string, name: string, slot: GearSlot, rarity: Rarity, source: ItemSource, description: string];
+
+const ROWS: Row[] = [
   // ---- 頭 ----
-  { id: "headband_white", name: "冒険者のハチマキ", slot: "head", look: "headband", description: "始まりの洞窟を踏破した証。赤い炎の模様", color: "#f2f2f2", color2: "#e8423a", rarity: "R", source: { kind: "dungeon", dungeonId: "cave" }, icon: true },
-  { id: "headband_red", name: "オーガの赤ハチマキ", slot: "head", look: "headband", description: "門番オーガが巻いていた。桜の模様", color: "#d7263d", color2: "#ffc0d0", rarity: "R", source: { kind: "floor", dungeonId: "leg_castle", floor: 0 }, icon: true },
-  { id: "headband_blue", name: "稲妻のハチマキ", slot: "head", look: "headband", description: "疾風の狼の毛で編まれている。雲の模様", color: "#2f6bff", color2: "#dfeaff", rarity: "SR", source: { kind: "floor", dungeonId: "wind_corridor", floor: 1 }, icon: true },
-  { id: "headband_black", name: "不屈の黒ハチマキ", slot: "head", look: "headband", description: "14日間、一日も休まなかった者に。金の雲の模様", color: "#1b1d22", color2: "#e9c25a", rarity: "SR", source: { kind: "streak", days: 14 }, icon: true },
-  { id: "crown_gold", name: "黄金の王冠", slot: "head", look: "crown", description: "神話の肉体に至った者だけがかぶれる", color: "#ffd166", color2: "#ff5d6c", rarity: "SSR", source: { kind: "level", level: 50 }, icon: true, glow: true },
+  ["H01", "冒険者のハチマキ", "head", "R", dg("cave"), "始まりの洞窟を踏破した証。赤い炎の模様"],
+  ["H02", "オーガの赤ハチマキ", "head", "R", f("leg_castle", 0), "門番オーガが巻いていた。桜の模様"],
+  ["H03", "稲妻のハチマキ", "head", "SR", f("wind_corridor", 1), "疾風の狼の毛で編まれている"],
+  ["H04", "不屈の黒ハチマキ", "head", "SR", sk(14), "14日間、一日も休まなかった者に"],
+  ["H05", "黄金の王冠", "head", "SSR", lv(50), "神話の肉体に至った者だけがかぶれる"],
+  ["H06", "ランナーキャップ", "head", "N", km(10), "累計10km走った証"],
+  ["H07", "ストリートキャップ", "head", "N", lv(6), "ジム帰りの定番スタイル"],
+  ["H08", "月桂冠", "head", "SR", dg("chest_temple"), "胸板の神から授かった勝者の冠"],
+  ["H09", "魔王の角", "head", "SR", f("final_castle", 2), "筋肉覇王の角を模した額当て"],
+  ["H10", "侍のハチマキ", "head", "R", sk(21), "21日連続。武士の覚悟"],
+  ["H11", "戦士の兜", "head", "R", f("final_castle", 0), "四天王の兜"],
+  ["H12", "鷲の羽飾り", "head", "SR", f("back_mountain", 2), "鷲の王の羽"],
+  // ---- 顔 ----
+  ["F01", "黒いサングラス", "face", "N", lv(4), "強者の余裕"],
+  ["F02", "金のサングラス", "face", "SR", lv(32), "まぶしいのは筋肉かサングラスか"],
+  ["F03", "戦化粧", "face", "R", f("cave", 2), "洞窟オークを倒した戦士の化粧"],
+  ["F04", "光るゴーグル", "face", "R", km(42), "フルマラソン分（42km）走った証"],
   // ---- 首 ----
-  { id: "necklace_fang", name: "ゴブリンの牙", slot: "neck", look: "fang", description: "ゴブリンを倒して手に入れた牙", color: "#f1ead8", color2: "#5a3a26", rarity: "N", source: { kind: "floor", dungeonId: "cave", floor: 1 }, icon: true },
-  { id: "necklace_silver", name: "魔女のペンダント", slot: "neck", look: "pendant", description: "誘惑に打ち勝った者の証", color: "#c9d1e0", color2: "#4cc9f0", rarity: "R", source: { kind: "floor", dungeonId: "tower", floor: 1 }, icon: true },
-  { id: "necklace_gold", name: "金のチェーン", slot: "neck", look: "chain", description: "レベル15の証。重いほど強い", color: "#ffd166", color2: "#e2a83a", rarity: "SR", source: { kind: "level", level: 15 }, icon: true },
+  ["N01", "ゴブリンの牙", "neck", "N", f("cave", 1), "ゴブリンを倒して手に入れた牙"],
+  ["N02", "魔女のペンダント", "neck", "R", f("tower", 1), "誘惑に打ち勝った者の証"],
+  ["N03", "金のチェーン", "neck", "SR", lv(15), "重いほど強い"],
+  ["N04", "ジムタオル", "neck", "N", ad(5), "5日運動した。汗は裏切らない"],
+  ["N05", "骨のネックレス", "neck", "N", ts(50), "合計50セットの証"],
+  ["N06", "門番の鍵", "neck", "R", lv(12), "城門を開く鍵"],
+  ["N07", "赤いバンダナ", "neck", "N", lv(2), "最初の一歩"],
+  ["N08", "風神のスカーフ", "neck", "SR", dg("wind_corridor"), "風の回廊を踏破した者になびく"],
+  // ---- 肩 ----
+  ["S01", "鋼の肩当て", "shoulder", "R", f("chest_temple", 0), "鉄の番兵の装甲"],
+  ["S02", "青銅の肩当て", "shoulder", "R", lv(10), "レベル10の証"],
+  ["S03", "トロールの毛皮", "shoulder", "R", f("back_mountain", 1), "山岳トロールの毛皮"],
+  ["S04", "竜鱗の肩当て", "shoulder", "SR", dg("tower"), "不屈の竜の鱗"],
+  ["S05", "将軍の大袖", "shoulder", "SR", lv(28), "将の風格"],
+  ["S06", "黄金の肩鎧", "shoulder", "SSR", lv(40), "黄金の輝き"],
   // ---- 背中 ----
-  { id: "cape_red", name: "騎士の赤マント", slot: "cape", look: "cape", description: "プレス騎士から託されたマント", color: "#b3262d", color2: "#ffffff", rarity: "SR", source: { kind: "floor", dungeonId: "chest_temple", floor: 2 }, icon: true },
-  { id: "cape_black", name: "影のマント", slot: "cape", look: "cape", description: "怠惰の影を振り払った者がまとう", color: "#1b1d22", color2: "#b79cff", rarity: "R", source: { kind: "floor", dungeonId: "tower", floor: 0 }, icon: true },
-  { id: "cape_gold", name: "金の羽マント", slot: "cape", look: "cape", description: "鷲の王の羽で織られた", color: "#e9c25a", color2: "#fff6c8", rarity: "SSR", source: { kind: "floor", dungeonId: "back_mountain", floor: 2 }, icon: true, glow: true },
+  ["K01", "騎士の赤マント", "cape", "SR", f("chest_temple", 2), "プレス騎士から託されたマント"],
+  ["K02", "影のマント", "cape", "R", f("tower", 0), "怠惰の影を振り払った者がまとう"],
+  ["K03", "金の羽マント", "cape", "SSR", dg("back_mountain"), "巨人の背骨山の頂で見つけた"],
+  ["K04", "大地のマント", "cape", "SR", dg("leg_castle"), "大地の王のマント"],
+  ["K05", "覇王のマント", "cape", "SSR", dg("final_castle"), "覇王の城を制した者だけがまとう"],
+  ["K06", "勇者の白マント", "cape", "SR", sk(30), "30日連続。勇者の証"],
+  // ---- 胸 ----
+  ["T01", "ハンターの帯", "chest", "N", ts(20), "合計20セット"],
+  ["T02", "ゴーレムハーネス", "chest", "R", f("chest_temple", 1), "鋼のゴーレムの心臓が光る"],
+  ["T03", "神のたすき", "chest", "SR", f("chest_temple", 3), "胸板の神の衣"],
+  ["T04", "風のウインドブレーカー", "chest", "R", f("wind_corridor", 0), "風の精の加護"],
   // ---- 手首 ----
-  { id: "wrist_red", name: "灼熱のリストバンド", slot: "wrist", look: "wristband", description: "鋼の胸板神殿の主から奪った", color: "#c8202a", color2: "#ff6b2c", rarity: "R", source: { kind: "dungeon", dungeonId: "chest_temple" }, icon: true },
-  { id: "wrist_black", name: "黒のリストバンド", slot: "wrist", look: "wristband", description: "最初の一歩。レベル3の証", color: "#22252c", color2: "#ff6b2c", rarity: "N", source: { kind: "level", level: 3 }, icon: true },
-  { id: "wrist_iron", name: "鉄の籠手", slot: "wrist", look: "wristband", description: "鉄の番兵の装甲から作った", color: "#9aa3b2", color2: "#5b6372", rarity: "R", source: { kind: "floor", dungeonId: "chest_temple", floor: 0 }, icon: true },
-  { id: "wrist_gold", name: "時の金腕輪", slot: "wrist", look: "wristband", description: "時の番人が刻を止めた腕輪", color: "#d9a441", color2: "#7a4f12", rarity: "SR", source: { kind: "floor", dungeonId: "tower", floor: 2 }, icon: true, glow: true },
+  ["W01", "灼熱のリストバンド", "wrist", "N", lv(3), "最初のリストバンド"],
+  ["W02", "黒のリストバンド", "wrist", "N", ad(10), "10日運動した"],
+  ["W03", "鉄の籠手", "wrist", "R", lv(18), "鍛え上げた前腕に"],
+  ["W04", "時の金腕輪", "wrist", "SR", f("tower", 2), "時の番人が刻を止めた腕輪"],
+  ["W05", "リストラップ", "wrist", "N", ts(100), "合計100セット"],
+  ["W06", "狼の毛皮バンド", "wrist", "R", km(21), "ハーフマラソン分（21km）走った"],
+  ["W07", "機械の籠手", "wrist", "SR", f("final_castle", 1), "鋼鉄の巨神の腕"],
+  ["W08", "ネオンリストバンド", "wrist", "N", sk(3), "3日連続"],
   // ---- 手 ----
-  { id: "hand_dumbbell", name: "鋼のダンベル", slot: "hand", look: "dumbbell", description: "鋼のゴーレムの心臓で作られた", color: "#3a3f4a", color2: "#c9d1e0", rarity: "R", source: { kind: "floor", dungeonId: "chest_temple", floor: 1 }, icon: true },
-  { id: "hand_kettlebell", name: "トロールのケトルベル", slot: "hand", look: "kettlebell", description: "山岳トロールが振り回していた", color: "#2b2f37", color2: "#ff6b2c", rarity: "R", source: { kind: "floor", dungeonId: "back_mountain", floor: 1 }, icon: true },
+  ["A01", "鋼のダンベル", "hand", "R", ts(300), "合計300セット"],
+  ["A02", "トロールのケトルベル", "hand", "R", lv(14), "山のように重い"],
+  ["A03", "ボクシンググローブ", "hand", "R", lv(20), "拳で語れ"],
+  ["A04", "オープンフィンガーグローブ", "hand", "SR", lv(25), "格闘家の証"],
+  ["A05", "木刀", "hand", "R", ad(30), "30日運動した武人に"],
+  ["A06", "プロテインシェーカー", "hand", "N", ad(20), "20日運動した。飲むまでがトレーニング"],
+  ["A07", "チョーク", "hand", "N", lv(8), "握力が増す（気がする）"],
   // ---- 腰 ----
-  { id: "belt_leather", name: "巨人のリフティングベルト", slot: "waist", look: "belt", description: "巨人の背骨山の宝", color: "#7a4a2a", color2: "#d9b25a", rarity: "SR", source: { kind: "dungeon", dungeonId: "back_mountain" }, icon: true },
-  { id: "belt_champion", name: "チャンピオンベルト", slot: "waist", look: "champion", description: "鋼鉄の巨神を倒した王者の証", color: "#1b1d22", color2: "#ffd166", rarity: "SSR", source: { kind: "floor", dungeonId: "final_castle", floor: 1 }, icon: true, glow: true },
+  ["B01", "巨人のリフティングベルト", "waist", "SR", f("back_mountain", 3), "背骨の巨人の宝"],
+  ["B02", "稲妻のリフティングベルト", "waist", "R", ts(500), "合計500セット"],
+  ["B03", "チャンピオンベルト", "waist", "SSR", lv(45), "王者の証"],
+  ["B04", "金の帯", "waist", "R", lv(22), "ゴリマッチョの証"],
+  ["B05", "機械のベルト", "waist", "SR", ts(1000), "合計1000セット。もはや機械"],
   // ---- ショーツ ----
-  { id: "shorts_slime", name: "スライムショーツ", slot: "shorts", look: "recolor", description: "スライムの粘液で染めた（洗っても落ちない）", color: "#3fa34d", color2: "#c6ff6b", rarity: "N", source: { kind: "floor", dungeonId: "cave", floor: 0 }, icon: true },
-  { id: "shorts_red", name: "大地の赤ショーツ", slot: "shorts", look: "recolor", description: "大地の脚城の戦利品", color: "#b3262d", color2: "#ffd166", rarity: "SR", source: { kind: "dungeon", dungeonId: "leg_castle" }, icon: true },
-  { id: "shorts_camo", name: "重装兵の迷彩ショーツ", slot: "shorts", look: "camo", description: "重装兵の野戦用", color: "#4b5a2e", color2: "#ff6b2c", rarity: "R", source: { kind: "floor", dungeonId: "leg_castle", floor: 1 }, icon: true },
-  { id: "shorts_blue", name: "稲妻ブルーショーツ", slot: "shorts", look: "recolor", description: "嵐の鳥の羽の色", color: "#2f6bff", color2: "#ffe14d", rarity: "R", source: { kind: "floor", dungeonId: "wind_corridor", floor: 2 }, icon: true },
-  { id: "shorts_pink", name: "ネオンピンクショーツ", slot: "shorts", look: "recolor", description: "7日連続の情熱の色", color: "#ff3fa4", color2: "#ffffff", rarity: "R", source: { kind: "streak", days: 7 }, icon: true },
-  { id: "shorts_gold", name: "覇王の金ショーツ", slot: "shorts", look: "recolor", description: "覇王の城を制した者だけが履ける", color: "#e9c25a", color2: "#ff5d6c", rarity: "SSR", source: { kind: "dungeon", dungeonId: "final_castle" }, icon: true, glow: true },
-  // ---- シューズ ----
-  { id: "shoes_wind", name: "疾風のシューズ", slot: "shoes", look: "recolor", description: "風の回廊を駆け抜けた者の靴", color: "#4cc9f0", color2: "#ffffff", rarity: "SR", source: { kind: "dungeon", dungeonId: "wind_corridor" }, icon: true, glow: true },
-  { id: "shoes_rock", name: "岩トカゲのブーツ", slot: "shoes", look: "recolor", description: "岩トカゲの皮。とにかく硬い", color: "#7a6f60", color2: "#5b8a3a", rarity: "N", source: { kind: "floor", dungeonId: "back_mountain", floor: 0 }, icon: true },
-  { id: "shoes_fire", name: "炎のシューズ", slot: "shoes", look: "recolor", description: "レベル8の証。走ると熱い", color: "#e8423a", color2: "#ffd166", rarity: "R", source: { kind: "level", level: 8 }, icon: true },
-  { id: "shoes_gold", name: "四天王の黄金靴", slot: "shoes", look: "recolor", description: "四天王を退けた者の靴", color: "#e9c25a", color2: "#ffffff", rarity: "SR", source: { kind: "floor", dungeonId: "final_castle", floor: 0 }, icon: true, glow: true },
-  // ---- オーラ ----
-  { id: "aura_wind", name: "そよ風のオーラ", slot: "aura", look: "aura", description: "風の精の加護", color: "#4cc9f0", rarity: "R", source: { kind: "floor", dungeonId: "wind_corridor", floor: 0 }, icon: true },
-  { id: "aura_flame", name: "不屈の炎", slot: "aura", look: "aura", description: "不屈の塔の頂で灯る炎", color: "#ff6b2c", rarity: "SR", source: { kind: "dungeon", dungeonId: "tower" }, icon: true },
-  { id: "aura_purple", name: "竜気のオーラ", slot: "aura", look: "aura", description: "レベル25。竜の気配をまとう", color: "#b79cff", rarity: "SR", source: { kind: "level", level: 25 }, icon: true },
-  { id: "aura_gold", name: "覇王のオーラ", slot: "aura", look: "aura", description: "全ダンジョン踏破。全身から立ちのぼる黄金の気", color: "#ffd166", rarity: "SSR", source: { kind: "allDungeons" }, icon: true },
+  ["P01", "スライムショーツ", "shorts", "N", f("cave", 0), "スライムの粘液で染めた（洗っても落ちない）"],
+  ["P02", "大地の赤ショーツ", "shorts", "R", f("leg_castle", 2), "大地の王のショーツ"],
+  ["P03", "迷彩ショーツ", "shorts", "R", f("leg_castle", 1), "重装兵の野戦用"],
+  ["P04", "稲妻ブルーショーツ", "shorts", "R", f("wind_corridor", 2), "嵐の鳥の羽の色"],
+  ["P05", "ネオンピンクショーツ", "shorts", "R", sk(7), "7日連続の情熱の色"],
+  ["P06", "覇王の金ショーツ", "shorts", "SSR", { kind: "allDungeons" }, "全ダンジョンを制した者だけが履ける"],
+  ["P07", "魔女の紫ショーツ", "shorts", "R", f("tower", 3), "不屈の竜の色"],
+  ["P08", "勇者の白ショーツ", "shorts", "SR", lv(35), "レジェンドの証"],
+  ["P09", "毛皮のショーツ", "shorts", "N", lv(5), "細マッチョの証"],
+  ["P10", "袴ショーツ", "shorts", "R", ad(50), "50日運動した"],
+  // ---- 靴 ----
+  ["L01", "岩トカゲのブーツ", "shoes", "N", f("back_mountain", 0), "岩トカゲの皮。とにかく硬い"],
+  ["L02", "疾風のシューズ", "shoes", "SR", f("wind_corridor", 3), "風神の靴"],
+  ["L03", "炎のシューズ", "shoes", "R", km(100), "累計100km。走ると熱い"],
+  ["L04", "黄金の靴", "shoes", "SSR", lv(42), "黄金の一歩"],
+  ["L05", "コンバットブーツ", "shoes", "N", lv(7), "どこでも走れる"],
+  ["L06", "白いシューズ", "shoes", "N", km(5), "累計5km走った"],
+  ["L07", "金のサンダル", "shoes", "R", ad(100), "100日運動した神々の履物"],
+  // ---- 脚 ----
+  ["L08", "膝スリーブ", "legs", "N", ts(200), "合計200セット。膝を守れ"],
+  ["L09", "金のすね当て", "legs", "SR", lv(30), "鍛え抜いた脚に"],
+  // ---- オーラ（体の後ろに光る演出） ----
+  ["aura_wind", "そよ風のオーラ", "aura", "R", km(50), "累計50km。風の加護"],
+  ["aura_flame", "不屈の炎", "aura", "SR", sk(10), "10日連続で燃え上がる"],
+  ["aura_purple", "竜気のオーラ", "aura", "SR", lv(26), "竜の気配をまとう"],
+  ["aura_gold", "覇王のオーラ", "aura", "SSR", lv(38), "全身から立ちのぼる黄金の気"],
 ];
+
+export const ITEMS: Item[] = ROWS.map(([id, name, slot, rarity, source, description]) => ({ id, name, slot, rarity, source, description }));
 
 export const RARITY_COLORS: Record<Rarity, string> = {
   N: "#9aa3b2",
@@ -117,3 +167,20 @@ export const RARITY_COLORS: Record<Rarity, string> = {
 export function findItem(id: string | undefined): Item | undefined {
   return id ? ITEMS.find((i) => i.id === id) : undefined;
 }
+
+/** その部位の装備の重ね順（小さいほど奥）。絵には体に隠れる部分があらかじめ反映されている */
+export const LAYER_ORDER: Record<GearSlot, number> = {
+  aura: 0,
+  cape: 1,
+  shorts: 2,
+  shoes: 3,
+  legs: 4,
+  chest: 5,
+  waist: 6,
+  shoulder: 7,
+  wrist: 8,
+  hand: 9,
+  neck: 10,
+  face: 11,
+  head: 12,
+};

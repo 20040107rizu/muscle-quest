@@ -14,8 +14,8 @@ beforeEach(async () => {
 });
 
 describe("アイテム定義", () => {
-  it("30個以上あり、IDが重複せず、入手条件が実在する", () => {
-    expect(ITEMS.length).toBeGreaterThanOrEqual(30);
+  it("80個以上あり、IDが重複せず、入手条件が実在する", () => {
+    expect(ITEMS.length).toBeGreaterThanOrEqual(80);
     expect(new Set(ITEMS.map((i) => i.id)).size).toBe(ITEMS.length);
     for (const it of ITEMS) {
       expect(GEAR_SLOTS).toContain(it.slot);
@@ -34,17 +34,17 @@ describe("入手条件", () => {
   it("レベル・連続日数・ボス撃破で手に入る", () => {
     const none = ownedRewards(new Set(), { level: 1, longestStreak: 0 }).items;
     expect(none).toEqual([]);
-    const lv = ownedRewards(new Set(), { level: 15, longestStreak: 7 }).items;
-    expect(lv).toEqual(expect.arrayContaining(["wrist_black", "shoes_fire", "necklace_gold", "shorts_pink"]));
-    expect(lv).not.toContain("crown_gold");
-    expect(ownedRewards(new Set(["cave:0"])).items).toContain("shorts_slime");
+    const lv = ownedRewards(new Set(), { level: 15, longestStreak: 7, totalSets: 120, activeDays: 12, totalRunKm: 11 }).items;
+    expect(lv).toEqual(expect.arrayContaining(["W01", "A07", "N03", "P05", "W05", "W02", "H06"]));
+    expect(lv).not.toContain("H05");
+    expect(ownedRewards(new Set(["cave:0"])).items).toContain("P01");
   });
 
   it("全ダンジョン踏破で全アイテム", () => {
     const all = new Set(DUNGEONS.flatMap((d) => d.floors.map((_, i) => `${d.id}:${i}`)));
-    const owned = ownedRewards(all, { level: 60, longestStreak: 30 }).items;
+    const owned = ownedRewards(all, { level: 60, longestStreak: 30, activeDays: 100, totalSets: 1000, totalRunKm: 100 }).items;
     expect(owned.length).toBe(ITEMS.length);
-    expect(itemUnlocked(ITEMS.find((i) => i.id === "aura_gold")!, all, { level: 1, longestStreak: 0 })).toBe(true);
+    expect(itemUnlocked(ITEMS.find((i) => i.id === "P06")!, all, { level: 1, longestStreak: 0 })).toBe(true);
   });
 
   it("最長連続日数", () => {
@@ -57,9 +57,9 @@ describe("記録・撃破で新しいアイテムを知らせ、持っていな�
   it("ボス撃破でドロップ", async () => {
     await repo.saveWorkout({ id: "w", exerciseId: "squat", date: today, sets: Array.from({ length: 5 }, () => ({ weightKg: 60, reps: 10 })) });
     const r = await repo.challengeFloor("cave", 0);
-    expect(r.newItems).toContain("shorts_slime");
-    await repo.equipItem("shorts", "shorts_slime");
-    expect((await repo.getProfile())?.gear?.shorts).toBe("shorts_slime");
+    expect(r.newItems).toContain("P01");
+    await repo.equipItem("shorts", "P01");
+    expect((await repo.getProfile())?.gear?.shorts).toBe("P01");
   });
 
   it("連続日数の節目で入手", async () => {
@@ -67,10 +67,10 @@ describe("記録・撃破で新しいアイテムを知らせ、持っていな�
     for (let i = 6; i >= 0; i--) {
       last = await repo.saveRun({ id: `r${i}`, distanceKm: 1 + i * 0.1, durationS: 400 + i * 40, date: addDays(today, -i) });
     }
-    expect(last!.newItems).toContain("shorts_pink");
+    expect(last!.newItems).toContain("P05");
   });
 
   it("未入手は装備不可", async () => {
-    await expect(repo.equipItem("head", "crown_gold")).rejects.toThrow();
+    await expect(repo.equipItem("head", "H05")).rejects.toThrow();
   });
 });

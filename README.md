@@ -72,9 +72,10 @@ tests/                   Vitest
 
 - 主人公: `public/hero/{タイプ}_{段階}.webp`。段階はレベルで1〜6（ビギナー〜神話）、タイプはいちばん育った部位で8種類（`src/domain/character.ts` の `heroType`）。
   現在あるのはバランス型（1〜6）と胸型（2〜6）。ほかのタイプはバランス型で代わりに表示（`src/components/heroImages.ts` の `AVAILABLE` に足せば切り替わる）。
-- 装備は体の画像に重ねて描く（`src/components/HeroFigure.tsx`）。頭・首・肩・手首・腰・裾・足の位置と、ショーツ・腰ゴム・靴の塗り替え用マスクは
-  `python3 -I scripts/assets/hero_anchors.py` で体の画像から自動生成（`src/components/heroAnchors.json`, `public/hero/masks/`）。体の画像を追加・差し替えたら再実行する。
-- アイテムは `src/domain/items.ts`（33個・9部位）。入手はボス撃破・ダンジョン踏破・レベル・最長連続日数。
+- 装備は、画像生成AIが体のシート（A1〜A8）に直接描き足した絵を、元のシートとの差分で切り出したもの。
+  `python3 -I scripts/assets/import_gear.py <A1〜A8のフォルダ> <装備シートのフォルダ>` → `public/gear/{装備ID}/{体の画像名}.webp` と
+  `src/components/gearLayers.json`（位置）とアイコンを生成。体に隠れる部分は元から描かれていないので、そのまま体の前に重ねる。
+- アイテムは `src/domain/items.ts`（83個・13部位）。体型で形が変わる装備の絵がその体型にまだ無いときはバランス型の体で表示。
 - 装備アイコン: `public/items/{アイテムID}.webp`（ない場合は `ItemIcon` が自動で描く）。ボス: `public/bosses/*.webp`。
 - 画像生成AIの18枚のシート（A1〜A8 体、B1〜B2 装備、C1〜C4 アイコン、D1〜D3 演出、E1 アプリアイコン）は
   `python3 -I scripts/assets/import_all.py シートのフォルダ [A1 C1 ...]` で一括取り込み → `hero_anchors.py` を再実行。

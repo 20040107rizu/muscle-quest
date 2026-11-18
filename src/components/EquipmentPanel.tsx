@@ -5,6 +5,7 @@ import { GEAR_SLOTS, ITEMS, RARITY_COLORS, SLOT_LABELS, findItem, type Gear, typ
 import { itemSourceLabel, TITLES } from "@/domain/quests";
 import { getRepo } from "@/data/hooks";
 import { sfx } from "./fx/sound";
+import { hasGearArt } from "./heroImages";
 import { ItemIcon } from "./ItemIcon";
 import { Card } from "./ui/primitives";
 
@@ -80,13 +81,14 @@ export function EquipmentPanel({ gear, titleId, ownedItems, ownedTitles }: { gea
         <div className="grid grid-cols-4 gap-2">
           {items.map((it) => {
             const owned = ownedItems.includes(it.id);
+            const ready = hasGearArt(it.id);
             const on = gear[slot] === it.id;
             return (
               <button
                 key={it.id}
                 onClick={() => {
                   setPeek(it.id);
-                  if (owned) run(() => getRepo().equipItem(slot, on ? null : it.id));
+                  if (owned && ready) run(() => getRepo().equipItem(slot, on ? null : it.id));
                 }}
                 className={`flex flex-col items-center gap-1 rounded-xl p-1.5 ${on ? "bg-accent-2/15 ring-2 ring-accent-2" : peek === it.id ? "bg-panel-2" : ""}`}
               >
@@ -106,6 +108,7 @@ export function EquipmentPanel({ gear, titleId, ownedItems, ownedTitles }: { gea
               {ownedItems.includes(peekItem.id) ? peekItem.name : "？？？"}
             </p>
             <p className="mt-1 text-sub">{ownedItems.includes(peekItem.id) ? peekItem.description : `入手方法: ${itemSourceLabel(peekItem)}`}</p>
+            {!hasGearArt(peekItem.id) && <p className="mt-1 text-accent-2">絵を準備中のため、まだ装着できません</p>}
           </div>
         )}
         <p className="mt-2 text-[10px] text-sub">ボスを倒す・レベルを上げる・連続で運動するとアイテムが手に入ります。持っているアイテムをタップすると体に装着されます（もう一度タップで外す）。</p>

@@ -21,7 +21,6 @@ HERO = os.path.join(ROOT, "public", "hero")
 MASKS = os.path.join(HERO, "masks")
 OUT = os.path.join(ROOT, "src", "components", "heroAnchors.json")
 debug_dir = sys.argv[sys.argv.index("--debug") + 1] if "--debug" in sys.argv else None
-os.makedirs(MASKS, exist_ok=True)
 
 
 def runs(row):
@@ -144,9 +143,6 @@ def analyze(path):
 
     wl, wr = wrist("L"), wrist("R")
 
-    save_mask(shorts, os.path.join(MASKS, f"{name}_shorts.webp"))
-    save_mask(band, os.path.join(MASKS, f"{name}_band.webp"))
-    save_mask(shoes, os.path.join(MASKS, f"{name}_shoes.webp"))
 
     anchors = {
         "w": W,
@@ -201,11 +197,3 @@ with open(OUT, "w") as f:
     json.dump(result, f, ensure_ascii=False, indent=1)
 print("wrote", OUT)
 
-# 体に重ねる装備画像（*_wear.webp）の縦横比。HeroFigure の位置合わせに使う
-wear = {}
-for p in sorted(glob.glob(os.path.join(ROOT, "public", "items", "*_wear.webp"))):
-    w_, h_ = Image.open(p).size
-    wear[os.path.basename(p)[: -len("_wear.webp")]] = round(h_ / w_, 4)
-with open(os.path.join(ROOT, "src", "components", "wearAspect.json"), "w") as f:
-    json.dump(wear, f, indent=1)
-print("wrote wearAspect.json", len(wear))

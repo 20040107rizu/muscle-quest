@@ -63,7 +63,7 @@ describe("クエスト", () => {
   });
 
   it("未獲得のアイテム・称号は装備できない", async () => {
-    await expect(repo.equipItem("head", "headband_white")).rejects.toThrow();
+    await expect(repo.equipItem("head", "H01")).rejects.toThrow();
     await expect(repo.setTitle("adventurer")).rejects.toThrow();
   });
 
@@ -77,6 +77,6 @@ describe("クエスト", () => {
     s.weekXp = 3000;
     const cleared = simulateClears(s);
     expect(DUNGEONS.every((d) => d.floors.every((_, i) => cleared.has(`${d.id}:${i}`)))).toBe(true);
-    expect(ownedRewards(cleared).items).toContain("aura_gold");
+    expect(ownedRewards(cleared).items).toContain("P06");
   });
 });
