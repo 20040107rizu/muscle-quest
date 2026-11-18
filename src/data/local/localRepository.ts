@@ -3,7 +3,8 @@ import { toDateKey } from "@/domain/dates";
 import { findExercise, makeCustomExercise } from "@/domain/exercises";
 import { DAILY_MISSIONS, missionEventId } from "@/domain/missions";
 import type { Exercise, MuscleGroup, Profile, XpEvent } from "@/domain/types";
-import { applyDailyCap, computeRunXp, computeWorkoutXp, levelFromXp } from "@/domain/xp";
+import { applyDailyCap, bestE1RM, computeRunXp, computeWorkoutXp, levelFromXp } from "@/domain/xp";
+import { critBonus, isCritical, PR_BONUS } from "@/domain/bonus";
 import { findMockUserByCode, MOCK_DEFAULT_FRIENDS } from "../mock/friends";
 import { toActivities } from "../activities";
 import { buildCharacter } from "@/domain/character";
@@ -92,12 +93,12 @@ export class LocalRepository implements Repository {
   /** その日の（ミッション以外の）獲得経験値 */
   private async xpOnDate(date: string) {
     const evs = await this.db.xpEvents.where("date").equals(date).toArray();
-    return evs.filter((e) => e.sourceType !== "mission").reduce((a, e) => a + e.total, 0);
+    return evs.filter((e) => e.sourceType !== "mission" && e.sourceType !== "bonus").reduce((a, e) => a + e.total, 0);
   }
 
   async saveWorkout(input: WorkoutInput, opts: { confirm?: boolean } = {}): Promise<SaveResult> {
     const db = this.db;
-    return db.transaction("rw", [db.workouts, db.xpEvents, db.profile, db.exercises], async () => {
+    return db.transaction("rw", [db.workouts, db.runs, db.xpEvents, db.profile, db.exercises], async () => {
       const before = levelFromXp(await this.totalXp()).level;
       const res = emptyResult(before);
 
@@ -131,14 +132,35 @@ export class LocalRepository implements Repository {
         sets,
       });
       await this.putXp("workout", input.id, input.date, createdAt, gained.total, gained.byStat);
+
+      // ご褒美: 会心（確率）と自己ベスト更新（推定1RM。アシスト種目は対象外）
+      const critXp = gained.total > 0 && isCritical(input.id) ? critBonus(gained.total) : 0;
+      const prevBest = Math.max(0, ...history.map((h) => bestE1RM(h.sets)));
+      const newBest = bestE1RM(sets);
+      const isPR = !ex.assist && history.length > 0 && newBest > prevBest;
+      const prXp = isPR ? PR_BONUS : 0;
+      await this.putBonus(input.id, input.date, createdAt, critXp, prXp, gained.byStat, gained.total);
+      const comboToday = (await db.workouts.where("date").equals(input.date).count()) + (await db.runs.where("date").equals(input.date).count());
       const after = levelFromXp(await this.totalXp()).level;
-      return { ...res, ok: true, warnings: v.warnings, xpGained: gained.total, byStat: gained.byStat, capped: gained.capped, levelAfter: after };
+      return {
+        ...res,
+        ok: true,
+        warnings: v.warnings,
+        xpGained: gained.total,
+        byStat: gained.byStat,
+        capped: gained.capped,
+        levelAfter: after,
+        critXp,
+        prXp,
+        prLabel: isPR ? `推定1RM ${newBest.toFixed(1)}kg（前回まで ${prevBest.toFixed(1)}kg）` : undefined,
+        comboToday,
+      };
     });
   }
 
   async saveRun(input: RunInput, opts: { confirm?: boolean } = {}): Promise<SaveResult> {
     const db = this.db;
-    return db.transaction("rw", [db.runs, db.xpEvents], async () => {
+    return db.transaction("rw", [db.runs, db.workouts, db.xpEvents], async () => {
       const before = levelFromXp(await this.totalXp()).level;
       const res = emptyResult(before);
       if (await db.runs.get(input.id)) return { ...res, ok: true, duplicate: true };
@@ -154,8 +176,27 @@ export class LocalRepository implements Repository {
       const createdAt = this.now();
       await db.runs.put({ id: input.id, userId: ME, createdAt, ...run });
       await this.putXp("run", input.id, run.date, createdAt, gained.total, gained.byStat);
+
+      const critXp = gained.total > 0 && isCritical(input.id) ? critBonus(gained.total) : 0;
+      const longest = Math.max(0, ...existing.map((r) => r.distanceKm));
+      const isPR = existing.length > 0 && run.distanceKm > longest;
+      const prXp = isPR ? PR_BONUS : 0;
+      await this.putBonus(input.id, run.date, createdAt, critXp, prXp, gained.byStat, gained.total);
+      const comboToday = (await db.workouts.where("date").equals(run.date).count()) + (await db.runs.where("date").equals(run.date).count());
       const after = levelFromXp(await this.totalXp()).level;
-      return { ...res, ok: true, warnings: v.warnings, xpGained: gained.total, byStat: gained.byStat, capped: gained.capped, levelAfter: after };
+      return {
+        ...res,
+        ok: true,
+        warnings: v.warnings,
+        xpGained: gained.total,
+        byStat: gained.byStat,
+        capped: gained.capped,
+        levelAfter: after,
+        critXp,
+        prXp,
+        prLabel: isPR ? `最長距離 ${run.distanceKm}km（前回まで ${longest}km）` : undefined,
+        comboToday,
+      };
     });
   }
 
@@ -193,6 +234,17 @@ export class LocalRepository implements Repository {
     });
   }
 
+  /** 会心・自己ベストのボーナス。会心分は部位にも配分（体が育つ）、自己ベスト分は部位なし */
+  private async putBonus(recordId: string, date: string, createdAt: number, critXp: number, prXp: number, byStat: XpEvent["byStat"], base: number) {
+    const total = critXp + prXp;
+    if (total <= 0) return;
+    const scaled: XpEvent["byStat"] = {};
+    if (critXp > 0 && base > 0) {
+      for (const [k, v] of Object.entries(byStat)) scaled[k as keyof typeof scaled] = Math.round(((v ?? 0) * critXp) / base);
+    }
+    await this.putXp("bonus", recordId, date, createdAt, total, scaled);
+  }
+
   private putXp(sourceType: XpEvent["sourceType"], sourceId: string, date: string, createdAt: number, total: number, byStat: XpEvent["byStat"]) {
     return this.db.xpEvents.put({ id: `${sourceType}:${sourceId}`, userId: ME, sourceType, sourceId, date, createdAt, total, byStat });
   }
@@ -203,6 +255,7 @@ export class LocalRepository implements Repository {
       if (type === "workout") await db.workouts.delete(id);
       else await db.runs.delete(id);
       await db.xpEvents.delete(`${type}:${id}`);
+      await db.xpEvents.delete(`bonus:${id}`);
     });
   }
 

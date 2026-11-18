@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
 import { useFeedback } from "@/components/ui/Feedback";
 import { NumberInput } from "@/components/ui/NumberInput";
+import { isSoundOn, setSoundOn, sfx } from "@/components/fx/sound";
 import { Card, Initial, LevelBadge, Loading, PageHeader, Segmented, SectionTitle } from "@/components/ui/primitives";
 import { addDays, parseDateKey } from "@/domain/dates";
 import { isAssist } from "@/domain/exercises";
@@ -228,6 +229,8 @@ export default function MyPage() {
         </Card>
       )}
 
+      <SoundToggle />
+
       <button
         onClick={async () => {
           if (await ask("この端末のすべての記録を削除してリセットしますか？\n元に戻せません", { ok: "リセット", danger: true })) {
@@ -240,5 +243,29 @@ export default function MyPage() {
         データをリセット
       </button>
     </div>
+  );
+}
+
+function SoundToggle() {
+  const [on, setOn] = useState(() => (typeof window === "undefined" ? true : isSoundOn()));
+  return (
+    <Card className="flex items-center justify-between !py-3">
+      <div>
+        <p className="text-sm font-bold">効果音・バイブ</p>
+        <p className="text-[11px] text-sub">記録やボス戦の演出で鳴ります</p>
+      </div>
+      <button
+        role="switch"
+        aria-checked={on}
+        onClick={() => {
+          setSoundOn(!on);
+          setOn(!on);
+          if (!on) sfx.coin();
+        }}
+        className={`relative h-7 w-12 rounded-full transition-colors ${on ? "bg-accent" : "bg-panel-2"}`}
+      >
+        <span className={`absolute top-0.5 size-6 rounded-full bg-white transition-all ${on ? "left-[22px]" : "left-0.5"}`} />
+      </button>
+    </Card>
   );
 }

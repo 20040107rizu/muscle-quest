@@ -37,14 +37,21 @@ export function XpBar({ into, needed, className = "" }: { into: number; needed: 
   const pct = Math.min(100, (into / needed) * 100);
   return (
     <div className={className}>
-      <div className="h-2 overflow-hidden rounded-full bg-white/10">
-        <div className="h-full rounded-full bg-gradient-to-r from-accent to-accent-2 transition-[width] duration-700" style={{ width: `${pct}%` }} />
+      <div className="h-2.5 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/5">
+        <div className="relative h-full rounded-full bg-gradient-to-r from-accent to-accent-2 shadow-[0_0_12px_rgba(255,140,60,0.7)] transition-[width] duration-700" style={{ width: `${pct}%` }}>
+          <div className="mq-shimmer absolute inset-0 rounded-full" />
+        </div>
       </div>
       <div className="mt-1 flex justify-between text-[10px] text-sub">
         <span className="font-num text-xs">
           {into} / {needed} XP
         </span>
-        <span>次のレベルまで {needed - into}</span>
+        {/* レベルアップ目前は光らせて「あと少し」を煽る */}
+        {needed - into <= needed * 0.3 ? (
+          <span className="mq-pulse-soft font-bold text-accent-2">あと {needed - into} XP でLv UP!</span>
+        ) : (
+          <span>次のレベルまで {needed - into}</span>
+        )}
       </div>
     </div>
   );

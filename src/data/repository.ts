@@ -18,6 +18,14 @@ export interface SaveResult {
   levelAfter: number;
   /** 同じIDで既に保存済みだった（二重送信） */
   duplicate?: boolean;
+  /** 会心ボーナス（0 なら会心なし） */
+  critXp?: number;
+  /** 自己ベスト更新ボーナス（0 なら更新なし） */
+  prXp?: number;
+  /** 自己ベスト更新の内容（例: 「推定1RM 82.5kg」） */
+  prLabel?: string;
+  /** 今日この記録が何件目か（コンボ表示用） */
+  comboToday?: number;
 }
 
 export interface ChallengeResult {

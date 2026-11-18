@@ -66,8 +66,11 @@ export default function HomePage() {
           MUSCLE<span className="text-accent">QUEST</span>
         </p>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-full bg-panel px-3 py-1 text-sm">
-            <span aria-hidden>🔥</span>
+          <div className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm ${c.streak >= 3 ? "bg-accent/20 ring-1 ring-accent/50" : "bg-panel"}`}>
+            {/* 連続日数が伸びるほど炎が大きく燃える */}
+            <span aria-hidden className={c.streak > 0 ? "mq-flame" : "opacity-40 grayscale"} style={{ fontSize: `${Math.min(1.9, 1 + c.streak * 0.08)}em` }}>
+              🔥
+            </span>
             <span className="font-num font-bold">{c.streak}</span>
             <span className="text-[10px] text-sub">日連続</span>
           </div>

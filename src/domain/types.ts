@@ -61,7 +61,7 @@ export interface RunRecord {
   durationS: number;
 }
 
-export type XpSourceType = "workout" | "run" | "mission";
+export type XpSourceType = "workout" | "run" | "mission" | "bonus";
 
 /** 経験値台帳。id = `${sourceType}:${sourceId}` で一意 → 二重計上が構造的に起きない */
 export interface XpEvent {

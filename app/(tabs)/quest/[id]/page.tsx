@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BossArt } from "@/components/BossArt";
+import { useFx } from "@/components/fx/FxLayer";
+import { sfx } from "@/components/fx/sound";
 import { itemIconUrl } from "@/components/heroImages";
 import { Card, Loading } from "@/components/ui/primitives";
 import { findItem } from "@/domain/items";
@@ -20,12 +22,18 @@ export default function DungeonPage() {
   const [hp, setHp] = useState<number | null>(null);
   const [reward, setReward] = useState<Reward | null>(null);
   const [msg, setMsg] = useState("");
+  const [dmgs, setDmgs] = useState<{ id: number; value: number; crit: boolean; x: number }[]>([]);
+  const [hitKey, setHitKey] = useState(0);
+  const bossRef = useRef<HTMLDivElement>(null);
+  const [battleFloor, setBattleFloor] = useState<number | null>(null);
+  const { burst, confetti, shake } = useFx();
 
   if (!me) return <Loading />;
   if (!d) return <p className="pt-10 text-center text-sm text-sub">ダンジョンが見つかりません</p>;
   if (!isUnlocked(d, me.cleared)) return <p className="pt-10 text-center text-sm text-sub">まだ解放されていません</p>;
 
-  const fi = currentFloor(d, me.cleared);
+  // 戦闘中・撃破直後は戦っている階を表示し続ける（クリア保存で次の階に切り替わっても演出を見せる）
+  const fi = battleFloor ?? currentFloor(d, me.cleared);
   const floor = fi != null ? d.floors[fi] : null;
   const prog = floor ? floorProgress(floor, me.questStats) : null;
   // 最後に戦ったときの残りHP。未挑戦なら満タン・数値は ???（戦ってみるまで分からない）
@@ -33,27 +41,89 @@ export default function DungeonPage() {
   const shownHp = hp ?? saved ?? 1;
   const hpKnown = hp != null || saved != null;
 
+  /** ダメージ数字の表示上の最大HP（演出用。判定は割合で行う） */
+  const BOSS_HP = 9999;
+
+  function spawnDamage(value: number, crit: boolean) {
+    const id = Math.random();
+    const x = 50 + (Math.random() - 0.5) * 40;
+    setDmgs((list) => [...list, { id, value, crit, x }]);
+    setTimeout(() => setDmgs((list) => list.filter((dm) => dm.id !== id)), 950);
+  }
+
+  function bossCenter() {
+    const b = bossRef.current?.getBoundingClientRect();
+    return b ? { x: b.left + b.width / 2, y: b.top + b.height / 2 } : { x: innerWidth / 2, y: innerHeight / 3 };
+  }
+
   async function challenge() {
     if (fi == null || !prog || phase === "fighting") return;
     setPhase("fighting");
+    setBattleFloor(fi);
     setMsg("");
-    // 判定と残りHPの保存はデータ層で行い、結果に合わせてHPを削る演出をする
+    sfx.tap();
+    // 判定と残りHPの保存はデータ層で行い、その結果に合わせて連続攻撃の演出をする
     const start = saved ?? 1;
     setHp(start);
     const r = await getRepo().challengeFloor(d!.id, fi);
+    const end = r.remaining ?? start;
+    const dmg = Math.max(0, start - end);
     await wait(250);
-    setHp(r.remaining ?? start);
-    await wait(900);
-    if (!r.ok) {
+
+    if (dmg < 0.001 && !r.ok) {
+      sfx.block();
+      spawnDamage(0, false);
+      setHitKey((k) => k + 1);
+      await wait(700);
       setPhase("lost");
-      setMsg(r.errors.join(" "));
+      setMsg("効いていない…前回の戦いから力が伸びていない。鍛えてから再挑戦しよう");
       return;
     }
+
+    // ダメージを複数の攻撃に分ける。1発は会心（大ダメージ）
+    const hits = r.ok ? 7 : Math.max(2, Math.min(8, Math.round(dmg * 14)));
+    const critIdx = hits >= 3 ? Math.floor(Math.random() * hits) : -1;
+    const weights = Array.from({ length: hits }, (_, i) => (i === critIdx ? 2.6 : 0.7 + Math.random() * 0.6));
+    const sum = weights.reduce((a, b) => a + b, 0);
+    let cur = start;
+    for (let i = 0; i < hits; i++) {
+      const crit = i === critIdx;
+      const part = (dmg * weights[i]) / sum;
+      cur = i === hits - 1 ? end : cur - part;
+      setHp(Math.max(0, cur));
+      setHitKey((k) => k + 1);
+      spawnDamage(Math.max(1, Math.round(part * BOSS_HP)), crit);
+      sfx.hit(crit ? 1.6 : 1, crit);
+      const c = bossCenter();
+      burst(c.x + (Math.random() - 0.5) * 60, c.y + (Math.random() - 0.5) * 60, {
+        count: crit ? 40 : 16,
+        power: crit ? 1.5 : 0.9,
+        colors: crit ? ["#ffd166", "#ffffff", "#ff6b2c"] : ["#ff5d6c", "#ffb547", "#ffffff"],
+      });
+      shake(crit ? 1.6 : 0.6);
+      await wait(crit ? 360 : 210);
+    }
+    await wait(350);
+
+    if (!r.ok) {
+      setPhase("lost");
+      setMsg(`あと少し…！残りHP ${Math.round(end * 100)}%。鍛えてから再挑戦しよう`);
+      return;
+    }
+    // 撃破
+    const c = bossCenter();
+    sfx.victory();
+    for (let k = 0; k < 3; k++) {
+      setTimeout(() => burst(c.x, c.y, { count: 60, power: 2, colors: [d!.color, "#ffd166", "#ffffff", "#ff6b2c"] }), k * 160);
+    }
+    shake(2.2);
+    confetti(160);
     setPhase("won");
     setReward(r.reward);
   }
 
   function next() {
+    setBattleFloor(null);
     setPhase("idle");
     setHp(null);
     setMsg("");
@@ -76,8 +146,25 @@ export default function DungeonPage() {
           style={{ background: `radial-gradient(ellipse at 50% 30%, ${d.color}33, #14171d 65%)` }}
         >
           <p className="text-xs font-bold text-sub">{floor.name}</p>
-          <div className={`my-2 flex justify-center ${phase === "fighting" ? "mq-shake" : ""} ${phase === "won" ? "mq-defeat" : ""}`}>
-            <BossArt dungeonId={d.id} floor={fi!} size={200} />
+          <div ref={bossRef} className="relative my-2 flex justify-center">
+            <div key={hitKey} className={`${hitKey > 0 && phase === "fighting" ? "mq-hit" : ""} ${phase === "won" ? "mq-defeat" : ""}`}>
+              <BossArt dungeonId={d.id} floor={fi!} size={200} />
+            </div>
+            {dmgs.map((dm) => (
+              <span
+                key={dm.id}
+                className={`mq-dmg pointer-events-none absolute top-1/3 font-num font-bold italic ${dm.crit ? "text-5xl text-accent-2" : dm.value === 0 ? "text-2xl text-sub" : "text-3xl text-white"}`}
+                style={{ left: `${dm.x}%`, textShadow: "0 2px 0 #000, 0 0 12px rgba(0,0,0,0.8)" }}
+              >
+                {dm.value === 0 ? "MISS" : dm.value.toLocaleString()}
+                {dm.crit && <span className="block text-sm not-italic tracking-widest">CRITICAL!</span>}
+              </span>
+            ))}
+            {phase === "won" && (
+              <p className="mq-stamp pointer-events-none absolute left-1/2 top-1/3 whitespace-nowrap font-num text-6xl font-bold italic text-accent-2 drop-shadow-[0_0_20px_rgba(255,181,71,0.9)]">
+                CLEAR!!
+              </p>
+            )}
           </div>
           <p className="text-lg font-black">{floor.boss}</p>
           <div className="mx-auto mt-2 max-w-[16rem]">
@@ -85,14 +172,15 @@ export default function DungeonPage() {
               <span>HP</span>
               <span className="font-num">{hpKnown ? `${Math.round(shownHp * 100)}%` : "???"}</span>
             </div>
-            <div className="mt-0.5 h-2.5 overflow-hidden rounded-full bg-white/10">
-              <div className="h-full rounded-full bg-bad transition-[width] duration-700 ease-out" style={{ width: `${shownHp * 100}%` }} />
+            <div className="mt-0.5 h-3 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10">
+              <div className="relative h-full rounded-full bg-gradient-to-r from-[#ff3b4f] to-[#ff7a59] transition-[width] duration-200 ease-out" style={{ width: `${shownHp * 100}%` }}>
+                <div className="mq-shimmer absolute inset-0 rounded-full" />
+              </div>
             </div>
           </div>
 
           {phase === "won" ? (
             <div className="mq-pop mt-4">
-              <p className="font-num text-3xl font-bold tracking-widest text-accent-2">CLEAR!</p>
               {!reward && (
                 <button onClick={next} className="mt-3 w-full rounded-xl bg-accent py-3 text-sm font-bold text-white">
                   次の階へ
@@ -103,7 +191,7 @@ export default function DungeonPage() {
             <button
               onClick={challenge}
               disabled={phase === "fighting"}
-              className="mt-4 w-full rounded-2xl bg-accent-2 py-4 text-base font-black text-bg shadow-[0_8px_24px_-8px_rgba(255,181,71,0.8)] disabled:opacity-60"
+              className={`mt-4 w-full rounded-2xl bg-accent-2 py-4 text-lg font-black text-bg shadow-[0_8px_24px_-8px_rgba(255,181,71,0.8)] disabled:opacity-60 ${phase === "idle" ? "mq-pulse-soft" : ""}`}
             >
               {phase === "fighting" ? "戦闘中…" : phase === "lost" || saved != null ? "⚔️ もう一度挑む" : "⚔️ ボスに挑む"}
             </button>
@@ -157,7 +245,7 @@ export default function DungeonPage() {
         <Card className="!p-0">
           {[...d.floors].map((f, i) => ({ f, i })).reverse().map(({ f, i }) => {
             const done = me.cleared.has(clearId(d.id, i));
-            const cur = i === fi;
+            const cur = i === fi && !done;
             return (
               <div key={f.name} className={`flex items-center gap-3 border-b border-line px-4 py-3 last:border-0 ${cur ? "bg-white/5" : ""}`}>
                 <span className="relative grid size-11 shrink-0 place-items-center rounded-full" style={{ background: `${d.color}22` }}>
@@ -188,50 +276,114 @@ export default function DungeonPage() {
   );
 }
 
+function Chest({ open }: { open: boolean }) {
+  return (
+    <svg viewBox="0 0 120 100" className="h-36 w-44" aria-hidden>
+      <defs>
+        <linearGradient id="chest-wood" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor="#a8672f" />
+          <stop offset="1" stopColor="#5a3415" />
+        </linearGradient>
+        <linearGradient id="chest-gold" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor="#fff1a8" />
+          <stop offset="1" stopColor="#c8921e" />
+        </linearGradient>
+        <radialGradient id="chest-light">
+          <stop offset="0" stopColor="#fff6c8" stopOpacity="1" />
+          <stop offset="1" stopColor="#ffb547" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      {open && <ellipse cx="60" cy="40" rx="58" ry="40" fill="url(#chest-light)" />}
+      {/* 箱 */}
+      <rect x="14" y="48" width="92" height="44" rx="6" fill="url(#chest-wood)" stroke="#2a1608" strokeWidth="2" />
+      <rect x="14" y="48" width="92" height="8" fill="url(#chest-gold)" />
+      <rect x="22" y="48" width="8" height="44" fill="url(#chest-gold)" />
+      <rect x="90" y="48" width="8" height="44" fill="url(#chest-gold)" />
+      {/* ふた */}
+      <g transform={open ? "translate(0 -26) rotate(-18 14 48)" : undefined} style={{ transition: "transform 0.35s cubic-bezier(.2,.9,.3,1.4)" }}>
+        <path d="M14 48 Q14 18 60 18 Q106 18 106 48 Z" fill="url(#chest-wood)" stroke="#2a1608" strokeWidth="2" />
+        <path d="M22 48 Q22 24 26 21 L32 20 Q30 30 30 48 Z M98 48 Q98 24 94 21 L88 20 Q90 30 90 48 Z" fill="url(#chest-gold)" />
+        <rect x="52" y="38" width="16" height="16" rx="3" fill="url(#chest-gold)" stroke="#7a4f12" strokeWidth="1.5" />
+        <circle cx="60" cy="46" r="2.5" fill="#5a3415" />
+      </g>
+    </svg>
+  );
+}
+
 function RewardModal({ reward, onClose }: { reward: Reward; onClose: () => void }) {
   const title = findTitle(reward.titleId);
   const item = findItem(reward.itemId);
   const [equipped, setEquipped] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [opened, setOpened] = useState(false);
+  const chestRef = useRef<HTMLButtonElement>(null);
+  const { burst, confetti, shake } = useFx();
+
+  // 撃破演出を見せてから宝箱を出す
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 1300);
+    return () => clearTimeout(t);
+  }, []);
+  if (!visible) return null;
+
+  function openChest() {
+    if (opened) return;
+    setOpened(true);
+    sfx.chest();
+    const b = chestRef.current?.getBoundingClientRect();
+    if (b) burst(b.left + b.width / 2, b.top + b.height / 3, { count: 70, power: 1.8, colors: ["#fff6c8", "#ffd166", "#ffb547", "#ffffff"] });
+    confetti(180);
+    shake(1.4);
+  }
+
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/75 p-6 backdrop-blur-sm" role="dialog" aria-modal>
-      <div className="mq-pop w-full max-w-sm rounded-3xl border border-accent-2/40 bg-panel p-6 text-center">
-        <p className="text-xs font-bold tracking-[0.3em] text-accent-2">DUNGEON CLEAR</p>
-        <p className="mt-3 text-5xl" aria-hidden>
-          🏆
-        </p>
-        {title && (
-          <div className="mt-4 rounded-xl bg-panel-2 p-3">
-            <p className="text-[10px] text-sub">称号を獲得</p>
-            <p className="text-lg font-black text-accent-2">【{title.name}】</p>
-          </div>
+    <div className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-black/85 p-6" role="dialog" aria-modal>
+      {opened && <div className="mq-rays pointer-events-none absolute left-1/2 top-1/2 size-[180vmax] -translate-x-1/2 -translate-y-1/2" aria-hidden />}
+      <div className="relative w-full max-w-sm text-center">
+        <p className="mq-glow-text font-num text-3xl font-bold italic tracking-wider text-accent-2">DUNGEON CLEAR!!</p>
+        <button ref={chestRef} onClick={openChest} className={`mx-auto mt-3 block ${opened ? "" : "mq-chest-shake"}`} aria-label="宝箱を開ける">
+          <Chest open={opened} />
+        </button>
+        {!opened ? (
+          <p className="mq-pulse-soft mt-1 text-sm font-bold text-ink">タップして宝箱を開けろ！</p>
+        ) : (
+          <>
+            {title && (
+              <div className="mq-pop mt-2 rounded-2xl border border-accent-2/50 bg-panel/90 p-3">
+                <p className="text-[10px] text-sub">称号を獲得</p>
+                <p className="mq-glow-text text-xl font-black text-accent-2">【{title.name}】</p>
+              </div>
+            )}
+            {item && (
+              <div className="mq-pop mt-2 rounded-2xl border border-accent-2/50 bg-panel/90 p-3 [animation-delay:150ms]">
+                <p className="text-[10px] text-sub">アイテムを獲得</p>
+                <p className="flex items-center justify-center gap-3 text-lg font-black">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={itemIconUrl(item.id)} alt="" width={56} height={56} className="rounded-xl shadow-[0_0_20px_rgba(255,209,102,0.7)]" />
+                  {item.name}
+                </p>
+                <p className="text-[10px] text-sub">{item.description}</p>
+              </div>
+            )}
+            <div className="mt-4 grid gap-2">
+              <button
+                disabled={equipped}
+                onClick={async () => {
+                  if (item) await getRepo().equipItem(item.slot, item.id);
+                  if (title) await getRepo().setTitle(title.id);
+                  setEquipped(true);
+                  sfx.coin();
+                }}
+                className="w-full rounded-2xl bg-accent-2 py-4 text-base font-black text-bg shadow-[0_0_30px_rgba(255,181,71,0.5)] disabled:opacity-60"
+              >
+                {equipped ? "装備した！" : "今すぐ装備する"}
+              </button>
+              <button onClick={onClose} className="w-full rounded-xl bg-panel-2 py-3 text-sm">
+                閉じる
+              </button>
+            </div>
+          </>
         )}
-        {item && (
-          <div className="mt-2 rounded-xl bg-panel-2 p-3">
-            <p className="text-[10px] text-sub">アイテムを獲得</p>
-            <p className="flex items-center justify-center gap-2 font-bold">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={itemIconUrl(item.id)} alt="" width={40} height={40} className="rounded-lg" />
-              {item.name}
-            </p>
-            <p className="text-[10px] text-sub">{item.description}</p>
-          </div>
-        )}
-        <div className="mt-5 grid gap-2">
-          <button
-            disabled={equipped}
-            onClick={async () => {
-              if (item) await getRepo().equipItem(item.slot, item.id);
-              if (title) await getRepo().setTitle(title.id);
-              setEquipped(true);
-            }}
-            className="w-full rounded-xl bg-accent-2 py-3 text-sm font-bold text-bg disabled:opacity-60"
-          >
-            {equipped ? "装備しました" : "称号とアイテムを装備する"}
-          </button>
-          <button onClick={onClose} className="w-full rounded-xl bg-panel-2 py-3 text-sm">
-            閉じる
-          </button>
-        </div>
       </div>
     </div>
   );
