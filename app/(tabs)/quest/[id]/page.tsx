@@ -11,9 +11,7 @@ import { useFx } from "@/components/fx/FxLayer";
 import { sfx } from "@/components/fx/sound";
 import { ItemGet } from "@/components/fx/ItemGet";
 import { FxImg, FxRays } from "@/components/fx/FxImg";
-import { ItemIcon } from "@/components/ItemIcon";
 import { Card, Loading } from "@/components/ui/primitives";
-import { findItem, ITEMS, SLOT_LABELS } from "@/domain/items";
 import { clearId, currentFloor, findDungeon, findTitle, floorProgress, isUnlocked, type Reward } from "@/domain/quests";
 import { getRepo, useMyData } from "@/data/hooks";
 
@@ -32,7 +30,7 @@ export default function DungeonPage() {
   const [sparks, setSparks] = useState<{ id: number; kind: string; size: number; x: number; y: number }[]>([]);
   const bossRef = useRef<HTMLDivElement>(null);
   const [battleFloor, setBattleFloor] = useState<number | null>(null);
-  /** 撃破で手に入ったアイテム（ボスのドロップ・踏破報酬） */
+  /** 撃破と同時に手に入ったオーラ（レベルアップなどで条件を満たしたもの） */
   const [drops, setDrops] = useState<string[]>([]);
   const [showDrops, setShowDrops] = useState(false);
   const { burst, confetti, shake } = useFx();
@@ -225,26 +223,6 @@ export default function DungeonPage() {
         </Card>
       )}
 
-      {floor && prog && fi != null && dropsOf(d.id, fi).length > 0 && (
-        <Card className="flex items-center gap-3 !py-3">
-          <p className="shrink-0 text-xs font-bold">ドロップ</p>
-          <div className="flex flex-1 flex-wrap gap-2">
-            {dropsOf(d.id, fi).map((it) => {
-              const owned = me.owned.items.includes(it.id);
-              return (
-                <div key={it.id} className="flex items-center gap-1.5">
-                  <ItemIcon id={it.id} size={34} />
-                  <div className="leading-tight">
-                    <p className="text-[11px] font-bold">{it.name}</p>
-                    <p className="text-[9px] text-sub">{owned ? "入手済み" : SLOT_LABELS[it.slot] + "の装備"}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      )}
-
       {floor && prog && (
         <Card>
           <p className="mb-3 text-sm font-bold">撃破条件</p>
@@ -304,7 +282,7 @@ export default function DungeonPage() {
       <Card className="text-xs">
         <p className="mb-1 font-bold">踏破報酬</p>
         <p className="text-sub">
-          称号【{findTitle(d.reward.titleId)?.name}】・{findItem(d.reward.itemId)?.name}
+          称号【{findTitle(d.reward.titleId)?.name}】
         </p>
       </Card>
 
@@ -313,10 +291,8 @@ export default function DungeonPage() {
           reward={reward}
           onClose={() => {
             setReward(null);
-            // 踏破報酬のアイテムは宝箱で見せたので、それ以外のドロップを続けて見せる
-            const rest = drops.filter((id) => id !== reward.itemId);
-            setDrops(rest);
-            if (rest.length) setShowDrops(true);
+            // 撃破と同時に手に入ったオーラがあれば続けて見せる
+            if (drops.length) setShowDrops(true);
             else next();
           }}
         />
@@ -325,7 +301,7 @@ export default function DungeonPage() {
       {showDrops && drops.length > 0 && (
         <ItemGet
           ids={drops}
-          heading="ボスがアイテムを落とした！"
+          heading="新しいオーラを手に入れた！"
           onClose={() => {
             setShowDrops(false);
             setDrops([]);
@@ -337,12 +313,7 @@ export default function DungeonPage() {
   );
 }
 
-/** その階のボスが落とすアイテム */
-function dropsOf(dungeonId: string, floor: number) {
-  return ITEMS.filter((it) => it.source.kind === "floor" && it.source.dungeonId === dungeonId && it.source.floor === floor);
-}
-
-/** 撃破演出を見せてから、ドロップの画面を出す */
+/** 撃破演出を見せてから、オーラ入手の画面を出す */
 function DropTimer({ onDone }: { onDone: () => void }) {
   useEffect(() => {
     const t = setTimeout(onDone, 1500);
@@ -354,7 +325,6 @@ function DropTimer({ onDone }: { onDone: () => void }) {
 
 function RewardModal({ reward, onClose }: { reward: Reward; onClose: () => void }) {
   const title = findTitle(reward.titleId);
-  const item = findItem(reward.itemId);
   const [equipped, setEquipped] = useState(false);
   const [visible, setVisible] = useState(false);
   const [opened, setOpened] = useState(false);
@@ -396,29 +366,18 @@ function RewardModal({ reward, onClose }: { reward: Reward; onClose: () => void 
                 <TitlePlate name={title.name} rarity={title.rarity} size="lg" />
               </div>
             )}
-            {item && (
-              <div className="mq-pop mt-2 rounded-2xl border border-accent-2/50 bg-panel/90 p-3 [animation-delay:150ms]">
-                <p className="text-[10px] text-sub">アイテムを獲得</p>
-                <p className="flex items-center justify-center gap-3 text-lg font-black">
-                  <ItemIcon id={item.id} size={56} />
-                  {item.name}
-                </p>
-                <p className="text-[10px] text-sub">{item.description}</p>
-              </div>
-            )}
             <div className="mt-4 grid gap-2">
               <SkinButton
                 variant="gold"
                 disabled={equipped}
                 onClick={async () => {
-                  if (item) await getRepo().equipItem(item.slot, item.id);
                   if (title) await getRepo().setTitle(title.id);
                   setEquipped(true);
                   sfx.coin();
                 }}
                 className="h-14 w-full text-base"
               >
-                {equipped ? "装備した！" : "今すぐ装備する"}
+                {equipped ? "称号をつけた！" : "今すぐ称号をつける"}
               </SkinButton>
               <SkinButton variant="gray" onClick={onClose} className="h-12 w-full text-sm">
                 閉じる

@@ -47,7 +47,6 @@ export interface Floor {
 
 export interface Reward {
   titleId?: string;
-  itemId?: string;
 }
 
 export interface Dungeon {
@@ -94,7 +93,7 @@ export const DUNGEONS: Dungeon[] = [
     theme: "まずは習慣づくり",
     color: "#8b93a3",
     unlockAfter: [],
-    reward: { titleId: "adventurer", itemId: "H01" },
+    reward: { titleId: "adventurer" },
     floors: [
       { name: "B1 入口", boss: "スライム", emoji: "🟢", requirements: [{ kind: "totalSets", value: 5 }], hint: "好きな種目で合計5セット" },
       { name: "B2 湿った回廊", boss: "ゴブリン", emoji: "👺", requirements: [{ kind: "activeDays", value: 3 }], hint: "3日運動しよう（連続でなくてOK）" },
@@ -107,7 +106,7 @@ export const DUNGEONS: Dungeon[] = [
     theme: "胸を鍛えて突破",
     color: "#ff6b2c",
     unlockAfter: ["cave"],
-    reward: { titleId: "iron_chest", itemId: "H08" },
+    reward: { titleId: "iron_chest" },
     floors: [
       { name: "1F 前庭", boss: "鉄の番兵", emoji: "🛡️", requirements: [{ kind: "stat", stat: "chest", value: 300 }], hint: "ベンチプレス・チェストプレス・腕立て伏せ" },
       { name: "2F 回廊", boss: "鋼のゴーレム", emoji: "🗿", requirements: [{ kind: "stat", stat: "chest", value: 1000 }], hint: "週2回の胸トレを続けよう" },
@@ -121,7 +120,7 @@ export const DUNGEONS: Dungeon[] = [
     theme: "背中を鍛えて登頂",
     color: "#ffb547",
     unlockAfter: ["cave"],
-    reward: { titleId: "demon_back", itemId: "K03" },
+    reward: { titleId: "demon_back" },
     floors: [
       { name: "麓", boss: "岩トカゲ", emoji: "🦎", requirements: [{ kind: "stat", stat: "back", value: 300 }], hint: "ラットプルダウン・チンニングマシン・シーテッドロー" },
       { name: "中腹", boss: "山岳トロール", emoji: "🧌", requirements: [{ kind: "stat", stat: "back", value: 1000 }], hint: "引く種目を週2回" },
@@ -135,7 +134,7 @@ export const DUNGEONS: Dungeon[] = [
     theme: "脚を鍛えて攻略",
     color: "#3ddc97",
     unlockAfter: ["cave"],
-    reward: { titleId: "earth_shaker", itemId: "K04" },
+    reward: { titleId: "earth_shaker" },
     floors: [
       { name: "城門", boss: "門番オーガ", emoji: "🚪", requirements: [{ kind: "stat", stat: "legs", value: 300 }], hint: "スクワット・レッグプレス" },
       { name: "練兵場", boss: "重装兵", emoji: "🪖", requirements: [{ kind: "stat", stat: "legs", value: 1200 }], hint: "脚の日をサボらない" },
@@ -148,7 +147,7 @@ export const DUNGEONS: Dungeon[] = [
     theme: "走って駆け抜ける",
     color: "#4cc9f0",
     unlockAfter: ["cave"],
-    reward: { titleId: "wind_runner", itemId: "N08" },
+    reward: { titleId: "wind_runner" },
     floors: [
       { name: "第1区間", boss: "風の精", emoji: "🌬️", requirements: [{ kind: "totalRunKm", value: 10 }], hint: "累計10km走ろう" },
       { name: "第2区間", boss: "疾風の狼", emoji: "🐺", requirements: [{ kind: "longestRunKm", value: 5 }], hint: "1回で5km走り切る" },
@@ -162,7 +161,7 @@ export const DUNGEONS: Dungeon[] = [
     theme: "続けることが力",
     color: "#b79cff",
     unlockAfter: ["cave"],
-    reward: { titleId: "unyielding", itemId: "S04" },
+    reward: { titleId: "unyielding" },
     floors: [
       { name: "3階", boss: "怠惰の影", emoji: "👤", requirements: [{ kind: "streak", value: 3 }], hint: "3日連続で運動" },
       { name: "10階", boss: "誘惑の魔女", emoji: "🧙", requirements: [{ kind: "streak", value: 7 }], hint: "7日連続。軽いランでもOK" },
@@ -176,7 +175,7 @@ export const DUNGEONS: Dungeon[] = [
     theme: "全身を極めし者へ",
     color: "#ffd166",
     unlockAfter: ["chest_temple", "back_mountain", "leg_castle", "wind_corridor", "tower"],
-    reward: { titleId: "muscle_king", itemId: "K05" },
+    reward: { titleId: "muscle_king" },
     floors: [
       { name: "外郭", boss: "四天王", emoji: "🦹", requirements: [{ kind: "level", value: 22 }], hint: "レベル22（ゴリマッチョ）" },
       { name: "内郭", boss: "鋼鉄の巨神", emoji: "🤖", requirements: [{ kind: "allMuscles", value: 3000 }], hint: "6部位すべて経験値3,000以上" },
@@ -315,7 +314,7 @@ export function longestStreak(dates: string[]): number {
   return best;
 }
 
-/** アイテムの入手判定に使う進み具合 */
+/** オーラの入手判定に使う進み具合 */
 export interface ItemProgress {
   level: number;
   longestStreak: number;
@@ -324,61 +323,39 @@ export interface ItemProgress {
   totalRunKm?: number;
 }
 
-/** アイテムの入手条件を満たしているか */
-export function itemUnlocked(item: Item, cleared: Set<string>, p: ItemProgress): boolean {
+/** オーラの入手条件を満たしているか */
+export function itemUnlocked(item: Item, p: ItemProgress): boolean {
   const s = item.source;
   switch (s.kind) {
-    case "dungeon":
-      return isDungeonCleared(findDungeon(s.dungeonId)!, cleared);
-    case "floor":
-      return cleared.has(clearId(s.dungeonId, s.floor));
     case "level":
       return p.level >= s.level;
     case "streak":
       return p.longestStreak >= s.days;
-    case "activeDays":
-      return (p.activeDays ?? 0) >= s.days;
-    case "totalSets":
-      return (p.totalSets ?? 0) >= s.sets;
     case "totalRunKm":
       return (p.totalRunKm ?? 0) >= s.km;
-    case "allDungeons":
-      return DUNGEONS.every((d) => isDungeonCleared(d, cleared));
   }
 }
 
-/** 入手方法の説明（未入手アイテムのヒント） */
+/** 入手方法の説明（未入手オーラのヒント） */
 export function itemSourceLabel(item: Item): string {
   const s = item.source;
   switch (s.kind) {
-    case "dungeon":
-      return `${findDungeon(s.dungeonId)?.name}を踏破`;
-    case "floor": {
-      const d = findDungeon(s.dungeonId);
-      return `${d?.floors[s.floor]?.boss}を倒す（${d?.name} ${d?.floors[s.floor]?.name}）`;
-    }
     case "level":
       return `レベル${s.level}に到達`;
     case "streak":
       return `${s.days}日連続で運動`;
-    case "activeDays":
-      return `運動した日が累計${s.days}日`;
-    case "totalSets":
-      return `筋トレを合計${s.sets}セット`;
     case "totalRunKm":
       return `累計${s.km}km走る`;
-    case "allDungeons":
-      return "全ダンジョンを踏破";
   }
 }
 
-/** 獲得済みの称号・アイテム */
+/** 獲得済みの称号・オーラ */
 export function ownedRewards(cleared: Set<string>, progress: ItemProgress = { level: 1, longestStreak: 0 }) {
   const titles: string[] = [];
   for (const d of DUNGEONS) {
     if (isDungeonCleared(d, cleared) && d.reward.titleId) titles.push(d.reward.titleId);
   }
-  const items = ITEMS.filter((it) => itemUnlocked(it, cleared, progress)).map((it) => it.id);
+  const items = ITEMS.filter((it) => itemUnlocked(it, progress)).map((it) => it.id);
   return { titles, items };
 }
 

@@ -1,12 +1,12 @@
 "use client";
 
+import { ITEMS } from "@/domain/items";
 import { UiIcon } from "@/components/ui/UiIcon";
 import { TitlePlate } from "@/components/ui/TitlePlate";
 import { SkinGauge } from "@/components/ui/SkinGauge";
 import Link from "next/link";
 import { BossArt } from "@/components/BossArt";
 import { Card, Loading, PageHeader } from "@/components/ui/primitives";
-import { findItem } from "@/domain/items";
 import { clearId, currentFloor, DUNGEONS, findDungeon, findTitle, floorProgress, isDungeonCleared, isUnlocked, TITLES } from "@/domain/quests";
 import { useMyData } from "@/data/hooks";
 
@@ -40,8 +40,11 @@ export default function QuestPage() {
           </p>
         </div>
         <div className="text-center">
-          <p className="text-[10px] text-sub">アイテム</p>
-          <p className="font-num text-xl font-bold">{me.owned.items.length}</p>
+          <p className="text-[10px] text-sub">オーラ</p>
+          <p className="font-num text-xl font-bold">
+            {me.owned.items.length}
+            <span className="text-xs text-sub">/{ITEMS.length}</span>
+          </p>
         </div>
       </Card>
 
@@ -55,7 +58,6 @@ export default function QuestPage() {
           // 最後に戦ったときの残りHP（未挑戦なら undefined → ???）
           const lastHp = fi != null ? me.lastHp.get(clearId(d.id, fi)) : undefined;
           const clearedFloors = d.floors.length - (fi == null ? 0 : d.floors.length - fi);
-          const item = findItem(d.reward.itemId);
           const ttl = findTitle(d.reward.titleId);
           const body = (
             <div
@@ -95,7 +97,7 @@ export default function QuestPage() {
                   )}
                   {done && <p className="mt-1.5 text-[11px] font-bold text-accent-2">踏破済み</p>}
                   <p className="mt-2 text-[10px] text-sub">
-                    報酬: {ttl && `称号【${ttl.name}】`} {item && `・${item.name}`}
+                    報酬: {ttl && `称号【${ttl.name}】`}
                   </p>
                 </div>
               </div>

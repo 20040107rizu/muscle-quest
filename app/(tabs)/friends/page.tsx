@@ -46,7 +46,7 @@ export default function FriendsPage() {
           return (
             <Link key={f.user.id} href={`/friends/${f.user.id}`} className="w-28 shrink-0 skin-card p-1 text-center">
               <div className="relative">
-                <HeroFigure c={f.character} gear={f.gear} showGear={false} className="mx-auto h-28 w-full" />
+                <HeroFigure c={f.character} aura={f.aura} className="mx-auto h-28 w-full" />
                 {activeToday && <span className="absolute right-1 top-1 size-2.5 rounded-full bg-good ring-2 ring-panel" aria-label="今日運動済み" />}
               </div>
               <p className="mt-1 truncate text-sm font-bold">{f.user.name}</p>

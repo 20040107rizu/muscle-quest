@@ -62,8 +62,8 @@ describe("クエスト", () => {
     expect((await repo.challengeFloor("chest_temple", 0)).errors[0]).toMatch("解放");
   });
 
-  it("未獲得のアイテム・称号は装備できない", async () => {
-    await expect(repo.equipItem("head", "H01")).rejects.toThrow();
+  it("未獲得のオーラ・称号は使えない", async () => {
+    await expect(repo.setAura("aura_gold")).rejects.toThrow();
     await expect(repo.setTitle("adventurer")).rejects.toThrow();
   });
 
@@ -77,6 +77,6 @@ describe("クエスト", () => {
     s.weekXp = 3000;
     const cleared = simulateClears(s);
     expect(DUNGEONS.every((d) => d.floors.every((_, i) => cleared.has(`${d.id}:${i}`)))).toBe(true);
-    expect(ownedRewards(cleared).items).toContain("P06");
+    expect(ownedRewards(cleared).titles).toContain("muscle_king");
   });
 });

@@ -103,7 +103,7 @@ export default function HomePage() {
           <p className="mt-1">スタミナ</p>
           <p className="font-num text-lg font-bold text-cardio">{Math.round(c.stats.cardio / 10)}</p>
         </div>
-        <HeroFigure c={c} gear={me.profile.gear} glow={c.daysSinceActive === 0} className="mx-auto h-[360px] w-full pt-6" />
+        <HeroFigure c={c} aura={me.profile.aura} glow={c.daysSinceActive === 0} className="mx-auto h-[360px] w-full pt-6" />
         <div className="relative z-10 -mt-2 px-4 pb-4">
           <p className="mb-2 text-center text-xs text-ink/80">{mood}</p>
           <XpBar into={c.levelInto} needed={c.levelNeeded} />

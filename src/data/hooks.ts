@@ -6,7 +6,6 @@ import { buildCharacter, type CharacterState } from "@/domain/character";
 import { toDateKey } from "@/domain/dates";
 import { computeMetrics, type UserMetrics } from "@/domain/ranking";
 import type { Activity, XpBreakdown } from "@/domain/types";
-import { findItem, type Gear } from "@/domain/items";
 import { buildQuestStats, ownedRewards, simulateClears } from "@/domain/quests";
 import { sumStats } from "@/domain/xp";
 import { bonusXpByDate, toActivities } from "./activities";
@@ -73,10 +72,10 @@ export interface FriendView {
   activities: Activity[];
   character: CharacterState;
   metrics: UserMetrics;
-  /** 達成済みのダンジョン階・称号・装備（モックでは条件を満たした分を自動クリア扱い） */
+  /** 達成済みのダンジョン階・称号（モックでは条件を満たした分を自動クリア扱い） */
   cleared: Set<string>;
   titleId?: string;
-  gear: Gear;
+  aura?: string;
 }
 
 export function buildFriendView(user: MockUser, now: number): FriendView {
@@ -95,12 +94,7 @@ export function buildFriendView(user: MockUser, now: number): FriendView {
   const character = buildCharacter(events, activities.map((a) => a.date), today);
   const cleared = simulateClears(buildQuestStats(activities, character, today));
   const owned = ownedRewards(cleared, buildQuestStats(activities, character, today));
-  // 一番最後に得た称号・各スロットで最後に得たアイテムを装備
-  const gear: Gear = {};
-  for (const id of owned.items) {
-    const it = findItem(id);
-    if (it) gear[it.slot] = id;
-  }
+  // 一番最後に得た称号・オーラをまとう
   return {
     user,
     activities,
@@ -108,7 +102,7 @@ export function buildFriendView(user: MockUser, now: number): FriendView {
     metrics: computeMetrics(activities, today),
     cleared,
     titleId: owned.titles[owned.titles.length - 1],
-    gear,
+    aura: owned.items[owned.items.length - 1],
   };
 }
 

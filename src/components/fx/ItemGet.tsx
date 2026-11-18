@@ -9,7 +9,7 @@ import { FxImg, FxRays } from "./FxImg";
 import { sfx } from "./sound";
 
 /**
- * アイテム入手の演出。1つずつ表示し、その場で「装着して見る」と体に着けた姿をプレビューできる。
+ * オーラ入手の演出。1つずつ表示し、まとった姿をその場でプレビューできる。
  */
 export function ItemGet({ ids, onClose, heading }: { ids: string[]; onClose: () => void; heading?: string }) {
   const me = useMyData();
@@ -18,8 +18,7 @@ export function ItemGet({ ids, onClose, heading }: { ids: string[]; onClose: () 
   const item = findItem(ids[i]);
   if (!item || !me) return null;
   const rc = RARITY_COLORS[item.rarity];
-  const isOn = equipped[item.id] || me.profile.gear?.[item.slot] === item.id;
-  const previewGear = { ...(me.profile.gear ?? {}), [item.slot]: item.id };
+  const isOn = equipped[item.id] || me.profile.aura === item.id;
   const last = i === ids.length - 1;
 
   return (
@@ -34,7 +33,7 @@ export function ItemGet({ ids, onClose, heading }: { ids: string[]; onClose: () 
           </p>
         )}
         <div className="relative mx-auto mt-2 h-60 w-44">
-          <HeroFigure c={{ ...me.character, pump: 1.02 }} gear={previewGear} className="h-full w-full" />
+          <HeroFigure c={{ ...me.character, pump: 1.02 }} aura={item.id} className="h-full w-full" />
           <div className="mq-pop absolute -right-6 top-2">
             <ItemIcon id={item.id} size={64} />
           </div>
@@ -44,7 +43,7 @@ export function ItemGet({ ids, onClose, heading }: { ids: string[]; onClose: () 
             <span className="mr-1.5 rounded px-1.5 py-0.5 font-num text-[10px] font-bold" style={{ background: `${rc}33`, color: rc }}>
               {item.rarity}
             </span>
-            <span className="text-sub">新しい装備</span>
+            <span className="text-sub">新しいオーラ</span>
           </p>
           <p className="mt-1 text-xl font-black">{item.name}</p>
           <p className="text-[11px] text-sub">{item.description}</p>
@@ -53,14 +52,14 @@ export function ItemGet({ ids, onClose, heading }: { ids: string[]; onClose: () 
           <button
             disabled={isOn}
             onClick={async () => {
-              await getRepo().equipItem(item.slot, item.id);
+              await getRepo().setAura(item.id);
               setEquipped((e) => ({ ...e, [item.id]: true }));
               sfx.coin();
             }}
             className="w-full rounded-2xl py-4 text-base font-black text-bg disabled:opacity-60"
             style={{ background: rc, boxShadow: `0 0 30px ${rc}80` }}
           >
-            {isOn ? "装着した！" : "今すぐ装着する"}
+            {isOn ? "まとった！" : "今すぐまとう"}
           </button>
           <button
             onClick={() => {
@@ -72,7 +71,7 @@ export function ItemGet({ ids, onClose, heading }: { ids: string[]; onClose: () 
             }}
             className="w-full rounded-xl bg-panel-2 py-3 text-sm"
           >
-            {last ? "閉じる" : "次のアイテム ›"}
+            {last ? "閉じる" : "次へ ›"}
           </button>
         </div>
       </div>

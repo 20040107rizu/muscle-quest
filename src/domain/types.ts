@@ -1,5 +1,4 @@
 // ドメイン全体で使う型。UI・DB実装には依存しない。
-import type { Gear } from "./items";
 
 export const MUSCLE_GROUPS = ["chest", "back", "shoulders", "arms", "legs", "core"] as const;
 export type MuscleGroup = (typeof MUSCLE_GROUPS)[number];
@@ -94,10 +93,10 @@ export interface Profile {
   bodyweightKg: number;
   friendCode: string;
   createdAt: number;
-  /** 装備中の称号 */
+  /** 表示中の称号 */
   titleId?: string;
-  /** 装備中のアイテム（スロット → アイテムID） */
-  gear?: Gear;
+  /** 体の後ろにまとうオーラ（アイテムID） */
+  aura?: string;
 }
 
 /** 最後に戦ったときのボスの残りHP（0..1）。HPは戦って初めて分かる */

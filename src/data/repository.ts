@@ -1,4 +1,3 @@
-import type { GearSlot } from "@/domain/items";
 import type { Reward } from "@/domain/quests";
 import type { Activity, Exercise, MuscleGroup, Profile, QuestAttempt, QuestClear, RunRecord, SetRecord, StatKey, WorkoutEntry, XpEvent } from "@/domain/types";
 
@@ -26,7 +25,7 @@ export interface SaveResult {
   prLabel?: string;
   /** 今日この記録が何件目か（コンボ表示用） */
   comboToday?: number;
-  /** この記録で新しく手に入ったアイテム（レベル・連続日数の節目など） */
+  /** この記録で新しく手に入ったオーラ（レベル・連続日数の節目など） */
   newItems?: string[];
 }
 
@@ -38,7 +37,7 @@ export interface ChallengeResult {
   duplicate?: boolean;
   /** 戦闘後のボスの残りHP（0..1）。挑戦できなかった場合は undefined */
   remaining?: number;
-  /** 撃破で新しく手に入ったアイテム（ボスのドロップ・踏破報酬） */
+  /** 撃破で新しく手に入ったオーラ（撃破と同時に条件を満たしたもの） */
   newItems?: string[];
 }
 
@@ -80,8 +79,8 @@ export interface Repository {
   listQuestAttempts(): Promise<QuestAttempt[]>;
   /** ボスに挑戦。条件はサーバー側（ここ）で記録から再計算して判定する */
   challengeFloor(dungeonId: string, floor: number): Promise<ChallengeResult>;
-  /** 獲得済みのアイテムだけ装備できる。null で外す */
-  equipItem(slot: GearSlot, itemId: string | null): Promise<void>;
+  /** 獲得済みのオーラだけまとえる。null で外す */
+  setAura(auraId: string | null): Promise<void>;
   setTitle(titleId: string | null): Promise<void>;
 
   // ---- ソーシャル ----

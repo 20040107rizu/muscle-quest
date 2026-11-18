@@ -4,7 +4,7 @@ import { UiIcon } from "@/components/ui/UiIcon";
 import Link from "next/link";
 import { useState } from "react";
 import { HeroFigure } from "@/components/HeroFigure";
-import { EquipmentPanel } from "@/components/EquipmentPanel";
+import { AuraTitlePanel } from "@/components/AuraTitlePanel";
 import { StatBars } from "@/components/StatBars";
 import { Card, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/primitives";
 import { heroImage } from "@/components/heroImages";
@@ -49,7 +49,7 @@ export default function CharacterPage() {
             {heroImage(heroType(c.stats), heroStage(c.level)).fallback && <span className="block text-[10px]">（画像準備中・バランス型で表示）</span>}
           </p>
         </div>
-        <HeroFigure c={c} gear={me.profile.gear} glow={c.daysSinceActive === 0} gearSize={30} className="mx-auto h-[400px] w-full pt-4" />
+        <HeroFigure c={c} aura={me.profile.aura} glow={c.daysSinceActive === 0} className="mx-auto h-[400px] w-full pt-4" />
         <div className="px-4 pb-4">
           <p className="mb-2 text-center text-[11px] text-sub">{condition.text}</p>
           <XpBar into={c.levelInto} needed={c.levelNeeded} />
@@ -72,8 +72,8 @@ export default function CharacterPage() {
       </Card>
 
       <section>
-        <SectionTitle href="/quest" more="クエストへ">称号・装備</SectionTitle>
-        <EquipmentPanel gear={me.profile.gear ?? {}} titleId={me.profile.titleId} ownedItems={me.owned.items} ownedTitles={me.owned.titles} />
+        <SectionTitle href="/quest" more="クエストへ">称号・オーラ</SectionTitle>
+        <AuraTitlePanel aura={me.profile.aura} titleId={me.profile.titleId} ownedItems={me.owned.items} ownedTitles={me.owned.titles} />
       </section>
 
       <section>

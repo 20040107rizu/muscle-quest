@@ -8,7 +8,7 @@ import { critBonus, isCritical, PR_BONUS } from "@/domain/bonus";
 import { findMockUserByCode, MOCK_DEFAULT_FRIENDS } from "../mock/friends";
 import { toActivities } from "../activities";
 import { buildCharacter } from "@/domain/character";
-import { findItem, type GearSlot } from "@/domain/items";
+import { findItem } from "@/domain/items";
 import { buildQuestStats, clearId, currentFloor, findDungeon, floorProgress, isDungeonCleared, isUnlocked, ownedRewards } from "@/domain/quests";
 import type { ChallengeResult, Reaction, ReactionKind, Repository, RunInput, SaveResult, WorkoutInput } from "../repository";
 import { MuscleQuestDB } from "./db";
@@ -359,17 +359,10 @@ export class LocalRepository implements Repository {
     return now.filter((id) => !before.includes(id));
   }
 
-  async equipItem(slot: GearSlot, itemId: string | null) {
+  async setAura(auraId: string | null) {
     const p = await this.init();
-    if (itemId) {
-      const item = findItem(itemId);
-      const owned = await this.ownedItemIds();
-      if (!item || item.slot !== slot || !owned.includes(itemId)) throw new Error("このアイテムは装備できません");
-    }
-    const gear = { ...(p.gear ?? {}) };
-    if (itemId) gear[slot] = itemId;
-    else delete gear[slot];
-    await this.db.profile.put({ ...p, gear });
+    if (auraId && (!findItem(auraId) || !(await this.ownedItemIds()).includes(auraId))) throw new Error("このオーラはまだ手に入れていません");
+    await this.db.profile.put({ ...p, aura: auraId ?? undefined });
   }
 
   async setTitle(titleId: string | null) {

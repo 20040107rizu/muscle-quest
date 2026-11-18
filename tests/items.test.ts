@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { MuscleQuestDB } from "@/data/local/db";
 import { LocalRepository } from "@/data/local/localRepository";
 import { addDays, toDateKey } from "@/domain/dates";
-import { GEAR_SLOTS, ITEMS } from "@/domain/items";
-import { DUNGEONS, findDungeon, itemUnlocked, longestStreak, ownedRewards } from "@/domain/quests";
+import { ITEMS } from "@/domain/items";
+import { DUNGEONS, itemUnlocked, longestStreak, ownedRewards } from "@/domain/quests";
 
 const today = toDateKey(Date.now());
 let repo: LocalRepository;
@@ -13,38 +13,23 @@ beforeEach(async () => {
   await repo.init();
 });
 
-describe("アイテム定義", () => {
-  it("80個以上あり、IDが重複せず、入手条件が実在する", () => {
-    expect(ITEMS.length).toBeGreaterThanOrEqual(80);
+describe("オーラ（装備は廃止）", () => {
+  it("手に入るのはオーラだけ", () => {
+    expect(ITEMS.length).toBe(4);
+    expect(ITEMS.every((i) => i.id.startsWith("aura_"))).toBe(true);
     expect(new Set(ITEMS.map((i) => i.id)).size).toBe(ITEMS.length);
-    for (const it of ITEMS) {
-      expect(GEAR_SLOTS).toContain(it.slot);
-      const s = it.source;
-      if (s.kind === "dungeon") expect(findDungeon(s.dungeonId)).toBeTruthy();
-      if (s.kind === "floor") expect(findDungeon(s.dungeonId)?.floors[s.floor]).toBeTruthy();
-    }
   });
 
-  it("全スロットに最低1つアイテムがある", () => {
-    for (const slot of GEAR_SLOTS) expect(ITEMS.some((i) => i.slot === slot)).toBe(true);
+  it("ボスの報酬は称号だけ", () => {
+    for (const d of DUNGEONS) expect(Object.keys(d.reward)).toEqual(["titleId"]);
   });
 });
 
 describe("入手条件", () => {
-  it("レベル・連続日数・ボス撃破で手に入る", () => {
-    const none = ownedRewards(new Set(), { level: 1, longestStreak: 0 }).items;
-    expect(none).toEqual([]);
-    const lv = ownedRewards(new Set(), { level: 15, longestStreak: 7, totalSets: 120, activeDays: 12, totalRunKm: 11 }).items;
-    expect(lv).toEqual(expect.arrayContaining(["W01", "A07", "N03", "P05", "W05", "W02", "H06"]));
-    expect(lv).not.toContain("H05");
-    expect(ownedRewards(new Set(["cave:0"])).items).toContain("P01");
-  });
-
-  it("全ダンジョン踏破で全アイテム", () => {
-    const all = new Set(DUNGEONS.flatMap((d) => d.floors.map((_, i) => `${d.id}:${i}`)));
-    const owned = ownedRewards(all, { level: 60, longestStreak: 30, activeDays: 100, totalSets: 1000, totalRunKm: 100 }).items;
-    expect(owned.length).toBe(ITEMS.length);
-    expect(itemUnlocked(ITEMS.find((i) => i.id === "P06")!, all, { level: 1, longestStreak: 0 })).toBe(true);
+  it("レベル・連続日数・走行距離で手に入る", () => {
+    expect(ownedRewards(new Set(), { level: 1, longestStreak: 0 }).items).toEqual([]);
+    expect(ownedRewards(new Set(), { level: 26, longestStreak: 10, totalRunKm: 50 }).items).toEqual(["aura_wind", "aura_flame", "aura_purple"]);
+    expect(itemUnlocked(ITEMS.find((i) => i.id === "aura_gold")!, { level: 38, longestStreak: 0 })).toBe(true);
   });
 
   it("最長連続日数", () => {
@@ -53,24 +38,22 @@ describe("入手条件", () => {
   });
 });
 
-describe("記録・撃破で新しいアイテムを知らせ、持っていない装備は着けられない", () => {
-  it("ボス撃破でドロップ", async () => {
-    await repo.saveWorkout({ id: "w", exerciseId: "squat", date: today, sets: Array.from({ length: 5 }, () => ({ weightKg: 60, reps: 10 })) });
-    const r = await repo.challengeFloor("cave", 0);
-    expect(r.newItems).toContain("P01");
-    await repo.equipItem("shorts", "P01");
-    expect((await repo.getProfile())?.gear?.shorts).toBe("P01");
-  });
-
-  it("連続日数の節目で入手", async () => {
+describe("記録で新しいオーラを知らせ、持っていないオーラはまとえない", () => {
+  it("累計50km走ると入手し、まとえる", async () => {
     let last;
-    for (let i = 6; i >= 0; i--) {
-      last = await repo.saveRun({ id: `r${i}`, distanceKm: 1 + i * 0.1, durationS: 400 + i * 40, date: addDays(today, -i) });
+    for (let i = 5; i >= 0; i--) {
+      last = await repo.saveRun({ id: `r${i}`, distanceKm: 9, durationS: 9 * 330, date: addDays(today, -i) });
+      expect(last.ok).toBe(true);
     }
-    expect(last!.newItems).toContain("P05");
+    expect(last!.newItems).toContain("aura_wind");
+    await repo.setAura("aura_wind");
+    expect((await repo.getProfile())?.aura).toBe("aura_wind");
+    await repo.setAura(null);
+    expect((await repo.getProfile())?.aura).toBeUndefined();
   });
 
-  it("未入手は装備不可", async () => {
-    await expect(repo.equipItem("head", "H05")).rejects.toThrow();
+  it("未入手・存在しないオーラはまとえない", async () => {
+    await expect(repo.setAura("aura_gold")).rejects.toThrow();
+    await expect(repo.setAura("H01")).rejects.toThrow();
   });
 });

@@ -48,7 +48,7 @@ export default function FriendDetailPage() {
           <p className="text-[10px] text-sub">連続</p>
           <p className="font-num text-2xl font-bold"><UiIcon name="flame" className="mr-0.5" />{c.streak}</p>
         </div>
-        <HeroFigure c={c} gear={view.gear} glow={c.daysSinceActive === 0} className="mx-auto h-[320px] w-full pt-10" />
+        <HeroFigure c={c} aura={view.aura} glow={c.daysSinceActive === 0} className="mx-auto h-[320px] w-full pt-10" />
         <div className="px-4 pb-4">
           <p className="mb-2 text-center text-xs text-sub">「{user.comment}」</p>
           <XpBar into={c.levelInto} needed={c.levelNeeded} />

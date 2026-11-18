@@ -1,12 +1,9 @@
 "use client";
 
 import { findItem, RARITY_COLORS } from "@/domain/items";
-import { hasGearArt, itemIconUrl } from "./heroImages";
+import { itemIconUrl } from "./heroImages";
 
-/**
- * アイテムのアイコン。装備の絵がまだ届いていないアイテムは「準備中」。
- * 枠の色はレア度（N / R / SR / SSR）。
- */
+/** オーラのアイコン。枠の色はレア度（N / R / SR / SSR）。 */
 export function ItemIcon({ id, size = 40, locked = false, className = "" }: { id: string; size?: number; locked?: boolean; className?: string }) {
   const item = findItem(id);
   if (!item) return null;
@@ -20,19 +17,15 @@ export function ItemIcon({ id, size = 40, locked = false, className = "" }: { id
         background: `radial-gradient(circle at 50% 35%, ${rc}33, #14171d 75%)`,
         boxShadow: `inset 0 0 0 ${Math.max(1, size / 28)}px ${rc}${locked ? "55" : "cc"}${item.rarity === "SSR" && !locked ? `, 0 0 ${size / 4}px ${rc}88` : ""}`,
       }}
-      aria-label={locked ? "未入手のアイテム" : item.name}
+      aria-label={locked ? "未入手のオーラ" : item.name}
     >
       {locked ? (
         <span className="font-num font-bold text-sub" style={{ fontSize: size * 0.45 }}>
           ?
         </span>
-      ) : hasGearArt(item.id) ? (
+      ) : (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={itemIconUrl(item.id)} alt="" width={size} height={size} className="h-full w-full object-contain p-[6%]" />
-      ) : (
-        <span className="text-center font-bold leading-tight text-sub" style={{ fontSize: size * 0.18 }}>
-          準備中
-        </span>
       )}
     </span>
   );

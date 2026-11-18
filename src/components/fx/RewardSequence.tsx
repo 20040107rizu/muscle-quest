@@ -124,7 +124,7 @@ export function RewardSequence({ r, title, onClose }: { r: SaveResult; title: st
               <FxImg name="logo_evolution" alt="EVOLUTION!!" className="mq-stamp-center mx-auto w-[75%]" />
               <p className="mq-glow-text text-2xl font-black text-accent-2">{tierFor(r.levelAfter).name}</p>
               <p className="text-xs text-sub">{tierFor(r.levelAfter).title}</p>
-              <HeroFigure c={{ ...me.character, level: r.levelAfter, pump: 1.04 }} gear={me.profile.gear} glow className="mx-auto mt-2 h-64 w-48" />
+              <HeroFigure c={{ ...me.character, level: r.levelAfter, pump: 1.04 }} aura={me.profile.aura} glow className="mx-auto mt-2 h-64 w-48" />
             </div>
           )}
           <p className="mt-4 font-num text-2xl font-bold text-accent">+{total} XP</p>
