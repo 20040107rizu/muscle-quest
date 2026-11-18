@@ -110,3 +110,47 @@ describe("友達との対決", () => {
     expect(battleState(b, "2026-01-08", 5, 10)).toBe("lost");
   });
 });
+
+describe("称号150種", () => {
+  it("一覧が読み込め、IDが重複せず、条件がすべて判定できる", async () => {
+    const { TITLE_DEFS, titleProgress, buildTitleStats } = await import("@/domain/titles");
+    expect(TITLE_DEFS.length).toBe(150);
+    expect(new Set(TITLE_DEFS.map((d) => d.id)).size).toBe(150);
+    const zero = buildTitleStats({
+      activities: [], level: 1, stats: { chest: 0, back: 0, shoulders: 0, arms: 0, legs: 0, core: 0, cardio: 0 },
+      activeDays: 0, longestStreak: 0, totalSets: 0, totalRunKm: 0, longestRunKm: 0, e1rm: {},
+      clearedFloors: 0, clearedDungeons: 0, weeklyBosses: 0, friends: 0, cheers: 0,
+    });
+    for (const d of TITLE_DEFS) {
+      const p = titleProgress(d, zero);
+      expect(p.unit, d.condition).not.toBeUndefined();
+      expect(p.done, d.id).toBe(false);
+    }
+  });
+
+  it("初めての記録で「鍛錬の初陣」が手に入り、記録の結果で知らせる", async () => {
+    const r = await repo.saveRun({ id: "r1", distanceKm: 3, durationS: 1100, date: today });
+    expect(r.newTitles).toContain("T001");
+    await repo.setTitle("T001");
+    expect((await repo.getProfile())?.titleId).toBe("T001");
+    await expect(repo.setTitle("T150")).rejects.toThrow();
+  });
+
+  it("朝・夜の運動、会心、自己ベスト更新を数える", async () => {
+    const { buildTitleStats } = await import("@/domain/titles");
+    const at = (h: number, d = 1) => new Date(2026, 0, d, h, 0).getTime();
+    const mk = (id: string, createdAt: number, km: number, date = "2026-01-01") => ({ id, userId: "me", type: "run" as const, date, createdAt, xp: 10, byStat: {}, run: { distanceKm: km, durationS: km * 300 } });
+    const s = buildTitleStats({
+      activities: [mk("a", at(6), 3), mk("b", at(23), 5), mk("c", at(12, 3), 4, "2026-01-03")],
+      level: 1, stats: { chest: 0, back: 0, shoulders: 0, arms: 0, legs: 0, core: 0, cardio: 0 },
+      activeDays: 2, longestStreak: 1, totalSets: 0, totalRunKm: 12, longestRunKm: 5, e1rm: {},
+      clearedFloors: 2, clearedDungeons: 0, weeklyBosses: 1, friends: 3, cheers: 4,
+    });
+    expect(s.earlyWorkouts).toBe(1);
+    expect(s.nightWorkouts).toBe(1);
+    expect(s.newRecords).toBe(1);
+    expect(s.bestPaceS).toBe(300);
+    expect(s.weekendDays).toBe(1); // 2026-01-03 は土曜
+    expect(s.bosses).toBe(3);
+  });
+});

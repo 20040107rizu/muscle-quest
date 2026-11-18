@@ -79,8 +79,8 @@ export function DailyChest({ today, friendCode, moved, opened }: { today: string
               onClick={() => {
                 const r = res;
                 setRes(null);
-                // レベルが上がったときは、いつものレベルアップ演出につなぐ
-                if (r.levelAfter > r.levelBefore) showResult({ ...r, xpGained: r.chest!.xp }, "宝箱を開けた！");
+                // レベルが上がった・称号やオーラが手に入ったときは、いつもの演出につなぐ
+                if (r.levelAfter > r.levelBefore || r.newTitles?.length || r.newItems?.length) showResult({ ...r, xpGained: r.chest!.xp }, "宝箱を開けた！");
               }}
             >
               受け取る

@@ -1,7 +1,7 @@
 "use client";
 
+import { TitleView } from "@/components/ui/TitleView";
 import { UiIcon } from "@/components/ui/UiIcon";
-import { TitlePlate } from "@/components/ui/TitlePlate";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
@@ -43,7 +43,7 @@ export default function FriendDetailPage() {
             <LevelBadge level={c.level} />
             <span className="text-sm font-bold">{c.tier.name}</span>
           </div>
-          {findTitle(view.titleId) && <TitlePlate name={findTitle(view.titleId)!.name} rarity={findTitle(view.titleId)!.rarity} className="mt-1" />}
+          {findTitle(view.titleId) && <TitleView title={findTitle(view.titleId)!} size="sm" className="mt-1" />}
         </div>
         <div className="absolute right-4 top-4 z-10 text-right">
           <p className="text-[10px] text-sub">連続</p>

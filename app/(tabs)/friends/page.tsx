@@ -1,6 +1,6 @@
 "use client";
 
-import { TitlePlate } from "@/components/ui/TitlePlate";
+import { TitleView } from "@/components/ui/TitleView";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
@@ -48,7 +48,7 @@ export default function FriendsPage() {
               <div className="mt-0.5 flex items-center justify-center gap-1">
                 <LevelBadge level={f.character.level} size="sm" />
               </div>
-              {findTitle(f.titleId) && <TitlePlate name={findTitle(f.titleId)!.name} rarity={findTitle(f.titleId)!.rarity} size="sm" className="mt-0.5" />}
+              {findTitle(f.titleId) && <TitleView title={findTitle(f.titleId)!} size="xs" className="mt-0.5" />}
               <p className="mt-1 text-[10px] text-sub">{activeToday ? `今日 +${f.metrics.todayXp}XP` : "今日はまだ"}</p>
             </Link>
           );

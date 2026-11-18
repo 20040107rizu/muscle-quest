@@ -1,6 +1,6 @@
 "use client";
 
-import { TitlePlate } from "@/components/ui/TitlePlate";
+import { TitleView } from "@/components/ui/TitleView";
 import Link from "next/link";
 import { useState } from "react";
 import { HeroFigure } from "@/components/HeroFigure";
@@ -86,7 +86,7 @@ export default function RankingPage() {
                 </p>
                 <div className="mt-0.5 flex items-center gap-1.5">
                   <LevelBadge level={r.item.character.level} size="sm" />
-                  {findTitle(r.item.titleId) ? <TitlePlate name={findTitle(r.item.titleId)!.name} rarity={findTitle(r.item.titleId)!.rarity} size="sm" className="self-start" /> : <span className="truncate text-[10px] text-sub">{r.item.character.tier.name}</span>}
+                  {findTitle(r.item.titleId) ? <TitleView title={findTitle(r.item.titleId)!} size="xs" className="self-start" /> : <span className="truncate text-[10px] text-sub">{r.item.character.tier.name}</span>}
                 </div>
               </div>
               <span className="font-num text-xl font-bold">

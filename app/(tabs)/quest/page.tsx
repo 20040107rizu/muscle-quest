@@ -1,8 +1,8 @@
 "use client";
 
+import { TitleView } from "@/components/ui/TitleView";
 import { ITEMS } from "@/domain/items";
 import { UiIcon } from "@/components/ui/UiIcon";
-import { TitlePlate } from "@/components/ui/TitlePlate";
 import { SkinGauge } from "@/components/ui/SkinGauge";
 import Link from "next/link";
 import { BossArt } from "@/components/BossArt";
@@ -23,7 +23,7 @@ export default function QuestPage() {
       <Card className="flex items-center gap-4 !p-4">
         <div className="flex-1">
           <p className="text-[10px] text-sub">称号</p>
-          <p className="font-bold">{title ? <TitlePlate name={title.name} rarity={title.rarity} size="sm" /> : "なし"}</p>
+          <p className="font-bold">{title ? <TitleView title={title} size="sm" /> : "なし"}</p>
         </div>
         <div className="text-center">
           <p className="text-[10px] text-sub">踏破</p>

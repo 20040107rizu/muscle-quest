@@ -20,8 +20,8 @@ describe("オーラ（装備は廃止）", () => {
     expect(new Set(ITEMS.map((i) => i.id)).size).toBe(ITEMS.length);
   });
 
-  it("ボスの報酬は称号だけ", () => {
-    for (const d of DUNGEONS) expect(Object.keys(d.reward)).toEqual(["titleId"]);
+  it("ダンジョンは装備を落とさない（称号は記録・撃破数から判定）", () => {
+    for (const d of DUNGEONS) expect(d.reward).toEqual({});
   });
 });
 

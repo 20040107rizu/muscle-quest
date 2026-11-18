@@ -1,6 +1,8 @@
 "use client";
 
-import { TitlePlate } from "@/components/ui/TitlePlate";
+import { TitleView } from "@/components/ui/TitleView";
+import { TitleGet } from "@/components/fx/TitleGet";
+import { TITLE_RARITY_ORDER } from "@/domain/titles";
 import { SkinGauge } from "@/components/ui/SkinGauge";
 import { SkinButton, SkinFace } from "@/components/ui/SkinButton";
 import Link from "next/link";
@@ -12,7 +14,7 @@ import { sfx } from "@/components/fx/sound";
 import { ItemGet } from "@/components/fx/ItemGet";
 import { FxImg, FxRays } from "@/components/fx/FxImg";
 import { Card, Loading } from "@/components/ui/primitives";
-import { clearId, currentFloor, findDungeon, findTitle, floorProgress, isUnlocked, type Reward } from "@/domain/quests";
+import { clearId, currentFloor, findDungeon, findTitle, floorProgress, isUnlocked } from "@/domain/quests";
 import { getRepo, useMyData, wearTitle } from "@/data/hooks";
 
 type Phase = "idle" | "fighting" | "won" | "lost";
@@ -23,7 +25,11 @@ export default function DungeonPage() {
   const d = findDungeon(id);
   const [phase, setPhase] = useState<Phase>("idle");
   const [hp, setHp] = useState<number | null>(null);
-  const [reward, setReward] = useState<Reward | null>(null);
+  /** ダンジョン踏破の宝箱（中身はこの撃破で手に入った称号） */
+  const [reward, setReward] = useState<{ titles: string[] } | null>(null);
+  /** 撃破で手に入った称号（踏破でないとき） */
+  const [newTitles, setNewTitles] = useState<string[]>([]);
+  const [showTitles, setShowTitles] = useState(false);
   const [msg, setMsg] = useState("");
   const [dmgs, setDmgs] = useState<{ id: number; value: number; crit: boolean; x: number }[]>([]);
   const [hitKey, setHitKey] = useState(0);
@@ -133,7 +139,8 @@ export default function DungeonPage() {
     shake(2.2);
     confetti(160);
     setPhase("won");
-    setReward(r.reward);
+    setReward(r.reward ? { titles: r.newTitles ?? [] } : null);
+    setNewTitles(r.reward ? [] : r.newTitles ?? []);
     setDrops(r.newItems ?? []);
   }
 
@@ -281,14 +288,12 @@ export default function DungeonPage() {
 
       <Card className="text-xs">
         <p className="mb-1 font-bold">踏破報酬</p>
-        <p className="text-sub">
-          称号【{findTitle(d.reward.titleId)?.name}】
-        </p>
+        <p className="text-sub">宝箱と、倒したボスの数・踏破したダンジョンの数に応じた称号</p>
       </Card>
 
       {reward && (
         <RewardModal
-          reward={reward}
+          titleIds={reward.titles}
           onClose={() => {
             setReward(null);
             // 撃破と同時に手に入ったオーラがあれば続けて見せる
@@ -297,7 +302,20 @@ export default function DungeonPage() {
           }}
         />
       )}
-      {!reward && phase === "won" && drops.length > 0 && !showDrops && <DropTimer onDone={() => setShowDrops(true)} />}
+      {!reward && phase === "won" && (drops.length > 0 || newTitles.length > 0) && !showDrops && !showTitles && (
+        <DropTimer onDone={() => (newTitles.length ? setShowTitles(true) : setShowDrops(true))} />
+      )}
+      {showTitles && newTitles.length > 0 && (
+        <TitleGet
+          ids={newTitles}
+          onClose={() => {
+            setShowTitles(false);
+            setNewTitles([]);
+            if (drops.length) setShowDrops(true);
+            else next();
+          }}
+        />
+      )}
       {showDrops && drops.length > 0 && (
         <ItemGet
           ids={drops}
@@ -323,8 +341,10 @@ function DropTimer({ onDone }: { onDone: () => void }) {
 }
 
 
-function RewardModal({ reward, onClose }: { reward: Reward; onClose: () => void }) {
-  const title = findTitle(reward.titleId);
+function RewardModal({ titleIds, onClose }: { titleIds: string[]; onClose: () => void }) {
+  const titles = titleIds.map((id) => findTitle(id)).filter((t): t is NonNullable<typeof t> => !!t);
+  // 一番レア度の高い称号を「今すぐつける」の対象にする
+  const title = [...titles].sort((a, b) => TITLE_RARITY_ORDER.indexOf(b.rarity) - TITLE_RARITY_ORDER.indexOf(a.rarity))[0];
   const [equipped, setEquipped] = useState(false);
   const [visible, setVisible] = useState(false);
   const [opened, setOpened] = useState(false);
@@ -360,16 +380,22 @@ function RewardModal({ reward, onClose }: { reward: Reward; onClose: () => void 
           <p className="mq-pulse-soft mt-1 text-sm font-bold text-ink">タップして宝箱を開けろ！</p>
         ) : (
           <>
-            {title && (
-              <div className="mq-pop mt-2 rounded-2xl border border-accent-2/50 bg-panel/90 p-3">
+            {titles.length > 0 ? (
+              <div className="mq-pop mt-2 space-y-2 rounded-2xl border border-accent-2/50 bg-panel/90 p-3">
                 <p className="text-[10px] text-sub">称号を獲得</p>
-                <TitlePlate name={title.name} rarity={title.rarity} size="lg" />
+                {titles.map((t) => (
+                  <div key={t.id} className="flex justify-center">
+                    <TitleView title={t} size="md" />
+                  </div>
+                ))}
               </div>
+            ) : (
+              <p className="mq-pop mt-2 text-sm font-bold">ダンジョンを踏破した！</p>
             )}
             <div className="mt-4 grid gap-2">
               <SkinButton
                 variant="gold"
-                disabled={equipped}
+                disabled={equipped || !title}
                 onClick={async () => {
                   if (title) await wearTitle(title.id);
                   setEquipped(true);
@@ -377,7 +403,7 @@ function RewardModal({ reward, onClose }: { reward: Reward; onClose: () => void 
                 }}
                 className="h-14 w-full text-base"
               >
-                {equipped ? "称号をつけた！" : "今すぐ称号をつける"}
+                {!title ? "称号はまだ" : equipped ? "称号をつけた！" : "今すぐ称号をつける"}
               </SkinButton>
               <SkinButton variant="gray" onClick={onClose} className="h-12 w-full text-sm">
                 閉じる

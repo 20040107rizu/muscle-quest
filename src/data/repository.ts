@@ -30,6 +30,8 @@ export interface SaveResult {
   comboToday?: number;
   /** この記録で新しく手に入ったオーラ（レベル・連続日数の節目など） */
   newItems?: string[];
+  /** この記録で新しく手に入った称号 */
+  newTitles?: string[];
   /** 毎日の宝箱を開けたときの中身 */
   chest?: { tier: ChestTier; xp: number };
 }
@@ -44,6 +46,8 @@ export interface ChallengeResult {
   remaining?: number;
   /** 撃破で新しく手に入ったオーラ（撃破と同時に条件を満たしたもの） */
   newItems?: string[];
+  /** 撃破で新しく手に入った称号 */
+  newTitles?: string[];
 }
 
 export interface WorkoutInput {

@@ -1,5 +1,6 @@
 "use client";
 
+import { TitleView } from "./ui/TitleView";
 import Link from "next/link";
 import { useState } from "react";
 import { weeklyBossFor } from "@/domain/weekly";
@@ -13,7 +14,6 @@ import { useFx } from "./fx/FxLayer";
 import { Initial } from "./ui/primitives";
 import { SkinButton } from "./ui/SkinButton";
 import { SkinGauge } from "./ui/SkinGauge";
-import { TitlePlate } from "./ui/TitlePlate";
 
 const xpBetween = (acts: Activity[], from: string, to: string) => acts.filter((a) => a.date >= from && a.date <= to).reduce((s, a) => s + a.xp, 0);
 
@@ -88,7 +88,7 @@ export function WeeklyBossCard({ compact = false }: { compact?: boolean }) {
           <div className="mt-3 text-center">
             <p className="text-[10px] text-sub">倒すともらえる限定称号</p>
             <div className="mt-1 flex justify-center">
-              <TitlePlate name={title.name} rarity={title.rarity} />
+              <TitleView title={title} />
             </div>
             {claimed ? (
               <p className="mt-2 text-xs font-bold text-good">受け取り済み（称号図鑑でつけられます）</p>

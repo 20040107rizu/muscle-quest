@@ -64,7 +64,7 @@ describe("クエスト", () => {
 
   it("未獲得のオーラ・称号は使えない", async () => {
     await expect(repo.setAura("aura_gold")).rejects.toThrow();
-    await expect(repo.setTitle("adventurer")).rejects.toThrow();
+    await expect(repo.setTitle("T150")).rejects.toThrow();
   });
 
   it("条件の評価と全踏破報酬", () => {
@@ -77,6 +77,5 @@ describe("クエスト", () => {
     s.weekXp = 3000;
     const cleared = simulateClears(s);
     expect(DUNGEONS.every((d) => d.floors.every((_, i) => cleared.has(`${d.id}:${i}`)))).toBe(true);
-    expect(ownedRewards(cleared).titles).toContain("muscle_king");
   });
 });

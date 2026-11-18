@@ -6,7 +6,8 @@ import { buildCharacter, type CharacterState } from "@/domain/character";
 import { toDateKey } from "@/domain/dates";
 import { computeMetrics, type UserMetrics } from "@/domain/ranking";
 import type { Activity, XpBreakdown } from "@/domain/types";
-import { buildQuestStats, DUNGEONS, ownedRewards, simulateClears, TITLES } from "@/domain/quests";
+import { buildQuestStats, DUNGEONS, findTitle, ownedRewards, simulateClears, titleStatsFrom, TITLES } from "@/domain/quests";
+import { TITLE_RARITY_ORDER } from "@/domain/titles";
 import { ITEMS } from "@/domain/items";
 import { addDays } from "@/domain/dates";
 import { DEMO_XP, demoDates, isDemo, setDemoAura, setDemoTitle, useDemo } from "./demo";
@@ -81,7 +82,8 @@ export function useMyData() {
     const cleared = new Set(raw.questClears.map((c) => c.id));
     /** ボスID → 最後に戦ったときの残りHP（未挑戦のボスは含まない） */
     const lastHp = new Map(raw.questAttempts.map((a) => [a.id, a.remaining]));
-    const owned = ownedRewards(cleared, questStats, raw.weeklyClears.map((c) => c.bossId));
+    const titleStats = titleStatsFrom({ activities, questStats, cleared, weeklyBosses: raw.weeklyClears.length, friends: raw.friendIds.length, cheers: raw.reactions.length });
+    const owned = ownedRewards(cleared, questStats, raw.weeklyClears.map((c) => c.bossId), titleStats);
     if (demo.on) {
       // 見本モード: 記録はそのまま、レベル・称号・オーラ・ダンジョンを全部そろった状態で表示する
       const per = Math.round(DEMO_XP / 7);
@@ -102,11 +104,12 @@ export function useMyData() {
         cleared: allCleared,
         owned: { titles: TITLES.map((t) => t.id), items: ITEMS.map((i) => i.id) },
         lastHp,
+        titleStats,
         today,
         now,
       };
     }
-    return { ...raw, activities, character, metrics, questStats, cleared, owned, lastHp, today, now };
+    return { ...raw, activities, character, metrics, questStats, cleared, owned, lastHp, titleStats, today, now };
   }, [raw, now, demo]);
 }
 
@@ -135,8 +138,11 @@ export function buildFriendView(user: MockUser, now: number): FriendView {
     events.push({ total: legacy, byStat, date: "2000-01-01" });
   }
   const character = buildCharacter(events, activities.map((a) => a.date), today);
-  const cleared = simulateClears(buildQuestStats(activities, character, today));
-  const owned = ownedRewards(cleared, buildQuestStats(activities, character, today));
+  const questStats = buildQuestStats(activities, character, today);
+  const cleared = simulateClears(questStats);
+  const owned = ownedRewards(cleared, questStats, [], titleStatsFrom({ activities, questStats, cleared, weeklyBosses: 0, friends: 3, cheers: 0 }));
+  // 一番レア度の高い称号をつけている
+  const best = [...owned.titles].sort((a, b) => TITLE_RARITY_ORDER.indexOf(findTitle(b)!.rarity) - TITLE_RARITY_ORDER.indexOf(findTitle(a)!.rarity))[0];
   // 一番最後に得た称号・オーラをまとう
   return {
     user,
@@ -144,7 +150,7 @@ export function buildFriendView(user: MockUser, now: number): FriendView {
     character,
     metrics: computeMetrics(activities, today),
     cleared,
-    titleId: owned.titles[owned.titles.length - 1],
+    titleId: best,
     aura: owned.items[owned.items.length - 1],
   };
 }

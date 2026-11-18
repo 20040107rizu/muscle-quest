@@ -1,5 +1,6 @@
 import { addDays, startOfWeek } from "./dates";
 import { WEEKLY_BOSSES } from "./weekly";
+import { buildTitleStats, TITLE_DEFS, unlockedTitleIds, type TitleDef, type TitleRarity, type TitleStats } from "./titles";
 import { ITEMS, type Item } from "./items";
 import { isAssist } from "./exercises";
 import { bestE1RM } from "./xp";
@@ -61,30 +62,26 @@ export interface Dungeon {
   reward: Reward;
 }
 
-export type TitleRarity = "N" | "R" | "SR" | "SSR" | "UR";
+export type { TitleRarity };
 
 export interface Title {
   id: string;
   name: string;
   rarity: TitleRarity;
+  /** 画像生成AIが作った称号（プレート・エフェクト・文字の画像と入手条件）。週替わりボスの称号には無い */
+  def?: TitleDef;
 }
 
 export const TITLES: Title[] = [
-  { id: "adventurer", name: "駆け出しの冒険者", rarity: "N" },
-  { id: "iron_chest", name: "鋼の胸板", rarity: "R" },
-  { id: "demon_back", name: "鬼の背中", rarity: "R" },
-  { id: "earth_shaker", name: "大地を揺らす者", rarity: "SR" },
-  { id: "wind_runner", name: "風の走者", rarity: "SR" },
-  { id: "unyielding", name: "不屈の魂", rarity: "SSR" },
-  { id: "muscle_king", name: "筋肉覇王", rarity: "UR" },
+  ...TITLE_DEFS.map((d) => ({ id: d.id, name: d.name, rarity: d.rarity, def: d })),
   // 週替わりボスの限定称号
   ...WEEKLY_BOSSES.map((b) => ({ id: b.titleId, name: b.titleName, rarity: b.rarity })),
 ];
 
 /** 称号の入手条件（持っていない称号の説明） */
 export function titleHowToGet(titleId: string): string {
-  const d = DUNGEONS.find((x) => x.reward.titleId === titleId);
-  if (d) return `「${d.name}」を踏破する（全${d.floors.length}階のボスを倒す）`;
+  const d = findTitle(titleId)?.def;
+  if (d) return d.howToGet;
   const w = WEEKLY_BOSSES.find((b) => b.titleId === titleId);
   if (w) return `週替わりボス「${w.name}」の週に、友達みんなで倒す（自分も1回以上運動する）`;
   return "条件は準備中";
@@ -105,7 +102,7 @@ export const DUNGEONS: Dungeon[] = [
     theme: "まずは習慣づくり",
     color: "#8b93a3",
     unlockAfter: [],
-    reward: { titleId: "adventurer" },
+    reward: {},
     floors: [
       { name: "B1 入口", boss: "スライム", emoji: "🟢", requirements: [{ kind: "totalSets", value: 5 }], hint: "好きな種目で合計5セット" },
       { name: "B2 湿った回廊", boss: "ゴブリン", emoji: "👺", requirements: [{ kind: "activeDays", value: 3 }], hint: "3日運動しよう（連続でなくてOK）" },
@@ -118,7 +115,7 @@ export const DUNGEONS: Dungeon[] = [
     theme: "胸を鍛えて突破",
     color: "#ff6b2c",
     unlockAfter: ["cave"],
-    reward: { titleId: "iron_chest" },
+    reward: {},
     floors: [
       { name: "1F 前庭", boss: "鉄の番兵", emoji: "🛡️", requirements: [{ kind: "stat", stat: "chest", value: 300 }], hint: "ベンチプレス・チェストプレス・腕立て伏せ" },
       { name: "2F 回廊", boss: "鋼のゴーレム", emoji: "🗿", requirements: [{ kind: "stat", stat: "chest", value: 1000 }], hint: "週2回の胸トレを続けよう" },
@@ -132,7 +129,7 @@ export const DUNGEONS: Dungeon[] = [
     theme: "背中を鍛えて登頂",
     color: "#ffb547",
     unlockAfter: ["cave"],
-    reward: { titleId: "demon_back" },
+    reward: {},
     floors: [
       { name: "麓", boss: "岩トカゲ", emoji: "🦎", requirements: [{ kind: "stat", stat: "back", value: 300 }], hint: "ラットプルダウン・チンニングマシン・シーテッドロー" },
       { name: "中腹", boss: "山岳トロール", emoji: "🧌", requirements: [{ kind: "stat", stat: "back", value: 1000 }], hint: "引く種目を週2回" },
@@ -146,7 +143,7 @@ export const DUNGEONS: Dungeon[] = [
     theme: "脚を鍛えて攻略",
     color: "#3ddc97",
     unlockAfter: ["cave"],
-    reward: { titleId: "earth_shaker" },
+    reward: {},
     floors: [
       { name: "城門", boss: "門番オーガ", emoji: "🚪", requirements: [{ kind: "stat", stat: "legs", value: 300 }], hint: "スクワット・レッグプレス" },
       { name: "練兵場", boss: "重装兵", emoji: "🪖", requirements: [{ kind: "stat", stat: "legs", value: 1200 }], hint: "脚の日をサボらない" },
@@ -159,7 +156,7 @@ export const DUNGEONS: Dungeon[] = [
     theme: "走って駆け抜ける",
     color: "#4cc9f0",
     unlockAfter: ["cave"],
-    reward: { titleId: "wind_runner" },
+    reward: {},
     floors: [
       { name: "第1区間", boss: "風の精", emoji: "🌬️", requirements: [{ kind: "totalRunKm", value: 10 }], hint: "累計10km走ろう" },
       { name: "第2区間", boss: "疾風の狼", emoji: "🐺", requirements: [{ kind: "longestRunKm", value: 5 }], hint: "1回で5km走り切る" },
@@ -173,7 +170,7 @@ export const DUNGEONS: Dungeon[] = [
     theme: "続けることが力",
     color: "#b79cff",
     unlockAfter: ["cave"],
-    reward: { titleId: "unyielding" },
+    reward: {},
     floors: [
       { name: "3階", boss: "怠惰の影", emoji: "👤", requirements: [{ kind: "streak", value: 3 }], hint: "3日連続で運動" },
       { name: "10階", boss: "誘惑の魔女", emoji: "🧙", requirements: [{ kind: "streak", value: 7 }], hint: "7日連続。軽いランでもOK" },
@@ -187,7 +184,7 @@ export const DUNGEONS: Dungeon[] = [
     theme: "全身を極めし者へ",
     color: "#ffd166",
     unlockAfter: ["chest_temple", "back_mountain", "leg_castle", "wind_corridor", "tower"],
-    reward: { titleId: "muscle_king" },
+    reward: {},
     floors: [
       { name: "外郭", boss: "四天王", emoji: "🦹", requirements: [{ kind: "level", value: 22 }], hint: "レベル22（ゴリマッチョ）" },
       { name: "内郭", boss: "鋼鉄の巨神", emoji: "🤖", requirements: [{ kind: "allMuscles", value: 3000 }], hint: "6部位すべて経験値3,000以上" },
@@ -361,12 +358,9 @@ export function itemSourceLabel(item: Item): string {
   }
 }
 
-/** 獲得済みの称号・オーラ */
-export function ownedRewards(cleared: Set<string>, progress: ItemProgress = { level: 1, longestStreak: 0 }, weeklyBossIds: string[] = []) {
-  const titles: string[] = [];
-  for (const d of DUNGEONS) {
-    if (isDungeonCleared(d, cleared) && d.reward.titleId) titles.push(d.reward.titleId);
-  }
+/** 獲得済みの称号・オーラ（称号は titleStats を渡したときだけ判定する） */
+export function ownedRewards(cleared: Set<string>, progress: ItemProgress = { level: 1, longestStreak: 0 }, weeklyBossIds: string[] = [], titleStats?: TitleStats) {
+  const titles: string[] = titleStats ? unlockedTitleIds(titleStats) : [];
   for (const b of WEEKLY_BOSSES) if (weeklyBossIds.includes(b.id)) titles.push(b.titleId);
   const items = ITEMS.filter((it) => itemUnlocked(it, progress)).map((it) => it.id);
   return { titles, items };
@@ -374,4 +368,32 @@ export function ownedRewards(cleared: Set<string>, progress: ItemProgress = { le
 
 function round1(n: number) {
   return Math.round(n * 10) / 10;
+}
+
+/** 称号の判定用の数値（記録・キャラ・クエストの進み具合・友達の数などから） */
+export function titleStatsFrom(input: {
+  activities: Activity[];
+  questStats: QuestStats;
+  cleared: Set<string>;
+  weeklyBosses: number;
+  friends: number;
+  cheers: number;
+}): TitleStats {
+  const q = input.questStats;
+  return buildTitleStats({
+    activities: input.activities,
+    level: q.level,
+    stats: q.stats,
+    activeDays: q.activeDays,
+    longestStreak: q.longestStreak,
+    totalSets: q.totalSets,
+    totalRunKm: q.totalRunKm,
+    longestRunKm: q.longestRunKm,
+    e1rm: q.e1rm,
+    clearedFloors: DUNGEONS.reduce((n, d) => n + d.floors.filter((_, i) => input.cleared.has(clearId(d.id, i))).length, 0),
+    clearedDungeons: DUNGEONS.filter((d) => isDungeonCleared(d, input.cleared)).length,
+    weeklyBosses: input.weeklyBosses,
+    friends: input.friends,
+    cheers: input.cheers,
+  });
 }

@@ -12,7 +12,7 @@ import { battleEnd, MAX_ACTIVE_BATTLES } from "@/domain/battle";
 import { toActivities } from "../activities";
 import { buildCharacter } from "@/domain/character";
 import { findItem } from "@/domain/items";
-import { buildQuestStats, clearId, currentFloor, findDungeon, floorProgress, isDungeonCleared, isUnlocked, ownedRewards } from "@/domain/quests";
+import { buildQuestStats, clearId, currentFloor, findDungeon, floorProgress, isDungeonCleared, isUnlocked, ownedRewards, titleStatsFrom } from "@/domain/quests";
 import type { ChallengeResult, Reaction, ReactionKind, Repository, RunInput, SaveResult, WorkoutInput } from "../repository";
 import { MuscleQuestDB } from "./db";
 
@@ -101,9 +101,9 @@ export class LocalRepository implements Repository {
 
   async saveWorkout(input: WorkoutInput, opts: { confirm?: boolean } = {}): Promise<SaveResult> {
     const db = this.db;
-    return db.transaction("rw", [db.workouts, db.runs, db.xpEvents, db.profile, db.exercises, db.questClears], async () => {
+    return db.transaction("rw", [db.workouts, db.runs, db.xpEvents, db.profile, db.exercises, db.questClears, db.weeklyClears, db.friendships, db.reactions], async () => {
       const before = levelFromXp(await this.totalXp()).level;
-      const ownedBefore = await this.ownedItemIds();
+      const ownedBefore = await this.snapshot();
       const res = emptyResult(before);
 
       // 同じIDの再送信は何もしない（二重計上防止）
@@ -158,16 +158,16 @@ export class LocalRepository implements Repository {
         prXp,
         prLabel: isPR ? `推定1RM ${newBest.toFixed(1)}kg（前回まで ${prevBest.toFixed(1)}kg）` : undefined,
         comboToday,
-        newItems: await this.newItemsSince(ownedBefore),
+        ...(await this.gained(ownedBefore)),
       };
     });
   }
 
   async saveRun(input: RunInput, opts: { confirm?: boolean } = {}): Promise<SaveResult> {
     const db = this.db;
-    return db.transaction("rw", [db.runs, db.workouts, db.xpEvents, db.questClears], async () => {
+    return db.transaction("rw", [db.runs, db.workouts, db.xpEvents, db.questClears, db.weeklyClears, db.friendships, db.reactions], async () => {
       const before = levelFromXp(await this.totalXp()).level;
-      const ownedBefore = await this.ownedItemIds();
+      const ownedBefore = await this.snapshot();
       const res = emptyResult(before);
       if (await db.runs.get(input.id)) return { ...res, ok: true, duplicate: true };
 
@@ -202,16 +202,16 @@ export class LocalRepository implements Repository {
         prXp,
         prLabel: isPR ? `最長距離 ${run.distanceKm}km（前回まで ${longest}km）` : undefined,
         comboToday,
-        newItems: await this.newItemsSince(ownedBefore),
+        ...(await this.gained(ownedBefore)),
       };
     });
   }
 
   async claimMission(date: string, missionId: string): Promise<SaveResult> {
     const db = this.db;
-    return db.transaction("rw", [db.workouts, db.runs, db.xpEvents, db.questClears], async () => {
+    return db.transaction("rw", [db.workouts, db.runs, db.xpEvents, db.questClears, db.weeklyClears, db.friendships, db.reactions], async () => {
       const before = levelFromXp(await this.totalXp()).level;
-      const ownedBefore = await this.ownedItemIds();
+      const ownedBefore = await this.snapshot();
       const res = emptyResult(before);
       const mission = DAILY_MISSIONS.find((m) => m.id === missionId);
       if (!mission) return { ...res, errors: ["ミッションが見つかりません"] };
@@ -238,7 +238,7 @@ export class LocalRepository implements Repository {
         byStat: {},
       });
       const after = levelFromXp(await this.totalXp()).level;
-      return { ...res, ok: true, xpGained: mission.bonusXp, levelAfter: after, newItems: await this.newItemsSince(ownedBefore) };
+      return { ...res, ok: true, xpGained: mission.bonusXp, levelAfter: after, ...(await this.gained(ownedBefore)) };
     });
   }
 
@@ -331,7 +331,7 @@ export class LocalRepository implements Repository {
 
   async challengeFloor(dungeonId: string, floor: number): Promise<ChallengeResult> {
     const db = this.db;
-    return db.transaction("rw", [db.questClears, db.questAttempts, db.workouts, db.runs, db.xpEvents], async () => {
+    return db.transaction("rw", [db.questClears, db.questAttempts, db.workouts, db.runs, db.xpEvents, db.weeklyClears, db.friendships, db.reactions], async () => {
       const fail = (e: string): ChallengeResult => ({ ok: false, errors: [e], reward: null });
       const d = findDungeon(dungeonId);
       if (!d || !d.floors[floor]) return fail("ダンジョンが見つかりません");
@@ -340,7 +340,7 @@ export class LocalRepository implements Repository {
       if (!isUnlocked(d, cleared)) return fail("まだ解放されていません");
       if (currentFloor(d, cleared) !== floor) return fail("前の階をクリアしてください");
       // 残りHPは記録から計算し、ここで保存する（画面からは書き換えられない）
-      const ownedBefore = await this.ownedItemIds();
+      const ownedBefore = await this.snapshot();
       const prog = floorProgress(d.floors[floor], await this.questStats());
       const id = clearId(dungeonId, floor);
       const remaining = prog.ready ? 0 : Math.round((1 - prog.ratio) * 1000) / 1000;
@@ -348,7 +348,7 @@ export class LocalRepository implements Repository {
       if (!prog.ready) return { ...fail("まだ力が足りない…条件を満たしてから再挑戦しよう"), remaining };
       await db.questClears.put({ id, dungeonId, floor, clearedAt: this.now() });
       cleared.add(id);
-      return { ok: true, errors: [], reward: isDungeonCleared(d, cleared) ? d.reward : null, remaining: 0, newItems: await this.newItemsSince(ownedBefore) };
+      return { ok: true, errors: [], reward: isDungeonCleared(d, cleared) ? d.reward : null, remaining: 0, ...(await this.gained(ownedBefore)) };
     });
   }
 
@@ -357,14 +357,32 @@ export class LocalRepository implements Repository {
     return ownedRewards(await this.clearedSet(), await this.questStats()).items;
   }
 
-  private async weeklyBossIds() {
-    return (await this.db.weeklyClears.toArray()).map((c) => c.bossId);
+  /** 今持っている称号（記録・クエスト・週替わりボス・友達・応援から計算） */
+  private async ownedTitleIds(): Promise<string[]> {
+    const [workouts, runs, xpEvents, weekly, friends, cheers] = await Promise.all([
+      this.db.workouts.toArray(),
+      this.db.runs.toArray(),
+      this.db.xpEvents.toArray(),
+      this.db.weeklyClears.toArray(),
+      this.db.friendships.count(),
+      this.db.reactions.count(),
+    ]);
+    const cleared = await this.clearedSet();
+    const questStats = await this.questStats();
+    const activities = toActivities(workouts, runs, xpEvents);
+    const ts = titleStatsFrom({ activities, questStats, cleared, weeklyBosses: weekly.length, friends, cheers });
+    return ownedRewards(cleared, questStats, weekly.map((w) => w.bossId), ts).titles;
   }
 
-  private async newItemsSince(before: string[]): Promise<string[]> {
-    const now = await this.ownedItemIds();
-    return now.filter((id) => !before.includes(id));
+  /** 記録の前後で持ち物を比べ、新しく手に入ったオーラと称号を返す */
+  private async snapshot() {
+    return { items: await this.ownedItemIds(), titles: await this.ownedTitleIds() };
   }
+  private async gained(before: { items: string[]; titles: string[] }) {
+    const now = await this.snapshot();
+    return { newItems: now.items.filter((id) => !before.items.includes(id)), newTitles: now.titles.filter((id) => !before.titles.includes(id)) };
+  }
+
 
   async setAura(auraId: string | null) {
     const p = await this.init();
@@ -374,7 +392,7 @@ export class LocalRepository implements Repository {
 
   async setTitle(titleId: string | null) {
     const p = await this.init();
-    if (titleId && !ownedRewards(await this.clearedSet(), await this.questStats(), await this.weeklyBossIds()).titles.includes(titleId)) throw new Error("この称号はまだ獲得していません");
+    if (titleId && !(await this.ownedTitleIds()).includes(titleId)) throw new Error("この称号はまだ獲得していません");
     await this.db.profile.put({ ...p, titleId: titleId ?? undefined });
   }
 
@@ -428,9 +446,9 @@ export class LocalRepository implements Repository {
 
   async openDailyChest(date: string): Promise<SaveResult> {
     const db = this.db;
-    return db.transaction("rw", [db.workouts, db.runs, db.xpEvents, db.profile, db.questClears], async () => {
+    return db.transaction("rw", [db.workouts, db.runs, db.xpEvents, db.profile, db.questClears, db.weeklyClears, db.friendships, db.reactions], async () => {
       const before = levelFromXp(await this.totalXp()).level;
-      const ownedBefore = await this.ownedItemIds();
+      const ownedBefore = await this.snapshot();
       const res = emptyResult(before);
       if (date !== this.today()) return { ...res, errors: ["今日の宝箱だけ開けられます"] };
       const p = await this.init();
@@ -440,7 +458,7 @@ export class LocalRepository implements Repository {
       if (!moved) return { ...res, errors: ["今日1回運動すると開けられます"] };
       await this.putXp("bonus", `chest:${date}`, date, this.now(), roll.xp, {});
       const after = levelFromXp(await this.totalXp()).level;
-      return { ...res, ok: true, xpGained: roll.xp, levelAfter: after, chest: roll, newItems: await this.newItemsSince(ownedBefore) };
+      return { ...res, ok: true, xpGained: roll.xp, levelAfter: after, chest: roll, ...(await this.gained(ownedBefore)) };
     });
   }
 

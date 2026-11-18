@@ -1,5 +1,5 @@
 import { diffDays, startOfWeek } from "./dates";
-import type { TitleRarity } from "./quests";
+import type { TitleRarity } from "./titles";
 
 /**
  * 週替わりボス。毎週月曜に入れ替わり、自分と友達みんなの「その週の経験値」の合計でHPを削る。

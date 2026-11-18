@@ -1,9 +1,12 @@
 "use client";
 
 import { SkinButton } from "./SkinButton";
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useRef, useState } from "react";
 import type { SaveResult } from "@/data/repository";
 import { ItemGet } from "../fx/ItemGet";
+import { TitleGet, titleGetBurst } from "../fx/TitleGet";
+import { useFx } from "../fx/FxLayer";
+import { findTitle } from "@/domain/quests";
 import { RewardSequence } from "../fx/RewardSequence";
 import { sfx } from "../fx/sound";
 
@@ -24,14 +27,26 @@ export function FeedbackProvider({ children }: { children: React.ReactNode }) {
   const showResult = useCallback((r: SaveResult, title: string) => setState({ r, title, key: Date.now() }), []);
   // ご褒美演出を閉じたあと、新しく手に入ったアイテムがあれば続けて見せる
   const [items, setItems] = useState<string[] | null>(null);
-  const close = () => {
-    const got = state?.r.newItems ?? [];
-    setState(null);
-    if (got.length) {
-      setItems(got);
-      sfx.chest();
-    }
+  // 称号 → オーラ の順に続けて見せる
+  const [titles, setTitles] = useState<string[] | null>(null);
+  const fx = useFx();
+  const showItems = (got: string[]) => {
+    if (!got.length) return;
+    setItems(got);
+    sfx.chest();
   };
+  const close = () => {
+    const gotItems = state?.r.newItems ?? [];
+    const gotTitles = state?.r.newTitles ?? [];
+    setState(null);
+    if (gotTitles.length) {
+      setTitles(gotTitles);
+      sfx.levelUp();
+      titleGetBurst(findTitle(gotTitles[0])?.rarity ?? "N", fx);
+      pendingItems.current = gotItems;
+    } else showItems(gotItems);
+  };
+  const pendingItems = useRef<string[]>([]);
   const [ask, setAsk] = useState<{ message: string; ok: string; danger: boolean; resolve: (v: boolean) => void } | null>(null);
   const confirm = useCallback(
     (message: string, opts: { ok?: string; danger?: boolean } = {}) =>
@@ -62,6 +77,16 @@ export function FeedbackProvider({ children }: { children: React.ReactNode }) {
         </div>
       )}
       {state && <RewardSequence key={state.key} r={state.r} title={state.title} onClose={close} />}
+      {titles && (
+        <TitleGet
+          ids={titles}
+          onClose={() => {
+            setTitles(null);
+            showItems(pendingItems.current);
+            pendingItems.current = [];
+          }}
+        />
+      )}
       {items && <ItemGet ids={items} onClose={() => setItems(null)} />}
     </FeedbackCtx.Provider>
   );

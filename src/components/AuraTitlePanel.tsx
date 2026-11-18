@@ -1,5 +1,6 @@
 "use client";
 
+import { TitleView } from "./ui/TitleView";
 import Link from "next/link";
 import { useState } from "react";
 import { ITEMS, RARITY_COLORS, findItem } from "@/domain/items";
@@ -8,7 +9,6 @@ import { wearAura } from "@/data/hooks";
 import { sfx } from "./fx/sound";
 import { ItemIcon } from "./ItemIcon";
 import { Card } from "./ui/primitives";
-import { TitlePlate } from "./ui/TitlePlate";
 
 /** 称号と、体の後ろにまとうオーラの切り替え */
 export function AuraTitlePanel({ aura, titleId, ownedItems, ownedTitles }: { aura?: string; titleId?: string; ownedItems: string[]; ownedTitles: string[] }) {
@@ -36,7 +36,7 @@ export function AuraTitlePanel({ aura, titleId, ownedItems, ownedTitles }: { aur
           </p>
         </div>
         <Link href="/titles" className="flex items-center justify-between gap-2 rounded-xl bg-panel-2 px-3 py-2.5">
-          {current ? <TitlePlate name={current.name} rarity={current.rarity} size="sm" /> : <span className="text-xs text-sub">つけていません</span>}
+          {current ? <TitleView title={current} size="sm" /> : <span className="text-xs text-sub">つけていません</span>}
           <span className="shrink-0 text-xs text-sub">称号図鑑で付け替える ›</span>
         </Link>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
+import { TitleView } from "@/components/ui/TitleView";
 import { UiIcon } from "@/components/ui/UiIcon";
-import { TitlePlate } from "@/components/ui/TitlePlate";
 import { SkinGauge } from "@/components/ui/SkinGauge";
 import { SkinButton, SkinFace } from "@/components/ui/SkinButton";
 import Link from "next/link";
@@ -97,7 +97,7 @@ export default function HomePage() {
           <LevelBadge level={c.level} />
           <p className="mt-1.5 text-lg font-black">{c.tier.name}</p>
           <p className="text-[11px] text-sub">{c.tier.title}</p>
-          {title && <TitlePlate name={title.name} rarity={title.rarity} size="sm" className="mt-1" />}
+          
         </div>
         <div className="absolute right-4 top-4 z-10 text-right text-[10px] text-sub">
           <p>パワー</p>
@@ -107,6 +107,11 @@ export default function HomePage() {
         </div>
         <HeroFigure c={c} aura={me.profile.aura} glow={c.daysSinceActive === 0} className="mx-auto h-[360px] w-full pt-6" />
         <div className="relative z-10 -mt-2 px-4 pb-4">
+          {title && (
+            <div className="mb-1 flex justify-center">
+              <TitleView title={title} size="lg" />
+            </div>
+          )}
           <p className="mb-2 text-center text-xs text-ink/80">{mood}</p>
           <XpBar into={c.levelInto} needed={c.levelNeeded} />
         </div>

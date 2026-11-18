@@ -51,7 +51,7 @@ export function isDemo() {
   return typeof window !== "undefined" && read().on;
 }
 export function setDemo(on: boolean) {
-  write({ ...read(), on, titleId: on ? read().titleId ?? "muscle_king" : read().titleId, aura: on ? read().aura ?? "aura_purple" : read().aura });
+  write({ ...read(), on, titleId: on ? read().titleId ?? "T141" : read().titleId, aura: on ? read().aura ?? "aura_purple" : read().aura });
 }
 export function setDemoTitle(titleId: string | null) {
   write({ ...read(), titleId: titleId ?? undefined });
