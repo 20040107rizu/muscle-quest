@@ -8,7 +8,7 @@ import { useMemo } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
 import { HeroFigure } from "@/components/HeroFigure";
 import { StatBars } from "@/components/StatBars";
-import { Card, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/primitives";
+import { Card, Initial, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/primitives";
 import { getRepo, useFriends, useCheers, useMyData } from "@/data/hooks";
 import { findTitle } from "@/domain/quests";
 import { BattlePanel } from "@/components/Battle";
@@ -34,19 +34,30 @@ export default function FriendDetailPage() {
       </Link>
 
       <div className="relative overflow-hidden rounded-3xl border border-line bg-[radial-gradient(ellipse_at_50%_20%,#2a2f3a_0%,#14171d_60%)]">
-        <div className="absolute left-4 top-4 z-10">
-          <p className="text-2xl font-black">{user.name}</p>
-          <div className="mt-1 flex items-center gap-2">
-            <LevelBadge level={c.level} />
-            <span className="text-sm font-bold">{c.tier.name}</span>
+        {/* 名前・レベル・連続日数は体に重ならないよう、絵の上に並べる */}
+        <div className="flex items-center gap-3 px-4 pt-4">
+          <Initial name={user.name} size={56} src={user.avatar} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xl font-black">{user.name}</p>
+            <div className="mt-1 flex items-center gap-2">
+              <LevelBadge level={c.level} />
+              <span className="text-sm font-bold">{c.tier.name}</span>
+            </div>
           </div>
-          {findTitle(view.titleId) && <TitleView title={findTitle(view.titleId)!} size="sm" className="mt-1" />}
+          <div className="shrink-0 text-right">
+            <p className="text-[10px] text-sub">連続</p>
+            <p className="font-num text-2xl font-bold">
+              <UiIcon name="flame" className="mr-0.5" />
+              {c.streak}
+            </p>
+          </div>
         </div>
-        <div className="absolute right-4 top-4 z-10 text-right">
-          <p className="text-[10px] text-sub">連続</p>
-          <p className="font-num text-2xl font-bold"><UiIcon name="flame" className="mr-0.5" />{c.streak}</p>
-        </div>
-        <HeroFigure c={c} aura={view.aura} glow={c.daysSinceActive === 0} className="mx-auto h-[320px] w-full pt-10" />
+        <HeroFigure c={c} aura={view.aura} glow={c.daysSinceActive === 0} className="mx-auto h-[300px] w-full pt-2" />
+        {findTitle(view.titleId) && (
+          <div className="mb-1 flex justify-center px-4">
+            <TitleView title={findTitle(view.titleId)!} size="lg" />
+          </div>
+        )}
         <div className="px-4 pb-4">
           <XpBar into={c.levelInto} needed={c.levelNeeded} />
         </div>

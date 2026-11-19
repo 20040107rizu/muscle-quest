@@ -94,20 +94,28 @@ export default function HomePage() {
       {/* キャラクター */}
       <Link href="/character" className="relative block overflow-hidden rounded-3xl border border-line bg-[radial-gradient(ellipse_at_50%_20%,#2a2f3a_0%,#14171d_55%,#0b0d11_100%)]">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,181,71,0.18),transparent_70%)]" />
-        <div className="absolute left-4 top-4 z-10">
-          <LevelBadge level={c.level} />
-          <p className="mt-1.5 text-lg font-black">{c.tier.name}</p>
-          <p className="text-[11px] text-sub">{c.tier.title}</p>
-          
+        {/* レベルや数値は体に重ならないよう、絵の上に並べる */}
+        <div className="relative z-10 flex items-start gap-3 px-4 pt-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <LevelBadge level={c.level} />
+              <p className="truncate text-lg font-black">{c.tier.name}</p>
+            </div>
+            <p className="mt-0.5 text-[11px] text-sub">{c.tier.title}</p>
+          </div>
+          <div className="flex shrink-0 gap-3 text-right text-[10px] text-sub">
+            <div>
+              <p>パワー</p>
+              <p className="font-num text-lg font-bold text-ink">{Math.round((c.stats.chest + c.stats.back + c.stats.shoulders + c.stats.arms + c.stats.legs + c.stats.core) / 10)}</p>
+            </div>
+            <div>
+              <p>スタミナ</p>
+              <p className="font-num text-lg font-bold text-cardio">{Math.round(c.stats.cardio / 10)}</p>
+            </div>
+          </div>
         </div>
-        <div className="absolute right-4 top-4 z-10 text-right text-[10px] text-sub">
-          <p>パワー</p>
-          <p className="font-num text-lg font-bold text-ink">{Math.round((c.stats.chest + c.stats.back + c.stats.shoulders + c.stats.arms + c.stats.legs + c.stats.core) / 10)}</p>
-          <p className="mt-1">スタミナ</p>
-          <p className="font-num text-lg font-bold text-cardio">{Math.round(c.stats.cardio / 10)}</p>
-        </div>
-        <HeroFigure c={c} aura={me.profile.aura} glow={c.daysSinceActive === 0} className="mx-auto h-[360px] w-full pt-6" />
-        <div className="relative z-10 -mt-2 px-4 pb-4">
+        <HeroFigure c={c} aura={me.profile.aura} glow={c.daysSinceActive === 0} className="mx-auto h-[340px] w-full pt-2" />
+        <div className="relative z-10 mt-1 px-4 pb-4">
           {title && (
             <div className="mb-1 flex justify-center">
               <TitleView title={title} size="lg" />
