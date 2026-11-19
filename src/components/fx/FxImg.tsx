@@ -11,12 +11,23 @@ export function FxImg({ name, alt, className = "", style }: { name: string; alt:
   );
 }
 
-/** レベルアップ・宝箱・アイテム入手の背景で回る集中線 */
+/**
+ * レベルアップ・宝箱などの背景で回る光（画像生成AIが作った rays の画像だけを使う）。
+ * 画面の真ん中に、画面いっぱいにはしない大きさで出す。
+ */
 export function FxRays() {
   return (
-    <div className="pointer-events-none absolute left-1/2 top-1/2 size-[160vmax] -translate-x-1/2 -translate-y-1/2" aria-hidden>
-      <div className="mq-rays absolute inset-0" />
-      <FxImg name="rays" alt="" className="mq-spin absolute left-1/2 top-1/2 w-[70vmin] -translate-x-1/2 -translate-y-1/2 opacity-90" />
+    <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" aria-hidden>
+      <FxImg name="rays" alt="" className="mq-spin w-[80vmin] max-w-[560px] opacity-70" />
+    </div>
+  );
+}
+
+/** 称号プレートなど、ひとつのものの後ろだけで回る光 */
+export function FxRaysBehind({ className = "" }: { className?: string }) {
+  return (
+    <div className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ${className}`} aria-hidden>
+      <FxImg name="rays" alt="" className="mq-spin w-full opacity-75" />
     </div>
   );
 }

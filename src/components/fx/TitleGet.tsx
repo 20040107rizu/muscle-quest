@@ -8,7 +8,7 @@ import { RarityMark } from "../ui/TitlePlate";
 import { SkinButton } from "../ui/SkinButton";
 import { TitleView } from "../ui/TitleView";
 import { useFx } from "./FxLayer";
-import { FxRays } from "./FxImg";
+import { FxRaysBehind } from "./FxImg";
 import { sfx } from "./sound";
 
 const BURST: Record<string, string[]> = {
@@ -33,7 +33,6 @@ export function TitleGet({ ids, onClose }: { ids: string[]; onClose: () => void 
 
   return (
     <div className="fixed inset-0 z-[56] grid place-items-center overflow-hidden bg-black/85 p-6" role="dialog" aria-modal>
-      <FxRays />
       <div key={t.id} className="relative w-full max-w-sm text-center">
         <p className={`mq-stamp-center font-black ${big ? "mq-glow-text text-3xl text-accent-2" : "text-2xl text-ink"}`}>称号を手に入れた！</p>
         {ids.length > 1 && (
@@ -41,8 +40,12 @@ export function TitleGet({ ids, onClose }: { ids: string[]; onClose: () => void 
             {i + 1} / {ids.length}
           </p>
         )}
-        <div className="mq-pop mt-5 flex justify-center">
-          <TitleView title={t} size="lg" />
+        <div className="relative mt-5 flex justify-center">
+          {/* 光は称号プレートの後ろだけ */}
+          <FxRaysBehind className="w-[360px] scale-y-[0.42] opacity-70" />
+          <div className="mq-pop relative">
+            <TitleView title={t} size="lg" />
+          </div>
         </div>
         <div className="mq-rise mt-4 flex items-center justify-center gap-2 [animation-delay:250ms]">
           <RarityMark rarity={t.rarity} size={30} />
