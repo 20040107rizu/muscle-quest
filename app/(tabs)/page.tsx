@@ -17,10 +17,11 @@ import { Card, Initial, LevelBadge, Loading, SectionTitle, XpBar } from "@/compo
 import { DAILY_MISSIONS, missionEventId } from "@/domain/missions";
 import { clearId, currentFloor, DUNGEONS, findTitle, floorProgress, isUnlocked } from "@/domain/quests";
 import { rank } from "@/domain/ranking";
-import { getRepo, useFriends, useMyData } from "@/data/hooks";
+import { getRepo, useFriends, useCheers, useMyData } from "@/data/hooks";
 
 export default function HomePage() {
   const me = useMyData();
+  const cheersFor = useCheers();
   const friends = useFriends(me?.now ?? 0);
   const { showResult } = useFeedback();
 
@@ -201,7 +202,7 @@ export default function HomePage() {
         <SectionTitle href="/friends">友達の動き</SectionTitle>
         <div className="space-y-2">
           {feed.map(({ a, f }) => (
-            <ActivityCard key={a.id} a={a} name={f.user.name} userHref={`/friends/${f.user.id}`} now={me.now} />
+            <ActivityCard key={a.id} a={a} name={f.user.name} userHref={`/friends/${f.user.id}`} now={me.now} received={cheersFor(a.id)} />
           ))}
           {feed.length === 0 && <Card className="text-center text-sm text-sub">友達を追加して一緒に鍛えよう</Card>}
         </div>

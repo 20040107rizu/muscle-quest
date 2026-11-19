@@ -121,6 +121,11 @@ export interface Repository {
    * 筋トレかランを1回以上記録した人だけを返す。端末だけで動く版では空。
    */
   listPlayers(): Promise<PlayerSnapshot[]>;
+  /**
+   * ほかのプレイヤーと、応援（記録ID → 誰が何を送ったか）。自分の記録あての応援も入る（記録IDは自分の端末のID）。
+   * 自分のプレイヤーID（まだ無ければ undefined）も返す。
+   */
+  listSocial(): Promise<Social>;
   toggleReaction(activityId: string, kind: ReactionKind): Promise<void>;
   listMyReactions(): Promise<Reaction[]>;
 
@@ -139,6 +144,12 @@ export interface Reaction {
 }
 
 export type { Activity };
+
+export interface Social {
+  players: PlayerSnapshot[];
+  cheers: Record<string, { from: string; kind: string }[]>;
+  meId?: string;
+}
 
 /** ほかのプレイヤーの公開情報（体重・写真・メニューなどは含めない） */
 export interface PlayerSnapshot {

@@ -14,7 +14,7 @@ import { sumStats } from "@/domain/xp";
 import { bonusXpByDate, toActivities } from "./activities";
 import { LocalRepository } from "./local/localRepository";
 import { OnlineRepository } from "./online/onlineRepository";
-import type { PlayerSnapshot, Repository } from "./repository";
+import type { PlayerSnapshot, Repository, Social } from "./repository";
 
 let _repo: Repository | null = null;
 /**
@@ -115,39 +115,52 @@ export function buildFriendView(p: PlayerSnapshot, now: number): FriendView {
   };
 }
 
-// ---- ほかのプレイヤー（画面どうしで共有。1分ごとに取り直す） ----
-let playersCache: PlayerSnapshot[] = [];
-const playerListeners = new Set<(p: PlayerSnapshot[]) => void>();
-let playerTimer: ReturnType<typeof setInterval> | null = null;
+// ---- ほかのプレイヤーと応援（画面どうしで共有。1分ごとに取り直す） ----
+let socialCache: Social = { players: [], cheers: {} };
+const socialListeners = new Set<(s: Social) => void>();
+let socialTimer: ReturnType<typeof setInterval> | null = null;
 
-function loadPlayers() {
+export function refreshSocial() {
   getRepo()
-    .listPlayers()
+    .listSocial()
     // 記録が1件もない人は出さない（開いただけの人で友達が増えないように）
-    .then((ps) => {
-      playersCache = ps.filter((p) => p.activities.length > 0);
-      playerListeners.forEach((f) => f(playersCache));
+    .then((s) => {
+      socialCache = { ...s, players: s.players.filter((p) => p.activities.length > 0) };
+      socialListeners.forEach((f) => f(socialCache));
     })
     .catch(() => {});
 }
 
-export function usePlayers(): PlayerSnapshot[] {
-  const [players, setPlayers] = useState(playersCache);
+function useSocial(): Social {
+  const [social, setSocial] = useState(socialCache);
   useEffect(() => {
-    playerListeners.add(setPlayers);
-    if (!playerTimer) {
-      loadPlayers();
-      playerTimer = setInterval(loadPlayers, 60000);
+    socialListeners.add(setSocial);
+    if (!socialTimer) {
+      refreshSocial();
+      socialTimer = setInterval(refreshSocial, 60000);
     }
     return () => {
-      playerListeners.delete(setPlayers);
-      if (!playerListeners.size && playerTimer) {
-        clearInterval(playerTimer);
-        playerTimer = null;
+      socialListeners.delete(setSocial);
+      if (!socialListeners.size && socialTimer) {
+        clearInterval(socialTimer);
+        socialTimer = null;
       }
     };
   }, []);
-  return players;
+  return social;
+}
+
+export function usePlayers(): PlayerSnapshot[] {
+  return useSocial().players;
+}
+
+/** 記録ごとに届いた応援（自分が送った分は除く。名前つき） */
+export function useCheers(): (activityId: string) => { name: string; kind: string }[] {
+  const { cheers, players, meId } = useSocial();
+  return useMemo(() => {
+    const names = new Map(players.map((p) => [p.id, p.name]));
+    return (id: string) => (cheers[id] ?? []).filter((c) => c.from !== meId).map((c) => ({ name: names.get(c.from) ?? "だれか", kind: c.kind }));
+  }, [cheers, players, meId]);
 }
 
 /** 友達（＝ほかのプレイヤー全員）の表示用データ */

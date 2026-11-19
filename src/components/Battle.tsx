@@ -23,6 +23,7 @@ function BattleRow({ b, friend, myScore, today }: { b: Battle; friend?: FriendVi
       <div className="flex items-center justify-between text-[10px] text-sub">
         <span>
           {b.start.slice(5).replace("-", "/")}〜{b.end.slice(5).replace("-", "/")}
+          {b.id.startsWith("in:") && <span className="ml-1.5 font-bold text-accent-2">{friend?.user.name ?? "相手"}から挑戦状！</span>}
         </span>
         <span className={`font-bold ${st === "won" ? "text-accent-2" : st === "lost" ? "text-bad" : st === "active" ? "text-ink" : "text-sub"}`}>
           {st === "won" && <UiIcon name="crown" className="mr-0.5" />}

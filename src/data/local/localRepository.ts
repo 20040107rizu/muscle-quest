@@ -12,7 +12,7 @@ import { toActivities } from "../activities";
 import { buildCharacter } from "@/domain/character";
 import { findItem } from "@/domain/items";
 import { buildQuestStats, clearId, currentFloor, findDungeon, floorProgress, isDungeonCleared, isUnlocked, ownedRewards, titleStatsFrom } from "@/domain/quests";
-import type { ChallengeResult, PlayerSnapshot, Reaction, ReactionKind, Repository, RunInput, SaveResult, WorkoutInput } from "../repository";
+import type { ChallengeResult, PlayerSnapshot, Reaction, Social, ReactionKind, Repository, RunInput, SaveResult, WorkoutInput } from "../repository";
 import { MuscleQuestDB } from "./db";
 
 export const ME = "me";
@@ -39,7 +39,7 @@ export class LocalRepository implements Repository {
   protected playerCount = 0;
 
   constructor(
-    private db = new MuscleQuestDB(),
+    protected db = new MuscleQuestDB(),
     private now: () => number = () => Date.now(),
   ) {}
 
@@ -284,6 +284,10 @@ export class LocalRepository implements Repository {
   /** 端末だけで動く版には、ほかのプレイヤーはいない（オンライン版でサーバーから取る） */
   async listPlayers(): Promise<PlayerSnapshot[]> {
     return [];
+  }
+
+  async listSocial(): Promise<Social> {
+    return { players: await this.listPlayers(), cheers: {} };
   }
 
   async toggleReaction(activityId: string, kind: ReactionKind) {

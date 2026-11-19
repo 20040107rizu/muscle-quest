@@ -1,7 +1,7 @@
 import type { Exercise, MuscleGroup, Profile } from "@/domain/types";
 import { primaryGroup } from "@/domain/exercises";
 import { LocalRepository } from "../local/localRepository";
-import type { PlayerSnapshot, RunInput, SaveResult, WorkoutInput } from "../repository";
+import type { PlayerSnapshot, ReactionKind, RunInput, SaveResult, Social, WorkoutInput } from "../repository";
 
 /**
  * オンライン版。記録は今まで通りこの端末（IndexedDB）に保存し、
@@ -65,7 +65,14 @@ export class OnlineRepository extends LocalRepository {
     }
     this.syncing = true;
     try {
-      const [profile, workouts, runs, custom] = await Promise.all([this.getProfile(), this.listWorkouts(), this.listRuns(), this.listCustomExercises()]);
+      const [profile, workouts, runs, custom, reactions, battles] = await Promise.all([
+        this.getProfile(),
+        this.listWorkouts(),
+        this.listRuns(),
+        this.listCustomExercises(),
+        this.listMyReactions(),
+        this.listBattles(),
+      ]);
       // 記録が1件もない端末は登録しない（開いただけの人は友達に出さない）
       if (!profile || workouts.length + runs.length === 0) return;
       const res = await fetch("/api/sync", {
@@ -80,6 +87,10 @@ export class OnlineRepository extends LocalRepository {
           customExercises: custom.map((e: Exercise) => ({ id: e.id, name: e.name, group: primaryGroup(e) as MuscleGroup, bodyweight: !!e.bodyweight })),
           workouts: workouts.map((w) => ({ id: w.id, exerciseId: w.exerciseId, date: w.date, createdAt: w.createdAt, sets: w.sets })),
           runs: runs.map((r) => ({ id: r.id, date: r.date, createdAt: r.createdAt, distanceKm: r.distanceKm, durationS: r.durationS })),
+          // ほかの人の記録（ID が「プレイヤーID:記録ID」）への応援だけ送る
+          cheers: reactions.filter((x) => x.activityId.includes(":")).map((x) => ({ activityId: x.activityId, kind: x.kind })),
+          // 自分が申し込んだ対決だけ送る（申し込まれた対決は "in:" で始まる）
+          battles: battles.filter((b) => !b.id.startsWith("in:")).map((b) => ({ friendId: b.friendId, start: b.start })),
         }),
       });
       if (res.ok) {
@@ -107,17 +118,53 @@ export class OnlineRepository extends LocalRepository {
   }
 
   async listPlayers(): Promise<PlayerSnapshot[]> {
+    return (await this.listSocial()).players;
+  }
+
+  /**
+   * ほかのプレイヤー・応援・自分あての受け取り（応援と、申し込まれた対決）。
+   * 申し込まれた対決はこの端末にも保存して、自分の対決一覧に出す。
+   */
+  async listSocial(): Promise<Social> {
     try {
-      const res = await fetch("/api/players");
-      if (!res.ok) return [];
-      const j = (await res.json()) as { players: PlayerSnapshot[] };
+      const res = await fetch("/api/players", { headers: { "x-mq-token": this.id().token }, cache: "no-store" });
+      if (!res.ok) return { players: [], cheers: {} };
+      const j = (await res.json()) as {
+        players: PlayerSnapshot[];
+        cheers: Social["cheers"];
+        me: { playerId: string; cheers: { activityId: string; from: string; kind: string }[]; battles: { challenger: string; opponent: string; start: string; end: string }[] } | null;
+      };
+      if (j.me?.playerId && j.me.playerId !== this.id().playerId) {
+        this.identity = { ...this.id(), playerId: j.me.playerId };
+        saveIdentity(this.identity);
+      }
       const me = this.myPlayerId();
       const others = j.players.filter((p) => p.id !== me);
       this.playerCount = others.filter((p) => p.activities.length > 0).length;
-      return others;
+      const cheers: Social["cheers"] = { ...j.cheers };
+      // 自分の記録あての応援は、この端末の記録IDで引けるようにする
+      for (const c of j.me?.cheers ?? []) (cheers[c.activityId] ??= []).push({ from: c.from, kind: c.kind });
+      if (me && j.me) {
+        const incoming = j.me.battles.filter((b) => b.opponent === me);
+        for (const b of incoming) {
+          const id = `in:${b.challenger}:${b.start}`;
+          if (!(await this.db.battles.get(id))) await this.db.battles.put({ id, friendId: b.challenger, start: b.start, end: b.end, createdAt: Date.now() });
+        }
+      }
+      return { players: others, cheers, meId: me };
     } catch {
-      return [];
+      return { players: [], cheers: {} };
     }
+  }
+
+  async toggleReaction(activityId: string, kind: ReactionKind) {
+    await super.toggleReaction(activityId, kind);
+    this.queueSync();
+  }
+  async startBattle(friendId: string) {
+    const r = await super.startBattle(friendId);
+    if (r.ok) this.queueSync(300);
+    return r;
   }
 
   async saveWorkout(input: WorkoutInput, opts?: { confirm?: boolean }): Promise<SaveResult> {

@@ -9,13 +9,14 @@ import { ActivityCard } from "@/components/ActivityCard";
 import { HeroFigure } from "@/components/HeroFigure";
 import { StatBars } from "@/components/StatBars";
 import { Card, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/primitives";
-import { getRepo, useFriends, useMyData } from "@/data/hooks";
+import { getRepo, useFriends, useCheers, useMyData } from "@/data/hooks";
 import { findTitle } from "@/domain/quests";
 import { BattlePanel } from "@/components/Battle";
 
 export default function FriendDetailPage() {
   const { id } = useParams<{ id: string }>();
   const me = useMyData();
+  const cheersFor = useCheers();
   const friends = useFriends(me?.now ?? 0);
   const view = friends.find((f) => f.user.id === id) ?? null;
   const user = view?.user;
@@ -83,7 +84,7 @@ export default function FriendDetailPage() {
         ) : (
           <div className="space-y-2">
             {todayActs.map((a) => (
-              <ActivityCard key={a.id} a={a} name={user.name} now={me.now} myReactions={myReactions} onReact={(k) => getRepo().toggleReaction(a.id, k)} />
+              <ActivityCard key={a.id} a={a} name={user.name} now={me.now} myReactions={myReactions} onReact={(k) => getRepo().toggleReaction(a.id, k)} received={cheersFor(a.id)} />
             ))}
           </div>
         )}
@@ -96,7 +97,7 @@ export default function FriendDetailPage() {
             .filter((a) => a.date !== me.today)
             .slice(0, 12)
             .map((a) => (
-              <ActivityCard key={a.id} a={a} name={user.name} now={me.now} myReactions={myReactions} onReact={(k) => getRepo().toggleReaction(a.id, k)} />
+              <ActivityCard key={a.id} a={a} name={user.name} now={me.now} myReactions={myReactions} onReact={(k) => getRepo().toggleReaction(a.id, k)} received={cheersFor(a.id)} />
             ))}
         </div>
       </section>

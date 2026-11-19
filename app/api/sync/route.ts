@@ -32,6 +32,10 @@ export async function POST(req: Request) {
     customExercises?: SyncCustomExercise[];
     workouts?: SyncWorkout[];
     runs?: SyncRun[];
+    /** 自分が送った応援（相手の記録ID は「相手のプレイヤーID:記録ID」） */
+    cheers?: { activityId: string; kind: string }[];
+    /** 自分が申し込んだ対決 */
+    battles?: { friendId: string; start: string }[];
   };
   try {
     body = JSON.parse(text);
@@ -64,6 +68,15 @@ export async function POST(req: Request) {
     const titleId = body.titleId && findTitle(body.titleId) ? body.titleId : null;
     const aura = body.aura && findItem(body.aura) ? body.aura : null;
     const id = await rpc<string>("mq_sync", { p_token_hash: tokenHash, p_name: name, p_title: titleId, p_aura: aura, p_acts: acts });
+    // 応援と対決（相手が実在するか・期間が正しいかはデータベース側で確かめる）
+    const cheers = (Array.isArray(body.cheers) ? body.cheers : []).slice(0, 5000).flatMap((c) => {
+      const s = String(c?.activityId ?? "");
+      const i = s.indexOf(":");
+      return i > 0 ? [{ toPlayer: s.slice(0, i), activityId: s.slice(i + 1), kind: String(c.kind) }] : [];
+    });
+    await rpc<number>("mq_set_cheers", { p_token_hash: tokenHash, p_cheers: cheers });
+    const battles = (Array.isArray(body.battles) ? body.battles : []).slice(0, 50).map((b) => ({ opponent: String(b?.friendId ?? ""), start: String(b?.start ?? "") }));
+    if (battles.length) await rpc<number>("mq_add_battles", { p_token_hash: tokenHash, p_battles: battles });
     return NextResponse.json({ playerId: id, accepted: acts.length, rejected: workouts.length + runs.length - acts.length });
   } catch (e) {
     console.error(e);

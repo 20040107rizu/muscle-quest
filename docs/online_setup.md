@@ -35,3 +35,4 @@
   - 環境変数: `SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY`（Supabase の Secret key）、`NODE_VERSION=22`
 - 無料プランは15分ほど誰も開かないと止まり、次に開くとき30秒〜1分かかる。
 - Supabase のプロジェクトは「muscle-quest」（Tokyo）。
+- 応援と1週間対決を相手に届けるため、`supabase/online_social.sql` も実行済み（`online_setup.sql` のあとに実行する）。

@@ -10,10 +10,11 @@ import { HeroFigure } from "@/components/HeroFigure";
 import { Card, LevelBadge, Loading, PageHeader, Segmented, SectionTitle } from "@/components/ui/primitives";
 import { addDays } from "@/domain/dates";
 import { findTitle } from "@/domain/quests";
-import { getRepo, useFriends, useMyData } from "@/data/hooks";
+import { getRepo, useFriends, useCheers, useMyData } from "@/data/hooks";
 
 export default function FriendsPage() {
   const me = useMyData();
+  const cheersFor = useCheers();
   const friends = useFriends(me?.now ?? 0);
   const [filter, setFilter] = useState<"today" | "week">("today");
 
@@ -79,6 +80,7 @@ export default function FriendsPage() {
               now={me.now}
               myReactions={myReactions}
               onReact={(k) => getRepo().toggleReaction(a.id, k)}
+              received={cheersFor(a.id)}
             />
           ))}
           {feed.length === 0 && <Card className="text-center text-sm text-sub">{filter === "today" ? "今日はまだ誰も記録していません。一番乗りしよう！" : "記録がありません"}</Card>}

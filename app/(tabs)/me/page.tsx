@@ -11,10 +11,11 @@ import { addDays, parseDateKey } from "@/domain/dates";
 import { isAssist } from "@/domain/exercises";
 import type { Activity } from "@/domain/types";
 import { bestE1RM, volumeOf } from "@/domain/xp";
-import { getRepo, useMyData } from "@/data/hooks";
+import { getRepo, useCheers, useMyData } from "@/data/hooks";
 
 export default function MyPage() {
   const me = useMyData();
+  const cheersFor = useCheers();
   const { confirm: ask } = useFeedback();
   const [tab, setTab] = useState<"history" | "bests">("history");
   const [editing, setEditing] = useState(false);
@@ -184,6 +185,7 @@ export default function MyPage() {
                     a={a}
                     name={me.profile.displayName}
                     now={me.now}
+                    received={cheersFor(a.id)}
                     right={
                       <button
                         aria-label="削除"

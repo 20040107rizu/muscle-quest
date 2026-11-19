@@ -83,3 +83,41 @@ describe("オンライン版の端末側", () => {
     expect((await repo.listPlayers()).map((p) => p.id)).toEqual(["p2"]);
   });
 });
+
+describe("応援と対決が相手に届く（端末側）", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("送った応援と申し込んだ対決を送り、申し込まれた対決と届いた応援を受け取る", async () => {
+    const sent: { cheers: unknown[]; battles: unknown[] }[] = [];
+    const d = toDateKey(Date.now());
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url === "/api/sync") {
+          sent.push(JSON.parse(String(init!.body)));
+          return new Response(JSON.stringify({ playerId: "me-1" }));
+        }
+        return new Response(
+          JSON.stringify({
+            players: [{ id: "p2", name: "相手", activities: [{ id: "p2:a1", userId: "p2", type: "run", date: d, createdAt: 1, xp: 10, byStat: {} }] }],
+            cheers: { "p2:a1": [{ from: "me-1", kind: "🔥" }] },
+            me: { playerId: "me-1", cheers: [{ activityId: "r1", from: "p2", kind: "💪" }], battles: [{ challenger: "p2", opponent: "me-1", start: d, end: addDays(d, 6) }] },
+          }),
+        );
+      }),
+    );
+    const repo = new OnlineRepository(new MuscleQuestDB(`online-social-${Math.random()}`));
+    await repo.init();
+    await repo.saveRun({ id: "r1", distanceKm: 3, durationS: 1100, date: d });
+    const social = await repo.listSocial();
+    expect(social.cheers["r1"]).toEqual([{ from: "p2", kind: "💪" }]);
+    expect((await repo.listBattles()).map((b) => b.id)).toEqual([`in:p2:${d}`]);
+    // 申し込まれた対決があるので、同じ相手には重ねて申し込めない
+    expect((await repo.startBattle("p2")).ok).toBe(false);
+    await repo.toggleReaction("p2:a1", "🔥");
+    await repo.sync();
+    const last = sent[sent.length - 1];
+    expect(last.cheers).toEqual([{ activityId: "p2:a1", kind: "🔥" }]);
+    expect(last.battles).toEqual([]);
+  });
+});
