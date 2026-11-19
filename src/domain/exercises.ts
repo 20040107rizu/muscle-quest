@@ -28,6 +28,7 @@ export const PRESET_EXERCISES: Exercise[] = [
   { id: "twist_crunch", name: "ツイストクランチ", distribution: { core: 1.0 }, bodyweight: true, maxWeightKg: 30, step: 1 },
   { id: "front_plank", name: "フロントプランク", distribution: { core: 0.8, shoulders: 0.1, chest: 0.1 }, bodyweight: true, timed: true, maxWeightKg: 0, step: 1 },
   { id: "twist_leg_raise", name: "ツイストレッグレイズ", distribution: { core: 1.0 }, bodyweight: true, maxWeightKg: 30, step: 1 },
+  { id: "seated_knee_up", name: "シーテッド・ニーアップ", distribution: { core: 1.0 }, bodyweight: true, maxWeightKg: 30, step: 1 },
 ];
 
 export const EXERCISE_GROUP_ORDER: { group: MuscleGroup; label: string }[] = [
