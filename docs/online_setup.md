@@ -9,7 +9,7 @@
 
 ## 1. Supabase（データベース）
 1. https://supabase.com で登録し「New project」。名前は muscle-quest、地域は Tokyo（Northeast Asia）。
-2. 左の「SQL Editor」→ `supabase/online_setup.sql` の中身を全部貼って「Run」（何度実行しても大丈夫）。
+2. 左の「SQL Editor」で `supabase/online_setup.sql` の①②③を1つずつ貼って「Run」（何度実行しても大丈夫）。
 3. 左下の「Project Settings」→「Data API」で **Project URL** を控える。
 4. 「Project Settings」→「API Keys」で **Secret key**（sb_secret_…）を控える。
    見当たらなければ「Legacy API Keys」の **service_role** でもよい。
