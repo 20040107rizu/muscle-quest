@@ -4,13 +4,14 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
 import { DayLog } from "@/components/DayLog";
+import { makeAvatar } from "@/components/ui/avatarPhoto";
 import { useFeedback } from "@/components/ui/Feedback";
 import { NumberInput } from "@/components/ui/NumberInput";
 import { isSoundOn, setSoundOn, sfx } from "@/components/fx/sound";
 import { Card, Initial, LevelBadge, Loading, PageHeader, Segmented, SectionTitle } from "@/components/ui/primitives";
 import { addDays, parseDateKey } from "@/domain/dates";
-import { isAssist } from "@/domain/exercises";
-import type { Activity } from "@/domain/types";
+import { isAssist, PRESET_EXERCISES } from "@/domain/exercises";
+import type { SetRecord } from "@/domain/types";
 import { bestE1RM, volumeOf } from "@/domain/xp";
 import { getRepo, useCheers, useMyData } from "@/data/hooks";
 
@@ -29,25 +30,42 @@ export default function MyPage() {
     return m;
   }, [me?.xpEvents]);
 
+  // 自己ベスト。種目の種類ごとに「何で比べるか」を変える
+  //  重さ: 推定MAX / アシスト: 最小アシスト / 自重: 1セットの最多回数（追加の重りがあれば併記） / 秒数: 最長キープ
   const bests = useMemo(() => {
-    const map = new Map<string, { name: string; assist: boolean; maxW: number; minW: number; e1: number; count: number; last: string; lastE1: number; prevE1: number | null }>();
-    // workouts は新しい順
+    type Kind = "weight" | "assist" | "bodyweight" | "timed";
+    const all = [...PRESET_EXERCISES, ...(me?.customExercises ?? [])];
+    const kindOf = (id: string): Kind => {
+      const ex = all.find((e) => e.id === id);
+      return ex?.timed ? "timed" : ex?.assist ? "assist" : ex?.bodyweight ? "bodyweight" : "weight";
+    };
+    // 1回の記録の値（大きいほど良い。アシストは小さいほど良いので符号を逆に）
+    const score = (k: Kind, sets: SetRecord[]) => {
+      if (k === "timed" || k === "bodyweight") return Math.max(...sets.map((x) => x.reps));
+      if (k === "assist") return -Math.min(...sets.map((x) => x.weightKg));
+      return bestE1RM(sets);
+    };
+    const map = new Map<string, { name: string; kind: Kind; best: number; bestSet: SetRecord; maxW: number; count: number; last: string; lastScore: number; prevScore: number | null }>();
     for (const w of me?.workouts ?? []) {
+      const kind = kindOf(w.exerciseId);
+      const sc = score(kind, w.sets);
+      // 自重種目の代表のセット：回数が一番多いセット（同じなら重りが重いほう）
+      const top = [...w.sets].sort((x, y) => y.reps - x.reps || y.weightKg - x.weightKg)[0];
+      const maxW = Math.max(...w.sets.map((x) => x.weightKg));
       const cur = map.get(w.exerciseId);
-      const e1 = bestE1RM(w.sets);
-      const maxW = Math.max(...w.sets.map((s) => s.weightKg));
-      const minW = Math.min(...w.sets.map((s) => s.weightKg));
-      if (!cur) map.set(w.exerciseId, { name: w.exerciseName, assist: isAssist(w.exerciseId), maxW, minW, e1, count: 1, last: w.date, lastE1: e1, prevE1: null });
+      if (!cur) map.set(w.exerciseId, { name: w.exerciseName, kind, best: sc, bestSet: top, maxW, count: 1, last: w.date, lastScore: sc, prevScore: null });
       else {
+        if (sc > cur.best) {
+          cur.best = sc;
+          cur.bestSet = top;
+        }
         cur.maxW = Math.max(cur.maxW, maxW);
-        cur.minW = Math.min(cur.minW, minW);
-        cur.e1 = Math.max(cur.e1, e1);
-        if (cur.count === 1) cur.prevE1 = e1;
+        if (cur.count === 1) cur.prevScore = sc;
         cur.count++;
       }
     }
     return [...map.values()].sort((a, b) => b.count - a.count);
-  }, [me?.workouts]);
+  }, [me?.workouts, me?.customExercises]);
 
 
   if (!me) return <Loading />;
@@ -67,7 +85,7 @@ export default function MyPage() {
 
       <Card>
         <div className="flex items-center gap-3">
-          <Initial name={me.profile.displayName} size={52} />
+          <Initial name={me.profile.displayName} size={52} src={me.profile.avatar} />
           <div className="flex-1">
             <p className="text-lg font-black">{me.profile.displayName}</p>
             <div className="mt-0.5 flex items-center gap-2">
@@ -89,6 +107,35 @@ export default function MyPage() {
         </div>
         {editing && (
           <div className="mt-3 space-y-2 border-t border-line pt-3">
+            <div className="flex items-center gap-3">
+              <Initial name={me.profile.displayName} size={56} src={me.profile.avatar} />
+              <div className="flex flex-1 flex-wrap gap-2">
+                <label className="cursor-pointer rounded-lg bg-panel-2 px-3 py-1.5 text-xs font-bold">
+                  写真を選ぶ
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const f = e.target.files?.[0];
+                      e.target.value = "";
+                      if (!f) return;
+                      try {
+                        await getRepo().setAvatar(await makeAvatar(f));
+                      } catch (err) {
+                        await ask((err as Error).message, { ok: "OK" });
+                      }
+                    }}
+                  />
+                </label>
+                {me.profile.avatar && (
+                  <button onClick={() => getRepo().setAvatar(null)} className="rounded-lg px-3 py-1.5 text-xs text-sub">
+                    写真を外す
+                  </button>
+                )}
+              </div>
+            </div>
+            <p className="text-[10px] text-sub">プロフィール写真は友達の画面やランキングにも表示されます</p>
             <label className="block text-xs text-sub">
               表示名
               <input value={name} onChange={(e) => setName(e.target.value)} maxLength={20} className="mt-1 w-full skin-input px-2 py-1 text-sm text-ink outline-none" />
@@ -174,6 +221,7 @@ export default function MyPage() {
               name={me.profile.displayName}
               now={me.now}
               received={cheersFor(a.id)}
+              avatar={me.profile.avatar}
               right={
                 <button
                   aria-label="削除"
@@ -190,24 +238,31 @@ export default function MyPage() {
         <Card className="!p-0">
           {bests.length === 0 && <p className="p-4 text-center text-sm text-sub">筋トレを記録すると自己ベストが表示されます</p>}
           {bests.map((b) => {
-            const diff = b.prevE1 != null && !b.assist ? b.lastE1 - b.prevE1 : null;
+            const raw = b.prevScore != null ? b.lastScore - b.prevScore : null;
+            const unit = b.kind === "timed" ? "秒" : b.kind === "bodyweight" ? "回" : "kg";
+            // アシストは符号を逆にしてあるので「減った＝良い」がプラスになる
+            const diff = raw;
+            const main =
+              b.kind === "timed" ? `${b.best}秒` : b.kind === "bodyweight" ? (b.bestSet.weightKg > 0 ? `+${b.bestSet.weightKg}kg×${b.best}回` : `${b.best}回`) : b.kind === "assist" ? `${-b.best}kg` : `${b.maxW}kg`;
+            const sub = b.kind === "timed" ? "最長キープ" : b.kind === "bodyweight" ? "1セットの最多回数" : b.kind === "assist" ? "最小アシスト" : `推定MAX ${b.best.toFixed(1)}kg`;
             return (
               <div key={b.name} className="flex items-center gap-3 border-b border-line px-4 py-3 last:border-0">
                 <div className="flex-1">
                   <p className="text-sm font-bold">{b.name}</p>
                   <p className="text-[10px] text-sub">
                     {b.count}回記録 ・ 最終 {b.last.slice(5).replace("-", "/")}
-                    {diff != null && (
-                      <span className={`ml-1 font-bold ${diff >= 0 ? "text-good" : "text-bad"}`}>
-                        前回比 {diff >= 0 ? "+" : ""}
-                        {diff.toFixed(1)}kg
+                    {diff != null && diff !== 0 && (
+                      <span className={`ml-1 font-bold ${diff > 0 ? "text-good" : "text-bad"}`}>
+                        {b.kind === "assist"
+                          ? `前回比 アシスト${diff > 0 ? "−" : "+"}${Math.abs(diff)}kg`
+                          : `前回比 ${diff > 0 ? "+" : ""}${b.kind === "weight" ? diff.toFixed(1) : diff}${unit}`}
                       </span>
                     )}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-num text-lg font-bold">{b.assist ? b.minW : b.maxW}kg</p>
-                  <p className="text-[10px] text-sub">{b.assist ? "最小アシスト" : `推定MAX ${b.e1.toFixed(1)}kg`}</p>
+                  <p className="font-num text-lg font-bold">{main}</p>
+                  <p className="text-[10px] text-sub">{sub}</p>
                 </div>
               </div>
             );

@@ -90,7 +90,7 @@ export function useMyData() {
 
 /** ほかのプレイヤー（筋トレかランを1回以上記録した人だけ。全員がお互いに友達として表示される） */
 export interface FriendView {
-  user: { id: string; name: string };
+  user: { id: string; name: string; avatar?: string };
   activities: Activity[];
   character: CharacterState;
   metrics: UserMetrics;
@@ -106,7 +106,7 @@ export function buildFriendView(p: PlayerSnapshot, now: number): FriendView {
     today,
   );
   return {
-    user: { id: p.id, name: p.name },
+    user: { id: p.id, name: p.name, avatar: p.avatarUrl },
     activities: [...p.activities].sort((a, b) => b.createdAt - a.createdAt),
     character,
     metrics: computeMetrics(p.activities, today),

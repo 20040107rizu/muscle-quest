@@ -81,6 +81,7 @@ export default function FriendsPage() {
               myReactions={myReactions}
               onReact={(k) => getRepo().toggleReaction(a.id, k)}
               received={cheersFor(a.id)}
+              avatar={f.user.avatar}
             />
           ))}
           {feed.length === 0 && <Card className="text-center text-sm text-sub">{filter === "today" ? "今日はまだ誰も記録していません。一番乗りしよう！" : "記録がありません"}</Card>}

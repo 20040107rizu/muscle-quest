@@ -91,6 +91,7 @@ export class OnlineRepository extends LocalRepository {
           cheers: reactions.filter((x) => x.activityId.includes(":")).map((x) => ({ activityId: x.activityId, kind: x.kind })),
           // 自分が申し込んだ対決だけ送る（申し込まれた対決は "in:" で始まる）
           battles: battles.filter((b) => !b.id.startsWith("in:")).map((b) => ({ friendId: b.friendId, start: b.start })),
+          avatar: profile.avatar ?? null,
         }),
       });
       if (res.ok) {
@@ -188,6 +189,10 @@ export class OnlineRepository extends LocalRepository {
   async setTitle(titleId: string | null) {
     await super.setTitle(titleId);
     this.queueSync();
+  }
+  async setAvatar(dataUrl: string | null) {
+    await super.setAvatar(dataUrl);
+    this.queueSync(300);
   }
   async setAura(auraId: string | null) {
     await super.setAura(auraId);

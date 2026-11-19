@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { isAssist, isTimed } from "@/domain/exercises";
+import { isAssist, isBodyweight, isTimed } from "@/domain/exercises";
 import { formatDuration, formatPace, timeAgo, toDateKey } from "@/domain/dates";
 import type { Activity, SetRecord } from "@/domain/types";
 import { volumeOf } from "@/domain/xp";
@@ -9,7 +9,7 @@ import { REACTION_KINDS, type ReactionKind } from "@/data/repository";
 import { Initial } from "./ui/primitives";
 
 /** セットの要約: 同じ重量×回数が続く部分をまとめる */
-export function summarizeSets(sets: SetRecord[], assist = false, timed = false): string {
+export function summarizeSets(sets: SetRecord[], assist = false, timed = false, bodyweight = false): string {
   const groups: { w: number; r: number; n: number }[] = [];
   for (const s of sets) {
     const last = groups[groups.length - 1];
@@ -17,6 +17,8 @@ export function summarizeSets(sets: SetRecord[], assist = false, timed = false):
     else groups.push({ w: s.weightKg, r: s.reps, n: 1 });
   }
   if (timed) return groups.map((g) => `${g.r}秒${g.n > 1 ? `×${g.n}` : ""}`).join(" / ");
+  // 自重種目は回数だけ（追加の重りがあれば「+5kg×10回」）
+  if (bodyweight) return groups.map((g) => `${g.w > 0 ? `+${g.w}kg×` : ""}${g.r}回${g.n > 1 ? `×${g.n}` : ""}`).join(" / ");
   return groups.map((g) => `${assist ? "補助" : ""}${g.w}kg×${g.r}回${g.n > 1 ? `×${g.n}` : ""}`).join(" / ");
 }
 
@@ -24,13 +26,14 @@ export function ActivityBody({ a }: { a: Activity }) {
   if (a.workout) {
     const assist = isAssist(a.workout.exerciseId);
     const timed = isTimed(a.workout.exerciseId);
+    const bw = isBodyweight(a.workout.exerciseId);
     return (
       <div>
         <p className="font-bold">{a.workout.exerciseName}</p>
-        <p className="mt-0.5 font-num text-sm text-ink/80">{summarizeSets(a.workout.sets, assist, timed)}</p>
+        <p className="mt-0.5 font-num text-sm text-ink/80">{summarizeSets(a.workout.sets, assist, timed, bw)}</p>
         <p className="mt-0.5 text-[11px] text-sub">
           {a.workout.sets.length}セット ・{" "}
-          {timed ? `計${a.workout.sets.reduce((s, x) => s + x.reps, 0)}秒` : assist ? `計${a.workout.sets.reduce((s, x) => s + x.reps, 0)}回` : `総挙上 ${volumeOf(a.workout.sets).toLocaleString()}kg`}
+          {timed ? `計${a.workout.sets.reduce((s, x) => s + x.reps, 0)}秒` : assist || bw ? `計${a.workout.sets.reduce((s, x) => s + x.reps, 0)}回` : `総挙上 ${volumeOf(a.workout.sets).toLocaleString()}kg`}
         </p>
       </div>
     );
@@ -61,6 +64,7 @@ export function ActivityCard({
   onReact,
   received,
   right,
+  avatar,
 }: {
   a: Activity;
   name: string;
@@ -70,10 +74,12 @@ export function ActivityCard({
   onReact?: (kind: ReactionKind) => void;
   received?: { name: string; kind: string }[];
   right?: React.ReactNode;
+  /** プロフィール写真 */
+  avatar?: string;
 }) {
   const head = (
     <div className="flex items-center gap-2">
-      <Initial name={name} size={32} color={a.type === "run" ? "#4cc9f0" : "#ff6b2c"} />
+      <Initial name={name} size={32} color={a.type === "run" ? "#4cc9f0" : "#ff6b2c"} src={avatar} />
       <div className="leading-tight">
         <p className="text-sm font-bold">{name}</p>
         <p className="text-[10px] text-sub">

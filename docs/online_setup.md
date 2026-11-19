@@ -36,3 +36,4 @@
 - 無料プランは15分ほど誰も開かないと止まり、次に開くとき30秒〜1分かかる。
 - Supabase のプロジェクトは「muscle-quest」（Tokyo）。
 - 応援と1週間対決を相手に届けるため、`supabase/online_social.sql` も実行済み（`online_setup.sql` のあとに実行する）。
+- プロフィール写真のため `supabase/online_avatar.sql` も実行済み（online_social.sql のあと）。

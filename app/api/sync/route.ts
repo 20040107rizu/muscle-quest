@@ -36,6 +36,8 @@ export async function POST(req: Request) {
     cheers?: { activityId: string; kind: string }[];
     /** 自分が申し込んだ対決 */
     battles?: { friendId: string; start: string }[];
+    /** プロフィール写真（小さく縮めた JPEG の data URL。null で外す。送らなければ変えない） */
+    avatar?: string | null;
   };
   try {
     body = JSON.parse(text);
@@ -77,6 +79,9 @@ export async function POST(req: Request) {
     await rpc<number>("mq_set_cheers", { p_token_hash: tokenHash, p_cheers: cheers });
     const battles = (Array.isArray(body.battles) ? body.battles : []).slice(0, 50).map((b) => ({ opponent: String(b?.friendId ?? ""), start: String(b?.start ?? "") }));
     if (battles.length) await rpc<number>("mq_add_battles", { p_token_hash: tokenHash, p_battles: battles });
+    if (body.avatar === null || (typeof body.avatar === "string" && body.avatar.startsWith("data:image/jpeg;base64,") && body.avatar.length < 120000)) {
+      await rpc<null>("mq_set_avatar", { p_token_hash: tokenHash, p_data: body.avatar });
+    }
     return NextResponse.json({ playerId: id, accepted: acts.length, rejected: workouts.length + runs.length - acts.length });
   } catch (e) {
     console.error(e);

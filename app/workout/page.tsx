@@ -8,7 +8,7 @@ import { RecordTabs } from "@/components/RecordTabs";
 import { ExerciseGuideCard } from "@/components/ExerciseGuideCard";
 import { Card, Loading, SectionTitle, Stepper } from "@/components/ui/primitives";
 import { addDays } from "@/domain/dates";
-import { EXERCISE_GROUP_ORDER, isAssist, isTimed, PRESET_EXERCISES, primaryGroup } from "@/domain/exercises";
+import { EXERCISE_GROUP_ORDER, isAssist, isBodyweight, isTimed, PRESET_EXERCISES, primaryGroup } from "@/domain/exercises";
 import type { Exercise, MuscleGroup, SetRecord, WorkoutEntry, WorkoutMenu } from "@/domain/types";
 import { bestE1RM, computeWorkoutXp, volumeOf } from "@/domain/xp";
 import { getRepo, useMyData } from "@/data/hooks";
@@ -392,7 +392,7 @@ function SetEditor({
               <span>前回 {prev.date.slice(5).replace("-", "/")}</span>
               <span>{timed ? `最長 ${Math.max(...history.flatMap((h) => h.sets.map((x) => x.reps)))}秒` : assist ? `最小アシスト ${minAssist}kg` : `推定MAX ${best.toFixed(1)}kg`}</span>
             </div>
-            <p className="mt-1 font-num text-sm">{summarizeSets(prev.sets, assist, timed)}</p>
+            <p className="mt-1 font-num text-sm">{summarizeSets(prev.sets, assist, timed, !!exercise.bodyweight)}</p>
             <p className="mt-1.5 text-[11px] text-accent-2">前回の重さと回数を入れてあります。変えたいところだけ直してください</p>
           </div>
         ) : (
@@ -525,7 +525,7 @@ function TodayList({ entries }: { entries: WorkoutEntry[] }) {
           <div key={w.id} className="flex items-center justify-between border-b border-line px-4 py-3 last:border-0">
             <div>
               <p className="text-sm font-bold">{w.exerciseName}</p>
-              <p className="font-num text-xs text-sub">{summarizeSets(w.sets, isAssist(w.exerciseId), isTimed(w.exerciseId))}</p>
+              <p className="font-num text-xs text-sub">{summarizeSets(w.sets, isAssist(w.exerciseId), isTimed(w.exerciseId), isBodyweight(w.exerciseId))}</p>
             </div>
             <button
               onClick={async () => (await ask("この記録を削除しますか？\n獲得した経験値も取り消されます", { ok: "削除する", danger: true })) && getRepo().deleteActivity("workout", w.id)}

@@ -99,6 +99,8 @@ export interface Profile {
   titleId?: string;
   /** 体の後ろにまとうオーラ（アイテムID） */
   aura?: string;
+  /** プロフィール写真（小さく縮めた JPEG の data URL）。友達にも見える */
+  avatar?: string;
   /** 名前を自分で決めたか（オンライン版では、決めるまで名前の入力を求める） */
   named?: boolean;
 }

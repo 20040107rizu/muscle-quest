@@ -69,6 +69,8 @@ export interface Repository {
   init(): Promise<Profile>;
   getProfile(): Promise<Profile | undefined>;
   updateProfile(patch: Partial<Pick<Profile, "displayName" | "bodyweightKg">>): Promise<void>;
+  /** プロフィール写真（小さく縮めた JPEG の data URL）。null で外す */
+  setAvatar(dataUrl: string | null): Promise<void>;
 
   listCustomExercises(): Promise<Exercise[]>;
   addCustomExercise(name: string, group: MuscleGroup, bodyweight: boolean): Promise<Exercise>;
@@ -157,5 +159,7 @@ export interface PlayerSnapshot {
   name: string;
   titleId?: string;
   aura?: string;
+  /** プロフィール写真の URL（設定していなければ undefined） */
+  avatarUrl?: string;
   activities: Activity[];
 }

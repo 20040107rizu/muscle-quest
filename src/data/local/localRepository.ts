@@ -81,6 +81,12 @@ export class LocalRepository implements Repository {
     await this.db.profile.put(next);
   }
 
+  async setAvatar(dataUrl: string | null) {
+    const p = await this.init();
+    if (dataUrl && (!dataUrl.startsWith("data:image/jpeg;base64,") || dataUrl.length >= 120000)) throw new Error("写真を読み込めませんでした");
+    await this.db.profile.put({ ...p, avatar: dataUrl ?? undefined });
+  }
+
   listCustomExercises() {
     return this.db.exercises.toArray();
   }

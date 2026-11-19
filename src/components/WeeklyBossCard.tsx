@@ -30,8 +30,8 @@ export function WeeklyBossCard({ compact = false }: { compact?: boolean }) {
   const { boss, weekKey, daysLeft } = weeklyBossFor(me.today);
   const mine = xpBetween(me.activities, weekKey, me.today);
   const members = [
-    { id: "me", name: me.profile.displayName, xp: mine, isMe: true },
-    ...friends.map((f) => ({ id: f.user.id, name: f.user.name, xp: xpBetween(f.activities, weekKey, me.today), isMe: false })),
+    { id: "me", name: me.profile.displayName, xp: mine, isMe: true, avatar: me.profile.avatar },
+    ...friends.map((f) => ({ id: f.user.id, name: f.user.name, xp: xpBetween(f.activities, weekKey, me.today), isMe: false, avatar: f.user.avatar })),
   ].sort((a, b) => b.xp - a.xp);
   const team = members.reduce((s, m) => s + m.xp, 0);
   const defeated = team >= boss.hp;
@@ -78,7 +78,7 @@ export function WeeklyBossCard({ compact = false }: { compact?: boolean }) {
           <div className="mt-3 space-y-1">
             {members.map((m) => (
               <div key={m.id} className={`flex items-center gap-2 rounded-lg px-2 py-1 text-xs ${m.isMe ? "bg-accent/10" : ""}`}>
-                <Initial name={m.name} size={22} color={m.isMe ? "#ff6b2c" : "#7c8597"} />
+                <Initial name={m.name} size={22} color={m.isMe ? "#ff6b2c" : "#7c8597"} src={m.avatar} />
                 <span className="flex-1 font-bold">{m.name}</span>
                 <span className="font-num">{m.xp.toLocaleString()} ダメージ</span>
               </div>

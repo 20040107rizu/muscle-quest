@@ -87,7 +87,11 @@ export function StatChips({ byStat }: { byStat: Partial<Record<StatKey, number>>
   );
 }
 
-export function Initial({ name, color = "#ff6b2c", size = 36 }: { name: string; color?: string; size?: number }) {
+export function Initial({ name, color = "#ff6b2c", size = 36, src }: { name: string; color?: string; size?: number; /** プロフィール写真 */ src?: string }) {
+  if (src) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={src} alt="" className="inline-block shrink-0 rounded-full object-cover" style={{ width: size, height: size }} />;
+  }
   return (
     <span
       className="inline-grid shrink-0 place-items-center rounded-full font-bold text-white"

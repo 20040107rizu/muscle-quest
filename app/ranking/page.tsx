@@ -24,6 +24,7 @@ interface Row {
   id: string;
   name: string;
   isMe: boolean;
+  avatar?: string;
   metrics: UserMetrics;
   character: CharacterState;
   href?: string;
@@ -39,8 +40,8 @@ export default function RankingPage() {
 
   const def = RANKINGS.find((r) => r.key === key)!;
   const rows: Row[] = [
-    { id: "me", name: me.profile.displayName, isMe: true, metrics: me.metrics, character: me.character, aura: me.profile.aura, titleId: me.profile.titleId },
-    ...friends.map((f) => ({ id: f.user.id, name: f.user.name, isMe: false, metrics: f.metrics, character: f.character, href: `/friends/${f.user.id}`, aura: f.aura, titleId: f.titleId })),
+    { id: "me", name: me.profile.displayName, isMe: true, metrics: me.metrics, character: me.character, aura: me.profile.aura, titleId: me.profile.titleId, avatar: me.profile.avatar },
+    ...friends.map((f) => ({ id: f.user.id, name: f.user.name, isMe: false, metrics: f.metrics, character: f.character, href: `/friends/${f.user.id}`, aura: f.aura, titleId: f.titleId, avatar: f.user.avatar })),
   ];
   const ranked = rank(rows, (r) => def.pick(r.metrics));
   const fmt = (v: number) => (key === "growth" ? `${v > 0 ? "+" : ""}${v}` : v.toLocaleString());
@@ -78,7 +79,7 @@ export default function RankingPage() {
           const inner = (
             <>
               <span className={`w-6 text-center font-num text-xl font-bold ${r.rank <= 3 ? "text-accent-2" : "text-sub"}`}>{r.rank}</span>
-              <Initial name={r.item.name} size={34} color={r.item.isMe ? "#ff6b2c" : "#7c8597"} />
+              <Initial name={r.item.name} size={34} color={r.item.isMe ? "#ff6b2c" : "#7c8597"} src={r.item.avatar} />
               <div className="flex-1">
                 <p className="text-sm font-bold">
                   {r.item.name}

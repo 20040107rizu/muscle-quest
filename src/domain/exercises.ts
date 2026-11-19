@@ -67,6 +67,11 @@ export function makeCustomExercise(id: string, name: string, group: MuscleGroup,
 }
 
 /** アシスト式（重量が少ないほど強い）種目か */
+/** 自重種目（腕立て・懸垂・腹筋など）か */
+export function isBodyweight(id: string): boolean {
+  return !!PRESET_EXERCISES.find((e) => e.id === id)?.bodyweight;
+}
+
 /** 秒数で記録する種目（プランクなど）か */
 export function isTimed(id: string): boolean {
   return !!PRESET_EXERCISES.find((e) => e.id === id)?.timed;

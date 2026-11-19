@@ -84,7 +84,7 @@ export default function FriendDetailPage() {
           today={me.today}
           emptyText="この日はトレーニングしていません"
           renderCard={(a) => (
-            <ActivityCard a={a} name={user.name} now={me.now} myReactions={myReactions} onReact={(k) => getRepo().toggleReaction(a.id, k)} received={cheersFor(a.id)} />
+            <ActivityCard a={a} name={user.name} now={me.now} myReactions={myReactions} onReact={(k) => getRepo().toggleReaction(a.id, k)} received={cheersFor(a.id)} avatar={user.avatar} />
           )}
         />
       </section>

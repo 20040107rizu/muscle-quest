@@ -42,7 +42,7 @@ export default function HomePage() {
   const km = todayActs.reduce((s, a) => s + (a.run?.distanceKm ?? 0), 0);
 
   const weekly = rank(
-    [{ name: me.profile.displayName, isMe: true, v: me.metrics.weekXp }, ...friends.map((f) => ({ name: f.user.name, isMe: false, v: f.metrics.weekXp }))],
+    [{ name: me.profile.displayName, isMe: true, v: me.metrics.weekXp, avatar: me.profile.avatar }, ...friends.map((f) => ({ name: f.user.name, isMe: false, v: f.metrics.weekXp, avatar: f.user.avatar }))],
     (x) => x.v,
   );
   const myRank = weekly.find((r) => r.item.isMe)!;
@@ -86,7 +86,7 @@ export default function HomePage() {
             <span className="text-[10px] text-sub">日連続</span>
           </div>
           <Link href="/me" aria-label="マイページ" className="rounded-full ring-2 ring-line">
-            <Initial name={me.profile.displayName} size={32} />
+            <Initial name={me.profile.displayName} size={32} src={me.profile.avatar} />
           </Link>
         </div>
       </header>
@@ -202,7 +202,7 @@ export default function HomePage() {
         <SectionTitle href="/friends">友達の動き</SectionTitle>
         <div className="space-y-2">
           {feed.map(({ a, f }) => (
-            <ActivityCard key={a.id} a={a} name={f.user.name} userHref={`/friends/${f.user.id}`} now={me.now} received={cheersFor(a.id)} />
+            <ActivityCard key={a.id} a={a} name={f.user.name} userHref={`/friends/${f.user.id}`} now={me.now} received={cheersFor(a.id)} avatar={f.user.avatar} />
           ))}
           {feed.length === 0 && <Card className="text-center text-sm text-sub">友達を追加して一緒に鍛えよう</Card>}
         </div>
@@ -215,7 +215,7 @@ export default function HomePage() {
           {weekly.slice(0, 3).map((r) => (
             <div key={r.item.name} className={`flex items-center gap-3 border-b border-line px-4 py-2.5 last:border-0 ${r.item.isMe ? "bg-accent/10" : ""}`}>
               <span className="w-5 font-num text-lg font-bold text-sub">{r.rank}</span>
-              <Initial name={r.item.name} size={28} color={r.item.isMe ? "#ff6b2c" : "#7c8597"} />
+              <Initial name={r.item.name} size={28} color={r.item.isMe ? "#ff6b2c" : "#7c8597"} src={r.item.avatar} />
               <span className="flex-1 text-sm font-bold">{r.item.name}</span>
               <span className="font-num text-base font-bold">{r.value.toLocaleString()} XP</span>
             </div>
@@ -223,7 +223,7 @@ export default function HomePage() {
           {myRank.rank > 3 && (
             <div className="flex items-center gap-3 bg-accent/10 px-4 py-2.5">
               <span className="w-5 font-num text-lg font-bold text-sub">{myRank.rank}</span>
-              <Initial name={myRank.item.name} size={28} />
+              <Initial name={myRank.item.name} size={28} src={myRank.item.avatar} />
               <span className="flex-1 text-sm font-bold">{myRank.item.name}</span>
               <span className="font-num text-base font-bold">{myRank.value.toLocaleString()} XP</span>
             </div>
