@@ -172,7 +172,10 @@ describe("種目のやり方ガイド", () => {
       expect(g, e.id).toBeTruthy();
       expect(g!.primary.length).toBeGreaterThan(0);
       expect(g!.tips.length).toBeGreaterThanOrEqual(3);
-      expect(fs.existsSync(`public/exercises/${e.id}.mp4`), e.id).toBe(true);
+    }
+    const { EXERCISE_VIDEO_IDS } = await import("@/domain/exerciseGuides");
+    for (const id of EXERCISE_VIDEO_IDS) {
+      expect(fs.existsSync(`public/exercises/${id}.mp4`), id).toBe(true);
     }
   });
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { exerciseGuide } from "@/domain/exerciseGuides";
+import { exerciseGuide, EXERCISE_VIDEO_IDS } from "@/domain/exerciseGuides";
 import { assetUrl } from "./assets";
 
 const KEY = "mq-guide-open";
@@ -60,9 +60,11 @@ export function ExerciseGuideCard({ exerciseId }: { exerciseId: string }) {
       </button>
       {open && (
         <div className="mt-2 space-y-3">
-          <div className="mx-auto aspect-[9/10] w-full max-w-[300px] overflow-hidden rounded-xl bg-[#0f1218]">
-            {src && <video key={src} src={src} autoPlay muted loop playsInline preload="auto" className="h-full w-full object-cover" aria-label="お手本の動き" />}
-          </div>
+          {EXERCISE_VIDEO_IDS.has(exerciseId) && (
+            <div className="mx-auto aspect-[9/10] w-full max-w-[300px] overflow-hidden rounded-xl bg-[#0f1218]">
+              {src && <video key={src} src={src} autoPlay muted loop playsInline preload="auto" className="h-full w-full object-cover" aria-label="お手本の動き" />}
+            </div>
+          )}
           <div className="space-y-1.5 text-xs">
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="w-16 shrink-0 text-[10px] text-sub">主に効く</span>

@@ -44,6 +44,12 @@ export const EXERCISE_GUIDES: Record<string, ExerciseGuide> = {
     secondary: ["上腕二頭筋", "三角筋（後ろ側）"],
     tips: ["背すじを伸ばし、上体を前後に振らない", "引き切ったら肩甲骨を寄せて1秒止める", "肩をすくめない"],
   },
+  one_arm_db_row: {
+    primary: ["広背筋"],
+    secondary: ["僧帽筋（中）", "菱形筋", "三角筋（後ろ側）", "上腕二頭筋"],
+    tips: ["片手と片膝をベンチにつき、背中を床と平行に近い角度でまっすぐ保つ", "ダンベルは腰に向かって引く（肩に向かって引かない）", "引き上げたら肩甲骨を寄せて一瞬止め、ゆっくり下ろす。体をひねって反動を使わない"],
+    caution: "片側ずつ行う。左右同じ回数で記録しよう",
+  },
   assisted_chin: {
     primary: ["広背筋"],
     secondary: ["上腕二頭筋", "大円筋", "僧帽筋（下）"],
@@ -112,6 +118,12 @@ export const EXERCISE_GUIDES: Record<string, ExerciseGuide> = {
     tips: ["体を揺らさない", "骨盤を後ろに丸めるように脚を上げる", "きつければ膝を曲げて上げる"],
   },
 };
+
+/** お手本動画がある種目（public/exercises/{種目ID}.mp4） */
+export const EXERCISE_VIDEO_IDS = new Set([
+  "bench_press", "chest_press", "incline_db_press", "push_up", "lat_pulldown", "seated_row", "assisted_chin", "pull_up", "deadlift", "squat",
+  "leg_press", "leg_extension", "leg_curl", "shoulder_press", "lateral_raise", "dumbbell_curl", "triceps_pushdown", "ab_crunch", "hanging_leg_raise",
+]);
 
 export function exerciseGuide(id: string): ExerciseGuide | undefined {
   return EXERCISE_GUIDES[id];
