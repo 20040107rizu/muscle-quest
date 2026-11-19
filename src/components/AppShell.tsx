@@ -3,7 +3,7 @@ import { FeedbackProvider } from "@/components/ui/Feedback";
 import { TabBar } from "@/components/ui/TabBar";
 import { NameGate } from "@/components/ui/NameGate";
 
-export default function TabsLayout({ children }: { children: React.ReactNode }) {
+export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <FxProvider>
       <FeedbackProvider>

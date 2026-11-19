@@ -1,18 +1,18 @@
 import { createRoot } from "react-dom/client";
-import TabsLayout from "../app/(tabs)/layout";
-import HomePage from "../app/(tabs)/page";
-import WorkoutPage from "../app/(tabs)/workout/page";
-import RunPage from "../app/(tabs)/run/page";
-import FriendsPage from "../app/(tabs)/friends/page";
-import FriendDetailPage from "../app/(tabs)/friends/[id]/page";
-import RankingPage from "../app/(tabs)/ranking/page";
-import CharacterPage from "../app/(tabs)/character/page";
-import MyPage from "../app/(tabs)/me/page";
-import QuestPage from "../app/(tabs)/quest/page";
-import DungeonPage from "../app/(tabs)/quest/[id]/page";
+import { AppShell as TabsLayout } from "../src/components/AppShell";
+import HomePage from "../app/page";
+import WorkoutPage from "../app/workout/page";
+import RunPage from "../app/run/page";
+import FriendsPage from "../app/friends/page";
+import FriendDetailPage from "../app/friends/[id]/page";
+import RankingPage from "../app/ranking/page";
+import CharacterPage from "../app/character/page";
+import MyPage from "../app/me/page";
+import QuestPage from "../app/quest/page";
+import DungeonPage from "../app/quest/[id]/page";
 import { usePath } from "./shims/router";
-import TitlesPage from "../app/(tabs)/titles/page";
-import BodyPage from "../app/(tabs)/body/page";
+import TitlesPage from "../app/titles/page";
+import BodyPage from "../app/body/page";
 
 function Router() {
   const path = usePath();
