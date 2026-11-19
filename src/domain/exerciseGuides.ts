@@ -156,6 +156,7 @@ export const EXERCISE_VIDEO_IDS = new Set([
   "bench_press", "chest_press", "incline_db_press", "push_up", "lat_pulldown", "seated_row", "assisted_chin", "pull_up", "deadlift", "squat",
   "leg_press", "leg_extension", "leg_curl", "shoulder_press", "lateral_raise", "dumbbell_curl", "triceps_pushdown", "ab_crunch", "hanging_leg_raise",
   "one_arm_db_row", "standing_db_press",
+  "bent_knee_situp", "floor_crunch", "twist_crunch", "front_plank", "twist_leg_raise",
 ]);
 
 export function exerciseGuide(id: string): ExerciseGuide | undefined {
