@@ -27,3 +27,11 @@
 ## メモ
 - `supabase/migrations/` の 0001・0002 は、将来ログイン機能を入れるときの設計案。オンライン版で使うのは `online_setup.sql` だけ。
 - claude.ai のプレビュー版（`preview/`）はサーバーが無いので、端末だけで動く版になる（`NEXT_PUBLIC_MQ_OFFLINE=1`）。
+
+## 実際の公開（Render を使った）
+- 公開URL: https://muscle-quest.onrender.com
+- Render の Web Service「muscle-quest」（無料プラン・シンガポール）。このブランチに push すると自動で公開し直す。
+  - ビルド: `npm ci && npm run build` / 起動: `npm start`
+  - 環境変数: `SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY`（Supabase の Secret key）、`NODE_VERSION=22`
+- 無料プランは15分ほど誰も開かないと止まり、次に開くとき30秒〜1分かかる。
+- Supabase のプロジェクトは「muscle-quest」（Tokyo）。
