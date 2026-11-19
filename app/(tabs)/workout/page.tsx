@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { summarizeSets } from "@/components/ActivityCard";
 import { useFeedback } from "@/components/ui/Feedback";
 import { RecordTabs } from "@/components/RecordTabs";
+import { ExerciseGuideCard } from "@/components/ExerciseGuideCard";
 import { Card, Loading, SectionTitle, Stepper } from "@/components/ui/primitives";
 import { addDays } from "@/domain/dates";
 import { EXERCISE_GROUP_ORDER, isAssist, PRESET_EXERCISES, primaryGroup } from "@/domain/exercises";
@@ -402,6 +403,8 @@ function SetEditor({
           </p>
         )}
       </Card>
+
+      <ExerciseGuideCard exerciseId={exercise.id} />
 
       <div className="space-y-2">
         <div className="grid grid-cols-[1.5rem_1fr_1fr_1.25rem] gap-1.5 px-1 text-[10px] text-sub">

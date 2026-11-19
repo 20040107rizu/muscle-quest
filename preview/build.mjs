@@ -17,10 +17,12 @@ const assetsPlugin = {
     b.onResolve({ filter: /(^|\/)assets$/ }, () => ({ path: "inline-assets", namespace: "assets" }));
     b.onLoad({ filter: /.*/, namespace: "assets" }, async () => {
       const data = {};
-      for (const dir of ["bosses", "hero", "items", "fx", "ui", "titles/plates", "titles/effects", "titles/wordmarks"]) {
+      const MIME = { ".webp": "image/webp", ".mp4": "video/mp4" };
+      for (const dir of ["bosses", "hero", "items", "fx", "ui", "titles/plates", "titles/effects", "titles/wordmarks", "exercises"]) {
         for (const f of await readdir(path.join(root, "public", dir))) {
-          if (!f.endsWith(".webp")) continue;
-          data[`${dir}/${f}`] = "data:image/webp;base64," + (await readFile(path.join(root, "public", dir, f))).toString("base64");
+          const mime = MIME[path.extname(f)];
+          if (!mime) continue;
+          data[`${dir}/${f}`] = `data:${mime};base64,` + (await readFile(path.join(root, "public", dir, f))).toString("base64");
         }
       }
       return {

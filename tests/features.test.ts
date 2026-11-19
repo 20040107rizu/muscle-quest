@@ -154,3 +154,18 @@ describe("称号150種", () => {
     expect(s.bosses).toBe(3);
   });
 });
+
+describe("種目のやり方ガイド", () => {
+  it("用意した種目すべてに、効く筋肉とコツがある", async () => {
+    const { PRESET_EXERCISES } = await import("@/domain/exercises");
+    const { exerciseGuide } = await import("@/domain/exerciseGuides");
+    const fs = await import("node:fs");
+    for (const e of PRESET_EXERCISES) {
+      const g = exerciseGuide(e.id);
+      expect(g, e.id).toBeTruthy();
+      expect(g!.primary.length).toBeGreaterThan(0);
+      expect(g!.tips.length).toBeGreaterThanOrEqual(3);
+      expect(fs.existsSync(`public/exercises/${e.id}.mp4`), e.id).toBe(true);
+    }
+  });
+});
