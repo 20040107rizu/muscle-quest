@@ -17,6 +17,7 @@ export const PRESET_EXERCISES: Exercise[] = [
   { id: "leg_extension", name: "レッグエクステンション", distribution: { legs: 1.0 }, maxWeightKg: 200, step: 2.5 },
   { id: "leg_curl", name: "レッグカール", distribution: { legs: 1.0 }, maxWeightKg: 200, step: 2.5 },
   { id: "shoulder_press", name: "ショルダープレス", distribution: { shoulders: 0.8, arms: 0.2 }, maxWeightKg: 250, step: 2.5 },
+  { id: "standing_db_press", name: "スタンディング・ダンベルショルダープレス", distribution: { shoulders: 0.75, arms: 0.15, core: 0.1 }, maxWeightKg: 80, step: 1 },
   { id: "lateral_raise", name: "サイドレイズ", distribution: { shoulders: 1.0 }, maxWeightKg: 60, step: 1 },
   { id: "dumbbell_curl", name: "ダンベルカール", distribution: { arms: 1.0 }, maxWeightKg: 80, step: 1 },
   { id: "triceps_pushdown", name: "トライセプスプッシュダウン", distribution: { arms: 1.0 }, maxWeightKg: 150, step: 2.5 },
