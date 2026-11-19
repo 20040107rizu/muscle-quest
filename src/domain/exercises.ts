@@ -23,6 +23,11 @@ export const PRESET_EXERCISES: Exercise[] = [
   { id: "triceps_pushdown", name: "トライセプスプッシュダウン", distribution: { arms: 1.0 }, maxWeightKg: 150, step: 2.5 },
   { id: "ab_crunch", name: "アブドミナルクランチ", distribution: { core: 1.0 }, maxWeightKg: 200, step: 2.5 },
   { id: "hanging_leg_raise", name: "ハンギングレッグレイズ", distribution: { core: 0.85, arms: 0.15 }, bodyweight: true, maxWeightKg: 50, step: 2.5 },
+  { id: "bent_knee_situp", name: "ベントニーシットアップ", distribution: { core: 1.0 }, bodyweight: true, maxWeightKg: 30, step: 1 },
+  { id: "floor_crunch", name: "クランチ（床・脚上げ）", distribution: { core: 1.0 }, bodyweight: true, maxWeightKg: 30, step: 1 },
+  { id: "twist_crunch", name: "ツイストクランチ", distribution: { core: 1.0 }, bodyweight: true, maxWeightKg: 30, step: 1 },
+  { id: "front_plank", name: "フロントプランク", distribution: { core: 0.8, shoulders: 0.1, chest: 0.1 }, bodyweight: true, timed: true, maxWeightKg: 0, step: 1 },
+  { id: "twist_leg_raise", name: "ツイストレッグレイズ", distribution: { core: 1.0 }, bodyweight: true, maxWeightKg: 30, step: 1 },
 ];
 
 export const EXERCISE_GROUP_ORDER: { group: MuscleGroup; label: string }[] = [
@@ -61,6 +66,11 @@ export function makeCustomExercise(id: string, name: string, group: MuscleGroup,
 }
 
 /** アシスト式（重量が少ないほど強い）種目か */
+/** 秒数で記録する種目（プランクなど）か */
+export function isTimed(id: string): boolean {
+  return !!PRESET_EXERCISES.find((e) => e.id === id)?.timed;
+}
+
 export function isAssist(id: string): boolean {
   return !!PRESET_EXERCISES.find((e) => e.id === id)?.assist;
 }

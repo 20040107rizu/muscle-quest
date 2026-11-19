@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { isAssist } from "@/domain/exercises";
+import { isAssist, isTimed } from "@/domain/exercises";
 import { formatDuration, formatPace, timeAgo } from "@/domain/dates";
 import type { Activity, SetRecord } from "@/domain/types";
 import { volumeOf } from "@/domain/xp";
@@ -9,26 +9,28 @@ import { REACTION_KINDS, type ReactionKind } from "@/data/repository";
 import { Initial } from "./ui/primitives";
 
 /** セットの要約: 同じ重量×回数が続く部分をまとめる */
-export function summarizeSets(sets: SetRecord[], assist = false): string {
+export function summarizeSets(sets: SetRecord[], assist = false, timed = false): string {
   const groups: { w: number; r: number; n: number }[] = [];
   for (const s of sets) {
     const last = groups[groups.length - 1];
     if (last && last.w === s.weightKg && last.r === s.reps) last.n++;
     else groups.push({ w: s.weightKg, r: s.reps, n: 1 });
   }
+  if (timed) return groups.map((g) => `${g.r}秒${g.n > 1 ? `×${g.n}` : ""}`).join(" / ");
   return groups.map((g) => `${assist ? "補助" : ""}${g.w}kg×${g.r}回${g.n > 1 ? `×${g.n}` : ""}`).join(" / ");
 }
 
 export function ActivityBody({ a }: { a: Activity }) {
   if (a.workout) {
     const assist = isAssist(a.workout.exerciseId);
+    const timed = isTimed(a.workout.exerciseId);
     return (
       <div>
         <p className="font-bold">{a.workout.exerciseName}</p>
-        <p className="mt-0.5 font-num text-sm text-ink/80">{summarizeSets(a.workout.sets, assist)}</p>
+        <p className="mt-0.5 font-num text-sm text-ink/80">{summarizeSets(a.workout.sets, assist, timed)}</p>
         <p className="mt-0.5 text-[11px] text-sub">
           {a.workout.sets.length}セット ・{" "}
-          {assist ? `計${a.workout.sets.reduce((s, x) => s + x.reps, 0)}回` : `総挙上 ${volumeOf(a.workout.sets).toLocaleString()}kg`}
+          {timed ? `計${a.workout.sets.reduce((s, x) => s + x.reps, 0)}秒` : assist ? `計${a.workout.sets.reduce((s, x) => s + x.reps, 0)}回` : `総挙上 ${volumeOf(a.workout.sets).toLocaleString()}kg`}
         </p>
       </div>
     );

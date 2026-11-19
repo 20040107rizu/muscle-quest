@@ -32,7 +32,11 @@ export function validateSets(
     const n = i + 1;
     if (!Number.isFinite(s.weightKg) || s.weightKg < 0) errors.push(`${n}セット目: 重量が不正です`);
     else if (s.weightKg > ex.maxWeightKg) errors.push(`${n}セット目: ${ex.name}は${ex.maxWeightKg}kgまでです`);
-    if (!Number.isInteger(s.reps) || s.reps < 1) errors.push(`${n}セット目: 回数は1回以上`);
+    if (ex.timed) {
+      if (!Number.isInteger(s.reps) || s.reps < 5) errors.push(`${n}セット目: 時間は5秒以上`);
+      else if (s.reps > 600) errors.push(`${n}セット目: 時間は600秒（10分）までです`);
+      if (s.weightKg !== 0) errors.push(`${n}セット目: この種目は重さを入れません`);
+    } else if (!Number.isInteger(s.reps) || s.reps < 1) errors.push(`${n}セット目: 回数は1回以上`);
     else if (s.reps > 100) errors.push(`${n}セット目: 回数は100回までです`);
     if (ex.assist && bodyweightKg != null && s.weightKg >= bodyweightKg) errors.push(`${n}セット目: アシスト重量は体重(${bodyweightKg}kg)未満にしてください`);
     if (!ex.bodyweight && !ex.assist && s.weightKg === 0) warnings.push(`${n}セット目: 重量が0kgです`);

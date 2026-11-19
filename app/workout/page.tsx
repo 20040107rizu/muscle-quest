@@ -8,7 +8,7 @@ import { RecordTabs } from "@/components/RecordTabs";
 import { ExerciseGuideCard } from "@/components/ExerciseGuideCard";
 import { Card, Loading, SectionTitle, Stepper } from "@/components/ui/primitives";
 import { addDays } from "@/domain/dates";
-import { EXERCISE_GROUP_ORDER, isAssist, PRESET_EXERCISES, primaryGroup } from "@/domain/exercises";
+import { EXERCISE_GROUP_ORDER, isAssist, isTimed, PRESET_EXERCISES, primaryGroup } from "@/domain/exercises";
 import type { Exercise, MuscleGroup, SetRecord, WorkoutEntry, WorkoutMenu } from "@/domain/types";
 import { bestE1RM, computeWorkoutXp, volumeOf } from "@/domain/xp";
 import { getRepo, useMyData } from "@/data/hooks";
@@ -317,11 +317,12 @@ function SetEditor({
   const { showResult, confirm: ask } = useFeedback();
   const prev = history[0]; // createdAt 降順
   const assist = !!exercise.assist;
+  const timed = !!exercise.timed;
   const best = history.length ? Math.max(...history.map((h) => bestE1RM(h.sets))) : 0;
   // アシスト式は補助が少ないほど強い → 最小アシストが自己ベスト
   const minAssist = history.length ? Math.min(...history.flatMap((h) => h.sets.map((s) => s.weightKg))) : null;
   const defaultSet: SetRecord =
-    prev?.sets[prev.sets.length - 1] ?? { weightKg: exercise.bodyweight ? 0 : assist ? Math.round(bodyweightKg * 0.5 / 5) * 5 : 20, reps: 10 };
+    prev?.sets[prev.sets.length - 1] ?? (timed ? { weightKg: 0, reps: 30 } : { weightKg: exercise.bodyweight ? 0 : assist ? Math.round(bodyweightKg * 0.5 / 5) * 5 : 20, reps: 10 });
   // 前回の記録があれば、全セットの重さ・回数を最初から入れておく
   const [sets, setSets] = useState<SetRecord[]>(() => (prev ? prev.sets.map((s) => ({ ...s })) : [{ ...defaultSet }]));
   const [date, setDate] = useState(today);
@@ -389,13 +390,13 @@ function SetEditor({
           <div className="mt-2 rounded-xl bg-panel-2 p-3 text-xs">
             <div className="flex justify-between text-sub">
               <span>前回 {prev.date.slice(5).replace("-", "/")}</span>
-              <span>{assist ? `最小アシスト ${minAssist}kg` : `推定MAX ${best.toFixed(1)}kg`}</span>
+              <span>{timed ? `最長 ${Math.max(...history.flatMap((h) => h.sets.map((x) => x.reps)))}秒` : assist ? `最小アシスト ${minAssist}kg` : `推定MAX ${best.toFixed(1)}kg`}</span>
             </div>
-            <p className="mt-1 font-num text-sm">{summarizeSets(prev.sets, assist)}</p>
+            <p className="mt-1 font-num text-sm">{summarizeSets(prev.sets, assist, timed)}</p>
             <p className="mt-1.5 text-[11px] text-accent-2">前回の重さと回数を入れてあります。変えたいところだけ直してください</p>
           </div>
         ) : (
-          <p className="mt-1 text-xs text-sub">初めての種目です。無理のない重量から始めましょう</p>
+          <p className="mt-1 text-xs text-sub">{timed ? "初めての種目です。まずは20〜30秒から始めましょう" : "初めての種目です。無理のない重量から始めましょう"}</p>
         )}
         {assist && (
           <p className="mt-2 text-[11px] leading-relaxed text-sub">
@@ -407,17 +408,23 @@ function SetEditor({
       <ExerciseGuideCard exerciseId={exercise.id} />
 
       <div className="space-y-2">
-        <div className="grid grid-cols-[1.5rem_1fr_1fr_1.25rem] gap-1.5 px-1 text-[10px] text-sub">
+        <div className={`grid gap-1.5 px-1 text-[10px] text-sub ${timed ? "grid-cols-[1.5rem_1fr_1.25rem]" : "grid-cols-[1.5rem_1fr_1fr_1.25rem]"}`}>
           <span>SET</span>
-          <span className="text-center">{assist ? "アシスト" : exercise.bodyweight ? "追加重量" : "重量"}</span>
-          <span className="text-center">回数</span>
+          {!timed && <span className="text-center">{assist ? "アシスト" : exercise.bodyweight ? "追加重量" : "重量"}</span>}
+          <span className="text-center">{timed ? "時間（キープした秒数）" : "回数"}</span>
           <span />
         </div>
         {sets.map((s, i) => (
-          <div key={i} className="mq-rise grid grid-cols-[1.5rem_1fr_1fr_1.25rem] items-center gap-1.5">
+          <div key={i} className={`mq-rise grid items-center gap-1.5 ${timed ? "grid-cols-[1.5rem_1fr_1.25rem]" : "grid-cols-[1.5rem_1fr_1fr_1.25rem]"}`}>
             <span className="text-center font-num text-lg font-bold text-sub">{i + 1}</span>
-            <Stepper label="重量" value={s.weightKg} step={exercise.step} max={exercise.maxWeightKg} unit="kg" onChange={(v) => update(i, { weightKg: v })} />
-            <Stepper label="回数" value={s.reps} step={1} min={1} max={100} unit="回" decimals={0} onChange={(v) => update(i, { reps: v })} />
+            {timed ? (
+              <Stepper label="秒数" value={s.reps} step={5} min={5} max={600} unit="秒" decimals={0} onChange={(v) => update(i, { reps: v, weightKg: 0 })} />
+            ) : (
+              <>
+                <Stepper label="重量" value={s.weightKg} step={exercise.step} max={exercise.maxWeightKg} unit="kg" onChange={(v) => update(i, { weightKg: v })} />
+                <Stepper label="回数" value={s.reps} step={1} min={1} max={100} unit="回" decimals={0} onChange={(v) => update(i, { reps: v })} />
+              </>
+            )}
             <button aria-label="セットを削除" onClick={() => setSets((x) => x.filter((_, j) => j !== i))} disabled={sets.length === 1} className="text-sub disabled:opacity-20">
               ✕
             </button>
@@ -429,7 +436,27 @@ function SetEditor({
       </div>
 
       <Card className="grid grid-cols-3 gap-2 !p-3 text-center">
-        {assist ? (
+        {timed ? (
+          <>
+            <div>
+              <p className="text-[10px] text-sub">合計時間</p>
+              <p className="font-num text-lg font-bold">{reps}秒</p>
+              {prev && (
+                <p className={`text-[10px] font-bold ${reps >= prevReps ? "text-good" : "text-bad"}`}>
+                  前回比 {reps >= prevReps ? "+" : ""}
+                  {reps - prevReps}秒
+                </p>
+              )}
+            </div>
+            <div>
+              <p className="text-[10px] text-sub">最長キープ</p>
+              <p className="font-num text-lg font-bold">{Math.max(...sets.map((x) => x.reps))}秒</p>
+              {history.length > 0 && Math.max(...sets.map((x) => x.reps)) > Math.max(...history.flatMap((h) => h.sets.map((x) => x.reps))) && (
+                <p className="text-[10px] font-bold text-accent-2">自己ベスト更新!</p>
+              )}
+            </div>
+          </>
+        ) : assist ? (
           <>
             <div>
               <p className="text-[10px] text-sub">総回数</p>
@@ -498,7 +525,7 @@ function TodayList({ entries }: { entries: WorkoutEntry[] }) {
           <div key={w.id} className="flex items-center justify-between border-b border-line px-4 py-3 last:border-0">
             <div>
               <p className="text-sm font-bold">{w.exerciseName}</p>
-              <p className="font-num text-xs text-sub">{summarizeSets(w.sets, isAssist(w.exerciseId))}</p>
+              <p className="font-num text-xs text-sub">{summarizeSets(w.sets, isAssist(w.exerciseId), isTimed(w.exerciseId))}</p>
             </div>
             <button
               onClick={async () => (await ask("この記録を削除しますか？\n獲得した経験値も取り消されます", { ok: "削除する", danger: true })) && getRepo().deleteActivity("workout", w.id)}

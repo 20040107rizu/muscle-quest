@@ -28,6 +28,8 @@ export interface Exercise {
   bodyweight?: boolean;
   /** アシスト式マシン（入力重量 = 補助重量。少ないほど高負荷） */
   assist?: boolean;
+  /** 秒数で記録する種目（プランクなど）。SetRecord.reps に秒数を入れ、重量は 0 */
+  timed?: boolean;
   /** 不正入力防止用の重量上限 (kg) */
   maxWeightKg: number;
   /** 重量ステッパーの刻み (kg) */

@@ -20,7 +20,9 @@ export function rawSetXp(ex: Exercise, set: SetRecord, bodyweightKg: number): nu
     : ex.bodyweight
       ? bodyweightKg * BODYWEIGHT_RATIO + set.weightKg
       : set.weightKg;
-  const volume = Math.max(0, load) * Math.max(0, set.reps);
+  // 秒数で記録する種目は、3秒を1回分として数える（60秒で20回分）
+  const count = ex.timed ? set.reps / 3 : set.reps;
+  const volume = Math.max(0, load) * Math.max(0, count);
   return 4 + Math.sqrt(volume) * 0.9;
 }
 

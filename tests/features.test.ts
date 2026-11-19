@@ -179,3 +179,18 @@ describe("種目のやり方ガイド", () => {
     }
   });
 });
+
+describe("秒数で記録する種目（プランク）", () => {
+  it("秒数で記録でき、5〜600秒の範囲だけ。経験値は秒数に応じて増える", async () => {
+    const ok = await repo.saveWorkout({ id: "p1", exerciseId: "front_plank", date: today, sets: [{ weightKg: 0, reps: 60 }, { weightKg: 0, reps: 45 }] });
+    expect(ok.ok).toBe(true);
+    expect(ok.xpGained).toBeGreaterThan(0);
+    expect((await repo.saveWorkout({ id: "p2", exerciseId: "front_plank", date: today, sets: [{ weightKg: 0, reps: 700 }] })).ok).toBe(false);
+    expect((await repo.saveWorkout({ id: "p3", exerciseId: "front_plank", date: today, sets: [{ weightKg: 20, reps: 60 }] })).ok).toBe(false);
+    const { computeWorkoutXp } = await import("@/domain/xp");
+    const { findExercise } = await import("@/domain/exercises");
+    const ex = findExercise("front_plank")!;
+    const xp = (s: number) => computeWorkoutXp({ exercise: ex, sets: [{ weightKg: 0, reps: s }], priorSetsToday: 0, bodyweightKg: 65 }).total;
+    expect(xp(90)).toBeGreaterThan(xp(30));
+  });
+});
