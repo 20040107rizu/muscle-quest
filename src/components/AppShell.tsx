@@ -2,6 +2,7 @@ import { FxProvider } from "@/components/fx/FxLayer";
 import { FeedbackProvider } from "@/components/ui/Feedback";
 import { TabBar } from "@/components/ui/TabBar";
 import { NameGate } from "@/components/ui/NameGate";
+import { UpdateWatcher } from "@/components/ui/UpdateWatcher";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -12,6 +13,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
       <TabBar />
       <NameGate />
+      <UpdateWatcher />
       </FeedbackProvider>
     </FxProvider>
   );
