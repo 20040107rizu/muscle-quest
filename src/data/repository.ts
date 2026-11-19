@@ -102,7 +102,7 @@ export interface Repository {
   // ---- 体重・写真（写真は端末の中だけ） ----
   listBodyLogs(): Promise<BodyLog[]>;
   /** その日の体重・写真を保存（どちらか片方だけでもよい）。今日の体重はプロフィールの体重にも反映 */
-  saveBodyLog(date: string, patch: { weightKg?: number; photo?: string | null }): Promise<void>;
+  saveBodyLog(date: string, patch: { weightKg?: number; photo?: string | null; thumb?: string }): Promise<void>;
 
   // ---- 毎日の宝箱 ----
   /** 今日1回以上運動していれば開けられる（1日1回） */

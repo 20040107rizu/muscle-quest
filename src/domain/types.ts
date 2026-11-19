@@ -142,5 +142,7 @@ export interface BodyLog {
   weightKg?: number;
   /** 縮小した写真（data URL） */
   photo?: string;
+  /** カレンダーに並べる小さい写真（data URL） */
+  thumb?: string;
   updatedAt: number;
 }

@@ -46,6 +46,11 @@ export async function wearAura(auraId: string | null) {
   await getRepo().setAura(auraId);
 }
 
+/** 体重と体の写真（写真は重いので、体の記録の画面でだけ読み込む） */
+export function useBodyLogs() {
+  return useLiveQuery(() => getRepo().listBodyLogs(), []);
+}
+
 export function useMyData() {
   const now = useNow();
   const players = usePlayers();
@@ -56,7 +61,7 @@ export function useMyData() {
     const repo = getRepo();
     const profile = await repo.getProfile();
     if (!profile) return undefined;
-    const [workouts, runs, xpEvents, customExercises, reactions, questClears, questAttempts, menus, bodyLogs, battles, weeklyClears] = await Promise.all([
+    const [workouts, runs, xpEvents, customExercises, reactions, questClears, questAttempts, menus, battles, weeklyClears] = await Promise.all([
       repo.listWorkouts(),
       repo.listRuns(),
       repo.listXpEvents(),
@@ -65,11 +70,10 @@ export function useMyData() {
       repo.listQuestClears(),
       repo.listQuestAttempts(),
       repo.listMenus(),
-      repo.listBodyLogs(),
       repo.listBattles(),
       repo.listWeeklyClears(),
     ]);
-    return { profile, workouts, runs, xpEvents, customExercises, reactions, questClears, questAttempts, menus, bodyLogs, battles, weeklyClears };
+    return { profile, workouts, runs, xpEvents, customExercises, reactions, questClears, questAttempts, menus, battles, weeklyClears };
   }, []);
 
   return useMemo(() => {

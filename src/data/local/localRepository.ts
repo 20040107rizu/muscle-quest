@@ -424,7 +424,7 @@ export class LocalRepository implements Repository {
     return this.db.bodyLogs.orderBy("date").toArray();
   }
 
-  async saveBodyLog(date: string, patch: { weightKg?: number; photo?: string | null }) {
+  async saveBodyLog(date: string, patch: { weightKg?: number; photo?: string | null; thumb?: string }) {
     const today = this.today();
     if (date > today) throw new Error("未来の日付には記録できません");
     if (patch.weightKg != null && (patch.weightKg < 30 || patch.weightKg > 250)) throw new Error("体重は30〜250kgで入力してください");
@@ -432,8 +432,13 @@ export class LocalRepository implements Repository {
     const cur = (await this.db.bodyLogs.get(date)) ?? { id: date, date, updatedAt: 0 };
     const next: BodyLog = { ...cur, updatedAt: this.now() };
     if (patch.weightKg != null) next.weightKg = Math.round(patch.weightKg * 10) / 10;
-    if (patch.photo === null) delete next.photo;
-    else if (patch.photo) next.photo = patch.photo;
+    if (patch.photo === null) {
+      delete next.photo;
+      delete next.thumb;
+    } else if (patch.photo) {
+      next.photo = patch.photo;
+      next.thumb = patch.thumb && patch.thumb.length < 200_000 ? patch.thumb : undefined;
+    }
     if (next.weightKg == null && !next.photo) await this.db.bodyLogs.delete(date);
     else await this.db.bodyLogs.put(next);
     // 最新の体重は経験値の計算（自重種目など）にも使う
