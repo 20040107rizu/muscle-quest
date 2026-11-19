@@ -12,6 +12,7 @@ import { Card, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/
 import { getRepo, useFriends, useCheers, useMyData } from "@/data/hooks";
 import { findTitle } from "@/domain/quests";
 import { BattlePanel } from "@/components/Battle";
+import { DayLog } from "@/components/DayLog";
 
 export default function FriendDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,7 +26,6 @@ export default function FriendDetailPage() {
   if (!me) return <Loading />;
   if (!user || !view) return <p className="pt-10 text-center text-sm text-sub">ユーザーが見つかりません</p>;
   const c = view.character;
-  const todayActs = view.activities.filter((a) => a.date === me.today);
 
   return (
     <div className="space-y-4 pt-4">
@@ -78,30 +78,16 @@ export default function FriendDetailPage() {
       <BattlePanel friend={view} />
 
       <section>
-        <SectionTitle>今日のトレーニング</SectionTitle>
-        {todayActs.length === 0 ? (
-          <Card className="text-center text-sm text-sub">今日はまだ記録がありません</Card>
-        ) : (
-          <div className="space-y-2">
-            {todayActs.map((a) => (
-              <ActivityCard key={a.id} a={a} name={user.name} now={me.now} myReactions={myReactions} onReact={(k) => getRepo().toggleReaction(a.id, k)} received={cheersFor(a.id)} />
-            ))}
-          </div>
-        )}
+        <SectionTitle>{user.name}さんのトレーニング</SectionTitle>
+        <DayLog
+          activities={view.activities}
+          today={me.today}
+          emptyText="この日はトレーニングしていません"
+          renderCard={(a) => (
+            <ActivityCard a={a} name={user.name} now={me.now} myReactions={myReactions} onReact={(k) => getRepo().toggleReaction(a.id, k)} received={cheersFor(a.id)} />
+          )}
+        />
       </section>
-
-      <section>
-        <SectionTitle>最近の記録</SectionTitle>
-        <div className="space-y-2">
-          {view.activities
-            .filter((a) => a.date !== me.today)
-            .slice(0, 12)
-            .map((a) => (
-              <ActivityCard key={a.id} a={a} name={user.name} now={me.now} myReactions={myReactions} onReact={(k) => getRepo().toggleReaction(a.id, k)} received={cheersFor(a.id)} />
-            ))}
-        </div>
-      </section>
-
     </div>
   );
 }

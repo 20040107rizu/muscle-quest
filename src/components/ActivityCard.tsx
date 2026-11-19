@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { isAssist, isTimed } from "@/domain/exercises";
-import { formatDuration, formatPace, timeAgo } from "@/domain/dates";
+import { formatDuration, formatPace, timeAgo, toDateKey } from "@/domain/dates";
 import type { Activity, SetRecord } from "@/domain/types";
 import { volumeOf } from "@/domain/xp";
 import { REACTION_KINDS, type ReactionKind } from "@/data/repository";
@@ -76,7 +76,9 @@ export function ActivityCard({
       <Initial name={name} size={32} color={a.type === "run" ? "#4cc9f0" : "#ff6b2c"} />
       <div className="leading-tight">
         <p className="text-sm font-bold">{name}</p>
-        <p className="text-[10px] text-sub">{timeAgo(a.createdAt, now)}</p>
+        <p className="text-[10px] text-sub">
+          {toDateKey(a.createdAt) !== a.date ? `${Number(a.date.slice(5, 7))}/${Number(a.date.slice(8))}の分・${timeAgo(a.createdAt, now)}に記録` : timeAgo(a.createdAt, now)}
+        </p>
       </div>
     </div>
   );

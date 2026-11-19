@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
+import { DayLog } from "@/components/DayLog";
 import { useFeedback } from "@/components/ui/Feedback";
 import { NumberInput } from "@/components/ui/NumberInput";
 import { isSoundOn, setSoundOn, sfx } from "@/components/fx/sound";
@@ -48,11 +49,6 @@ export default function MyPage() {
     return [...map.values()].sort((a, b) => b.count - a.count);
   }, [me?.workouts]);
 
-  const grouped = useMemo(() => {
-    const g = new Map<string, Activity[]>();
-    for (const a of me?.activities ?? []) g.set(a.date, [...(g.get(a.date) ?? []), a]);
-    return [...g.entries()];
-  }, [me?.activities]);
 
   if (!me) return <Loading />;
   const c = me.character;
@@ -79,7 +75,6 @@ export default function MyPage() {
               <span className="text-xs text-sub">{c.tier.name}</span>
               <span className="text-xs text-sub">・ {me.profile.bodyweightKg}kg</span>
             </div>
-            <p className="mt-1 font-num text-xs text-sub">フレンドコード {me.profile.friendCode}</p>
           </div>
           <button
             onClick={() => {
@@ -164,43 +159,33 @@ export default function MyPage() {
         value={tab}
         onChange={setTab}
         options={[
-          { value: "history", label: "過去の記録" },
+          { value: "history", label: "日ごとの記録" },
           { value: "bests", label: "自己ベスト" },
         ]}
       />
 
       {tab === "history" ? (
-        <div className="space-y-4">
-          {grouped.length === 0 && <Card className="text-center text-sm text-sub">まだ記録がありません</Card>}
-          {grouped.map(([date, acts]) => (
-            <div key={date}>
-              <p className="mb-1.5 px-1 text-xs font-bold text-sub">
-                {date === me.today ? "今日" : date.replace(/-/g, "/")}
-                <span className="ml-2 font-num text-accent">+{acts.reduce((a, x) => a + x.xp, 0)}XP</span>
-              </p>
-              <div className="space-y-2">
-                {acts.map((a) => (
-                  <ActivityCard
-                    key={a.id}
-                    a={a}
-                    name={me.profile.displayName}
-                    now={me.now}
-                    received={cheersFor(a.id)}
-                    right={
-                      <button
-                        aria-label="削除"
-                        onClick={async () => (await ask("この記録を削除しますか？\n獲得した経験値も取り消されます", { ok: "削除する", danger: true })) && getRepo().deleteActivity(a.type, a.id)}
-                        className="text-xs text-sub"
-                      >
-                        ✕
-                      </button>
-                    }
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        <DayLog
+          activities={me.activities}
+          today={me.today}
+          renderCard={(a) => (
+            <ActivityCard
+              a={a}
+              name={me.profile.displayName}
+              now={me.now}
+              received={cheersFor(a.id)}
+              right={
+                <button
+                  aria-label="削除"
+                  onClick={async () => (await ask("この記録を削除しますか？\n獲得した経験値も取り消されます", { ok: "削除する", danger: true })) && getRepo().deleteActivity(a.type, a.id)}
+                  className="text-xs text-sub"
+                >
+                  ✕
+                </button>
+              }
+            />
+          )}
+        />
       ) : (
         <Card className="!p-0">
           {bests.length === 0 && <p className="p-4 text-center text-sm text-sub">筋トレを記録すると自己ベストが表示されます</p>}
