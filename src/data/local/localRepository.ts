@@ -35,6 +35,9 @@ function uuid() {
 }
 
 export class LocalRepository implements Repository {
+  /** 最後に取ったほかのプレイヤーの数（称号「友達◯人」の判定用） */
+  protected playerCount = 0;
+
   constructor(
     private db = new MuscleQuestDB(),
     private now: () => number = () => Date.now(),
@@ -67,7 +70,13 @@ export class LocalRepository implements Repository {
   async updateProfile(patch: Partial<Pick<Profile, "displayName" | "bodyweightKg">>) {
     const p = await this.init();
     const next = { ...p };
-    if (patch.displayName != null) next.displayName = patch.displayName.trim().slice(0, 20) || p.displayName;
+    if (patch.displayName != null) {
+      const name = patch.displayName.trim().slice(0, 20);
+      if (name) {
+        next.displayName = name;
+        next.named = true;
+      }
+    }
     if (patch.bodyweightKg != null && patch.bodyweightKg >= 30 && patch.bodyweightKg <= 250) next.bodyweightKg = patch.bodyweightKg;
     await this.db.profile.put(next);
   }
@@ -345,7 +354,8 @@ export class LocalRepository implements Repository {
       this.db.runs.toArray(),
       this.db.xpEvents.toArray(),
       this.db.weeklyClears.toArray(),
-      this.listPlayers().then((ps) => ps.filter((p) => p.activities.length > 0).length),
+      // 保存の途中では通信できないので、最後に取ったプレイヤー数を使う
+      Promise.resolve(this.playerCount),
       this.db.reactions.count(),
     ]);
     const cleared = await this.clearedSet();

@@ -1,6 +1,7 @@
 import { FxProvider } from "@/components/fx/FxLayer";
 import { FeedbackProvider } from "@/components/ui/Feedback";
 import { TabBar } from "@/components/ui/TabBar";
+import { NameGate } from "@/components/ui/NameGate";
 
 export default function TabsLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -10,6 +11,7 @@ export default function TabsLayout({ children }: { children: React.ReactNode }) 
         {children}
       </main>
       <TabBar />
+      <NameGate />
       </FeedbackProvider>
     </FxProvider>
   );

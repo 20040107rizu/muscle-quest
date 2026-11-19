@@ -46,7 +46,8 @@ const js = await build({
     "next/navigation": shim("next-navigation.ts"),
     "@": path.join(root, "src"),
   },
-  define: { "process.env.NODE_ENV": '"production"' },
+  // プレビュー版（claude.ai の中）はサーバーが無いので、端末だけで動く版にする
+  define: { "process.env.NODE_ENV": '"production"', "process.env.NEXT_PUBLIC_MQ_OFFLINE": '"1"' },
   logLevel: "error",
   plugins: [assetsPlugin],
 });

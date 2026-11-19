@@ -97,6 +97,8 @@ export interface Profile {
   titleId?: string;
   /** 体の後ろにまとうオーラ（アイテムID） */
   aura?: string;
+  /** 名前を自分で決めたか（オンライン版では、決めるまで名前の入力を求める） */
+  named?: boolean;
 }
 
 /** 最後に戦ったときのボスの残りHP（0..1）。HPは戦って初めて分かる */

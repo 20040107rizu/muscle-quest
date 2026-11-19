@@ -13,12 +13,17 @@ import { addDays } from "@/domain/dates";
 import { sumStats } from "@/domain/xp";
 import { bonusXpByDate, toActivities } from "./activities";
 import { LocalRepository } from "./local/localRepository";
+import { OnlineRepository } from "./online/onlineRepository";
 import type { PlayerSnapshot, Repository } from "./repository";
 
 let _repo: Repository | null = null;
-/** 実装の差し替えポイント。Supabase 導入時はここで切り替える */
+/**
+ * 実装の差し替えポイント。
+ * 通常はオンライン版（記録を端末に保存しつつサーバーへ送る）。claude.ai 上のプレビュー版は端末だけで動く。
+ */
+export const ONLINE = process.env.NEXT_PUBLIC_MQ_OFFLINE !== "1";
 export function getRepo(): Repository {
-  if (!_repo) _repo = new LocalRepository();
+  if (!_repo) _repo = ONLINE ? new OnlineRepository() : new LocalRepository();
   return _repo;
 }
 
