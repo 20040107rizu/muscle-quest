@@ -51,7 +51,7 @@ function BattleRow({ b, friend, myScore, today }: { b: Battle; friend?: FriendVi
 /** 友達画面: 対決の一覧と通算成績 */
 export function BattleList() {
   const me = useMyData();
-  const friends = useFriends(me?.friendIds, me?.now ?? 0);
+  const friends = useFriends(me?.now ?? 0);
   if (!me) return null;
   const rows = me.battles.map((b) => {
     const friend = friends.find((f) => f.user.id === b.friendId);

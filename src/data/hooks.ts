@@ -10,12 +10,10 @@ import { buildQuestStats, DUNGEONS, findTitle, ownedRewards, simulateClears, tit
 import { TITLE_RARITY_ORDER } from "@/domain/titles";
 import { ITEMS } from "@/domain/items";
 import { addDays } from "@/domain/dates";
-import { DEMO_XP, demoDates, isDemo, setDemoAura, setDemoTitle, useDemo } from "./demo";
 import { sumStats } from "@/domain/xp";
 import { bonusXpByDate, toActivities } from "./activities";
 import { LocalRepository } from "./local/localRepository";
-import { findMockUser, mockActivities, mockLegacyXp, type MockUser } from "./mock/friends";
-import type { Repository } from "./repository";
+import type { PlayerSnapshot, Repository } from "./repository";
 
 let _repo: Repository | null = null;
 /** 実装の差し替えポイント。Supabase 導入時はここで切り替える */
@@ -34,20 +32,18 @@ export function useNow() {
   return now;
 }
 
-/** 称号をつける（見本モード中は見本の中だけで切り替える） */
+/** 称号をつける */
 export async function wearTitle(titleId: string | null) {
-  if (isDemo()) return setDemoTitle(titleId);
   await getRepo().setTitle(titleId);
 }
-/** オーラをまとう（見本モード中は見本の中だけで切り替える） */
+/** オーラをまとう */
 export async function wearAura(auraId: string | null) {
-  if (isDemo()) return setDemoAura(auraId);
   await getRepo().setAura(auraId);
 }
 
 export function useMyData() {
   const now = useNow();
-  const demo = useDemo();
+  const players = usePlayers();
   useEffect(() => {
     getRepo().init();
   }, []);
@@ -55,12 +51,11 @@ export function useMyData() {
     const repo = getRepo();
     const profile = await repo.getProfile();
     if (!profile) return undefined;
-    const [workouts, runs, xpEvents, customExercises, friendIds, reactions, questClears, questAttempts, menus, bodyLogs, battles, weeklyClears] = await Promise.all([
+    const [workouts, runs, xpEvents, customExercises, reactions, questClears, questAttempts, menus, bodyLogs, battles, weeklyClears] = await Promise.all([
       repo.listWorkouts(),
       repo.listRuns(),
       repo.listXpEvents(),
       repo.listCustomExercises(),
-      repo.listFriendIds(),
       repo.listMyReactions(),
       repo.listQuestClears(),
       repo.listQuestAttempts(),
@@ -69,7 +64,7 @@ export function useMyData() {
       repo.listBattles(),
       repo.listWeeklyClears(),
     ]);
-    return { profile, workouts, runs, xpEvents, customExercises, friendIds, reactions, questClears, questAttempts, menus, bodyLogs, battles, weeklyClears };
+    return { profile, workouts, runs, xpEvents, customExercises, reactions, questClears, questAttempts, menus, bodyLogs, battles, weeklyClears };
   }, []);
 
   return useMemo(() => {
@@ -82,85 +77,76 @@ export function useMyData() {
     const cleared = new Set(raw.questClears.map((c) => c.id));
     /** ボスID → 最後に戦ったときの残りHP（未挑戦のボスは含まない） */
     const lastHp = new Map(raw.questAttempts.map((a) => [a.id, a.remaining]));
-    const titleStats = titleStatsFrom({ activities, questStats, cleared, weeklyBosses: raw.weeklyClears.length, friends: raw.friendIds.length, cheers: raw.reactions.length });
+    const titleStats = titleStatsFrom({ activities, questStats, cleared, weeklyBosses: raw.weeklyClears.length, friends: players.length, cheers: raw.reactions.length });
     const owned = ownedRewards(cleared, questStats, raw.weeklyClears.map((c) => c.bossId), titleStats);
-    if (demo.on) {
-      // 見本モード: 記録はそのまま、レベル・称号・オーラ・ダンジョンを全部そろった状態で表示する
-      const per = Math.round(DEMO_XP / 7);
-      const byStat: XpBreakdown = { chest: per, back: per, shoulders: per, arms: per, legs: per, core: per, cardio: per };
-      const demoChar = buildCharacter(
-        [...raw.xpEvents, { total: DEMO_XP, byStat, date: addDays(today, -60) }],
-        [...activities.map((a) => a.date), ...demoDates(today)],
-        today,
-      );
-      const allCleared = new Set(DUNGEONS.flatMap((d) => d.floors.map((_, i) => `${d.id}:${i}`)));
-      return {
-        ...raw,
-        profile: { ...raw.profile, titleId: demo.titleId, aura: demo.aura },
-        activities,
-        character: demoChar,
-        metrics,
-        questStats: buildQuestStats(activities, demoChar, today),
-        cleared: allCleared,
-        owned: { titles: TITLES.map((t) => t.id), items: ITEMS.map((i) => i.id) },
-        lastHp,
-        titleStats,
-        today,
-        now,
-      };
-    }
     return { ...raw, activities, character, metrics, questStats, cleared, owned, lastHp, titleStats, today, now };
-  }, [raw, now, demo]);
+  }, [raw, now, players.length]);
 }
 
+/** ほかのプレイヤー（筋トレかランを1回以上記録した人だけ。全員がお互いに友達として表示される） */
 export interface FriendView {
-  user: MockUser;
+  user: { id: string; name: string };
   activities: Activity[];
   character: CharacterState;
   metrics: UserMetrics;
-  /** 達成済みのダンジョン階・称号（モックでは条件を満たした分を自動クリア扱い） */
-  cleared: Set<string>;
   titleId?: string;
   aura?: string;
 }
 
-export function buildFriendView(user: MockUser, now: number): FriendView {
+export function buildFriendView(p: PlayerSnapshot, now: number): FriendView {
   const today = toDateKey(now);
-  const activities = mockActivities(user, now);
-  const events: { total: number; byStat: XpBreakdown; date: string }[] = activities.map((a) => ({ total: a.xp, byStat: a.byStat, date: a.date }));
-  // アプリ導入前の経験値（古参ユーザー）を直近の部位バランスで配分
-  const legacy = mockLegacyXp(user);
-  if (legacy > 0) {
-    const s = sumStats(events.map((e) => e.byStat));
-    const sum = Object.values(s).reduce((a, b) => a + b, 0) || 1;
-    const byStat: XpBreakdown = {};
-    for (const [k, v] of Object.entries(s)) byStat[k as keyof XpBreakdown] = Math.round((v / sum) * legacy);
-    events.push({ total: legacy, byStat, date: "2000-01-01" });
-  }
-  const character = buildCharacter(events, activities.map((a) => a.date), today);
-  const questStats = buildQuestStats(activities, character, today);
-  const cleared = simulateClears(questStats);
-  const owned = ownedRewards(cleared, questStats, [], titleStatsFrom({ activities, questStats, cleared, weeklyBosses: 0, friends: 3, cheers: 0 }));
-  // 一番レア度の高い称号をつけている
-  const best = [...owned.titles].sort((a, b) => TITLE_RARITY_ORDER.indexOf(findTitle(b)!.rarity) - TITLE_RARITY_ORDER.indexOf(findTitle(a)!.rarity))[0];
-  // 一番最後に得た称号・オーラをまとう
+  const character = buildCharacter(
+    p.activities.map((a) => ({ total: a.xp, byStat: a.byStat, date: a.date })),
+    p.activities.map((a) => a.date),
+    today,
+  );
   return {
-    user,
-    activities,
+    user: { id: p.id, name: p.name },
+    activities: [...p.activities].sort((a, b) => b.createdAt - a.createdAt),
     character,
-    metrics: computeMetrics(activities, today),
-    cleared,
-    titleId: best,
-    aura: owned.items[owned.items.length - 1],
+    metrics: computeMetrics(p.activities, today),
+    titleId: p.titleId,
+    aura: p.aura,
   };
 }
 
-export function useFriends(friendIds: string[] | undefined, now: number): FriendView[] {
-  return useMemo(() => {
-    if (!friendIds) return [];
-    return friendIds
-      .map((id) => findMockUser(id))
-      .filter((u): u is MockUser => !!u)
-      .map((u) => buildFriendView(u, now));
-  }, [friendIds, now]);
+// ---- ほかのプレイヤー（画面どうしで共有。1分ごとに取り直す） ----
+let playersCache: PlayerSnapshot[] = [];
+const playerListeners = new Set<(p: PlayerSnapshot[]) => void>();
+let playerTimer: ReturnType<typeof setInterval> | null = null;
+
+function loadPlayers() {
+  getRepo()
+    .listPlayers()
+    // 記録が1件もない人は出さない（開いただけの人で友達が増えないように）
+    .then((ps) => {
+      playersCache = ps.filter((p) => p.activities.length > 0);
+      playerListeners.forEach((f) => f(playersCache));
+    })
+    .catch(() => {});
+}
+
+export function usePlayers(): PlayerSnapshot[] {
+  const [players, setPlayers] = useState(playersCache);
+  useEffect(() => {
+    playerListeners.add(setPlayers);
+    if (!playerTimer) {
+      loadPlayers();
+      playerTimer = setInterval(loadPlayers, 60000);
+    }
+    return () => {
+      playerListeners.delete(setPlayers);
+      if (!playerListeners.size && playerTimer) {
+        clearInterval(playerTimer);
+        playerTimer = null;
+      }
+    };
+  }, []);
+  return players;
+}
+
+/** 友達（＝ほかのプレイヤー全員）の表示用データ */
+export function useFriends(now: number): FriendView[] {
+  const players = usePlayers();
+  return useMemo(() => players.map((p) => buildFriendView(p, now)), [players, now]);
 }

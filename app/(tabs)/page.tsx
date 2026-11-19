@@ -21,7 +21,7 @@ import { getRepo, useFriends, useMyData } from "@/data/hooks";
 
 export default function HomePage() {
   const me = useMyData();
-  const friends = useFriends(me?.friendIds, me?.now ?? 0);
+  const friends = useFriends(me?.now ?? 0);
   const { showResult } = useFeedback();
 
   const todayActs = useMemo(() => me?.activities.filter((a) => a.date === me.today) ?? [], [me]);

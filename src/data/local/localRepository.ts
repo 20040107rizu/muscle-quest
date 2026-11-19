@@ -5,7 +5,6 @@ import { DAILY_MISSIONS, missionEventId } from "@/domain/missions";
 import type { Activity, BodyLog, Exercise, MuscleGroup, Profile, WorkoutMenu, XpEvent } from "@/domain/types";
 import { applyDailyCap, bestE1RM, computeRunXp, computeWorkoutXp, levelFromXp } from "@/domain/xp";
 import { critBonus, isCritical, PR_BONUS } from "@/domain/bonus";
-import { findMockUser, findMockUserByCode, mockActivities, MOCK_DEFAULT_FRIENDS } from "../mock/friends";
 import { chestEventId, rollChest } from "@/domain/chest";
 import { weeklyBossFor } from "@/domain/weekly";
 import { battleEnd, MAX_ACTIVE_BATTLES } from "@/domain/battle";
@@ -13,7 +12,7 @@ import { toActivities } from "../activities";
 import { buildCharacter } from "@/domain/character";
 import { findItem } from "@/domain/items";
 import { buildQuestStats, clearId, currentFloor, findDungeon, floorProgress, isDungeonCleared, isUnlocked, ownedRewards, titleStatsFrom } from "@/domain/quests";
-import type { ChallengeResult, Reaction, ReactionKind, Repository, RunInput, SaveResult, WorkoutInput } from "../repository";
+import type { ChallengeResult, PlayerSnapshot, Reaction, ReactionKind, Repository, RunInput, SaveResult, WorkoutInput } from "../repository";
 import { MuscleQuestDB } from "./db";
 
 export const ME = "me";
@@ -61,11 +60,7 @@ export class LocalRepository implements Repository {
       friendCode: `MQ-${String(Math.floor(1000 + Math.random() * 9000))}`,
       createdAt: this.now(),
     };
-    await this.db.transaction("rw", this.db.profile, this.db.friendships, async () => {
-      await this.db.profile.put(created);
-      // 初回は数人の友達が既にいる状態にする（モック）
-      for (const userId of MOCK_DEFAULT_FRIENDS) await this.db.friendships.put({ userId, createdAt: this.now() });
-    });
+    await this.db.profile.put(created);
     return created;
   }
 
@@ -277,23 +272,9 @@ export class LocalRepository implements Repository {
     return this.db.xpEvents.toArray();
   }
 
-  async listFriendIds() {
-    return (await this.db.friendships.toArray()).map((f) => f.userId);
-  }
-
-  async addFriendByCode(code: string) {
-    const normalized = code.trim().toUpperCase();
-    const me = await this.init();
-    if (normalized === me.friendCode) return { ok: false, error: "自分のコードです" };
-    const user = findMockUserByCode(normalized);
-    if (!user) return { ok: false, error: "ユーザーが見つかりません" };
-    if (await this.db.friendships.get(user.id)) return { ok: false, error: "既に友達です" };
-    await this.db.friendships.put({ userId: user.id, createdAt: this.now() });
-    return { ok: true, userId: user.id };
-  }
-
-  async removeFriend(userId: string) {
-    await this.db.friendships.delete(userId);
+  /** 端末だけで動く版には、ほかのプレイヤーはいない（オンライン版でサーバーから取る） */
+  async listPlayers(): Promise<PlayerSnapshot[]> {
+    return [];
   }
 
   async toggleReaction(activityId: string, kind: ReactionKind) {
@@ -364,7 +345,7 @@ export class LocalRepository implements Repository {
       this.db.runs.toArray(),
       this.db.xpEvents.toArray(),
       this.db.weeklyClears.toArray(),
-      this.db.friendships.count(),
+      this.listPlayers().then((ps) => ps.filter((p) => p.activities.length > 0).length),
       this.db.reactions.count(),
     ]);
     const cleared = await this.clearedSet();
@@ -482,10 +463,7 @@ export class LocalRepository implements Repository {
     const mine = await this.myXpBetween(weekKey, today);
     if (mine <= 0) return { ok: false, error: "今週まだ運動していません。1回運動すると受け取れます" };
     let team = mine;
-    for (const id of await this.listFriendIds()) {
-      const u = findMockUser(id);
-      if (u) team += sumXpBetween(mockActivities(u, this.now()), weekKey, today);
-    }
+    for (const p of await this.listPlayers()) team += sumXpBetween(p.activities, weekKey, today);
     if (team < boss.hp) return { ok: false, error: "まだ倒せていません" };
     await this.db.weeklyClears.put({ id: weekKey, bossId: boss.id, clearedAt: this.now() });
     return { ok: true, titleId: boss.titleId };
@@ -498,7 +476,7 @@ export class LocalRepository implements Repository {
   }
 
   async startBattle(friendId: string) {
-    if (!(await this.db.friendships.get(friendId))) return { ok: false, error: "友達ではありません" };
+    if (!(await this.listPlayers()).some((p) => p.id === friendId)) return { ok: false, error: "このプレイヤーは見つかりません" };
     const today = this.today();
     const all = await this.db.battles.toArray();
     const active = all.filter((b) => b.end >= today);

@@ -33,7 +33,7 @@ interface Row {
 
 export default function RankingPage() {
   const me = useMyData();
-  const friends = useFriends(me?.friendIds, me?.now ?? 0);
+  const friends = useFriends(me?.now ?? 0);
   const [key, setKey] = useState<RankingKey>("week");
   if (!me) return <Loading />;
 

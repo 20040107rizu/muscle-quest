@@ -116,9 +116,11 @@ export interface Repository {
   startBattle(friendId: string): Promise<{ ok: boolean; error?: string }>;
 
   // ---- ソーシャル ----
-  listFriendIds(): Promise<string[]>;
-  addFriendByCode(code: string): Promise<{ ok: boolean; error?: string; userId?: string }>;
-  removeFriend(userId: string): Promise<void>;
+  /**
+   * ほかのプレイヤー全員（自分以外）。遊んでいる人は全員お互いに友達として表示する。
+   * 筋トレかランを1回以上記録した人だけを返す。端末だけで動く版では空。
+   */
+  listPlayers(): Promise<PlayerSnapshot[]>;
   toggleReaction(activityId: string, kind: ReactionKind): Promise<void>;
   listMyReactions(): Promise<Reaction[]>;
 
@@ -137,3 +139,12 @@ export interface Reaction {
 }
 
 export type { Activity };
+
+/** ほかのプレイヤーの公開情報（体重・写真・メニューなどは含めない） */
+export interface PlayerSnapshot {
+  id: string;
+  name: string;
+  titleId?: string;
+  aura?: string;
+  activities: Activity[];
+}

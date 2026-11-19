@@ -14,10 +14,8 @@ import { getRepo, useFriends, useMyData } from "@/data/hooks";
 
 export default function FriendsPage() {
   const me = useMyData();
-  const friends = useFriends(me?.friendIds, me?.now ?? 0);
+  const friends = useFriends(me?.now ?? 0);
   const [filter, setFilter] = useState<"today" | "week">("today");
-  const [code, setCode] = useState("");
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   const myReactions = useMemo(() => new Set(me?.reactions.map((r) => r.id)), [me?.reactions]);
   const feed = useMemo(() => {
@@ -33,7 +31,7 @@ export default function FriendsPage() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="友達" sub={`あなたのフレンドコード: ${me.profile.friendCode}`} />
+      <PageHeader title="友達" sub="このゲームで遊んでいる人は全員友達です" />
 
       <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
         {friends.map((f) => {
@@ -87,31 +85,6 @@ export default function FriendsPage() {
         </div>
       </section>
 
-      <section>
-        <SectionTitle>友達を追加</SectionTitle>
-        <Card className="space-y-2">
-          <div className="flex gap-2">
-            <input
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="フレンドコード (例: MQ-2004)"
-              className="flex-1 skin-input px-2 py-1.5 font-num text-base uppercase outline-none"
-            />
-            <button
-              onClick={async () => {
-                const r = await getRepo().addFriendByCode(code);
-                setMsg(r.ok ? { ok: true, text: "友達に追加しました！" } : { ok: false, text: r.error ?? "追加できませんでした" });
-                if (r.ok) setCode("");
-              }}
-              className="rounded-xl bg-accent px-4 text-sm font-bold text-white"
-            >
-              追加
-            </button>
-          </div>
-          {msg && <p className={`text-xs ${msg.ok ? "text-good" : "text-bad"}`}>{msg.text}</p>}
-          <p className="text-[10px] text-sub">プロトタイプ用の追加可能なコード: MQ-2004（リク）, MQ-2005（ダイチ）</p>
-        </Card>
-      </section>
     </div>
   );
 }

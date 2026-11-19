@@ -54,9 +54,7 @@ describe("LocalRepository", () => {
     expect((await repo.listXpEvents()).length).toBe(0);
   });
 
-  it("友達コードで追加できる", async () => {
-    expect((await repo.addFriendByCode("mq-2004")).ok).toBe(true);
-    expect((await repo.addFriendByCode("MQ-2004")).error).toBe("既に友達です");
-    expect((await repo.addFriendByCode("MQ-9999")).ok).toBe(false);
+  it("端末だけの版では、ほかのプレイヤーはいない", async () => {
+    expect(await repo.listPlayers()).toEqual([]);
   });
 });

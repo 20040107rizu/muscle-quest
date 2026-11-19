@@ -89,10 +89,17 @@ describe("週替わりボス", () => {
 });
 
 describe("友達との対決", () => {
-  it("友達にだけ申し込め、同じ相手とは同時に1つ", async () => {
-    expect((await repo.startBattle("u_daichi")).ok).toBe(false);
-    expect((await repo.startBattle("u_kenta")).ok).toBe(true);
-    expect((await repo.startBattle("u_kenta")).ok).toBe(false);
+  it("遊んでいるプレイヤーにだけ申し込め、同じ相手とは同時に1つ", async () => {
+    class WithPlayers extends LocalRepository {
+      async listPlayers() {
+        return [{ id: "p1", name: "テスト", activities: [{ id: "a", userId: "p1", type: "run" as const, date: today, createdAt: 0, xp: 10, byStat: {} }] }];
+      }
+    }
+    repo = new WithPlayers(new MuscleQuestDB(`features-battle-${n++}`));
+    await repo.init();
+    expect((await repo.startBattle("nobody")).ok).toBe(false);
+    expect((await repo.startBattle("p1")).ok).toBe(true);
+    expect((await repo.startBattle("p1")).ok).toBe(false);
     const [b] = await repo.listBattles();
     expect(b.end).toBe(addDays(today, 6));
   });

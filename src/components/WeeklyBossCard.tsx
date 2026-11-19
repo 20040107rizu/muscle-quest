@@ -7,7 +7,6 @@ import { weeklyBossFor } from "@/domain/weekly";
 import { findTitle } from "@/domain/quests";
 import type { Activity } from "@/domain/types";
 import { getRepo, useFriends, useMyData } from "@/data/hooks";
-import { isDemo } from "@/data/demo";
 import { assetUrl } from "./assets";
 import { sfx } from "./fx/sound";
 import { useFx } from "./fx/FxLayer";
@@ -23,7 +22,7 @@ const xpBetween = (acts: Activity[], from: string, to: string) => acts.filter((a
  */
 export function WeeklyBossCard({ compact = false }: { compact?: boolean }) {
   const me = useMyData();
-  const friends = useFriends(me?.friendIds, me?.now ?? 0);
+  const friends = useFriends(me?.now ?? 0);
   const { confetti, shake } = useFx();
   const [err, setErr] = useState("");
   if (!me) return null;
@@ -36,7 +35,7 @@ export function WeeklyBossCard({ compact = false }: { compact?: boolean }) {
   ].sort((a, b) => b.xp - a.xp);
   const team = members.reduce((s, m) => s + m.xp, 0);
   const defeated = team >= boss.hp;
-  const claimed = me.weeklyClears.some((c) => c.id === weekKey) || (isDemo() && me.owned.titles.includes(boss.titleId));
+  const claimed = me.weeklyClears.some((c) => c.id === weekKey);
   const title = findTitle(boss.titleId)!;
   const hpLeft = Math.max(0, 1 - team / boss.hp);
 
