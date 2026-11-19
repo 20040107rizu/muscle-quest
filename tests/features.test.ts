@@ -194,3 +194,15 @@ describe("秒数で記録する種目（プランク）", () => {
     expect(xp(90)).toBeGreaterThan(xp(30));
   });
 });
+
+describe("同じ日に同じ内容のラン", () => {
+  it("確認すれば2回目も記録できる。同じ記録IDの二重送信は1回分だけ", async () => {
+    expect((await repo.saveRun({ id: "x1", distanceKm: 1, durationS: 300, date: today })).ok).toBe(true);
+    const warn = await repo.saveRun({ id: "x2", distanceKm: 1, durationS: 300, date: today });
+    expect(warn.ok).toBe(false);
+    expect(warn.warnings[0]).toMatch("同じ");
+    expect((await repo.saveRun({ id: "x2", distanceKm: 1, durationS: 300, date: today }, { confirm: true })).ok).toBe(true);
+    expect((await repo.saveRun({ id: "x2", distanceKm: 1, durationS: 300, date: today }, { confirm: true })).duplicate).toBe(true);
+    expect((await repo.listRuns()).length).toBe(2);
+  });
+});

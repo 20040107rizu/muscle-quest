@@ -47,10 +47,12 @@ describe("anti-cheat", () => {
     expect(validateSets(bench, [{ weightKg: 60, reps: 5 }], null, "2026-01-11", "2026-01-10").errors.length).toBe(1);
     expect(validateSets(bench, [{ weightKg: 60, reps: 5 }], null, "2025-12-01", "2026-01-10").errors.length).toBe(1);
   });
-  it("速すぎるペースと重複ランを拒否", () => {
+  it("速すぎるペースは拒否、同じ内容のランは確認だけ（2回走ることもある）", () => {
     expect(validateRun({ distanceKm: 10, durationS: 1000, date: "2026-01-10" }, [], "2026-01-10").errors.length).toBe(1);
     const existing = [{ id: "a", userId: "me", createdAt: 0, date: "2026-01-10", distanceKm: 5, durationS: 1800 }];
-    expect(validateRun({ distanceKm: 5, durationS: 1802, date: "2026-01-10" }, existing, "2026-01-10").errors[0]).toMatch("同じ");
+    const dup = validateRun({ distanceKm: 5, durationS: 1802, date: "2026-01-10" }, existing, "2026-01-10");
+    expect(dup.errors).toEqual([]);
+    expect(dup.warnings[0]).toMatch("同じ");
   });
 });
 

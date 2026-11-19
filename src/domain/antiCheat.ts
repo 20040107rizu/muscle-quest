@@ -63,7 +63,8 @@ export function validateRun(
     const pace = paceSecPerKm(run.distanceKm, run.durationS);
     if (pace < FASTEST_PACE) errors.push("ペースが速すぎます（人間の限界を超えています）");
     if (pace > SLOWEST_PACE) errors.push("ペースが遅すぎます（20分/km超はランとして記録できません）");
-    if (isDuplicateRun(run, existing)) errors.push("同じ日に同じ内容のランが既に記録されています");
+    // 同じ日に同じ距離・時間を2回走ることもあるので、止めずに確認だけする（二重送信は記録IDで防いでいる）
+    if (isDuplicateRun(run, existing)) warnings.push("同じ日に同じ内容のランがすでに記録されています。もう1回走った場合はこのまま記録できます");
     const sameDayKm = existing.filter((r) => r.date === run.date).reduce((a, r) => a + r.distanceKm, 0);
     if (sameDayKm + run.distanceKm > 50) warnings.push("1日の走行距離が50kmを超えます。入力ミスはありませんか？");
   }
