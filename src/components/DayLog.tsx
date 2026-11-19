@@ -19,8 +19,25 @@ function dayLabel(date: string, today: string) {
  * 日ごとのトレーニング一覧。記録した日ではなく「やった日」でまとめる
  * （今日あとから記録した昨日の分は、昨日に入る）。
  */
-export function DayLog({ activities, today, renderCard, emptyText = "この日の記録はありません" }: { activities: Activity[]; today: string; renderCard: (a: Activity) => ReactNode; emptyText?: string }) {
-  const [date, setDate] = useState(today);
+export function DayLog({
+  activities,
+  today,
+  renderCard,
+  emptyText = "この日の記録はありません",
+  date: dateProp,
+  onDateChange,
+}: {
+  activities: Activity[];
+  today: string;
+  renderCard: (a: Activity) => ReactNode;
+  emptyText?: string;
+  /** 外から選んだ日を渡すとき（カレンダーから選ぶなど） */
+  date?: string;
+  onDateChange?: (d: string) => void;
+}) {
+  const [own, setOwn] = useState(today);
+  const date = dateProp ?? own;
+  const setDate = (d: string) => (onDateChange ? onDateChange(d) : setOwn(d));
   // 記録がある日（新しい順・直近60日）
   const days = useMemo(() => [...new Set(activities.map((a) => a.date))].filter((d) => d <= today).sort().reverse().slice(0, 60), [activities, today]);
   const list = useMemo(() => activities.filter((a) => a.date === date).sort((a, b) => a.createdAt - b.createdAt), [activities, date]);

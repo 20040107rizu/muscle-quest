@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import { ActivityCard } from "@/components/ActivityCard";
 import { DayLog } from "@/components/DayLog";
 import { makeAvatar } from "@/components/ui/avatarPhoto";
@@ -20,6 +20,9 @@ export default function MyPage() {
   const cheersFor = useCheers();
   const { confirm: ask } = useFeedback();
   const [tab, setTab] = useState<"history" | "bests">("history");
+  /** 日ごとの記録で表示している日（カレンダーをタップしても変わる） */
+  const [day, setDay] = useState<string | null>(null);
+  const logRef = useRef<HTMLDivElement>(null);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [bw, setBw] = useState(65);
@@ -190,10 +193,18 @@ export default function MyPage() {
               const future = d > me.today;
               const o = xp === 0 ? 0 : Math.min(1, 0.25 + xp / 800);
               return (
-                <div
+                <button
                   key={d}
                   title={`${d}: ${xp}XP`}
-                  className={`aspect-square rounded-md ${d === me.today ? "ring-1 ring-ink/60" : ""} ${future ? "opacity-20" : ""}`}
+                  disabled={future}
+                  aria-label={`${d}のトレーニングを見る`}
+                  onClick={() => {
+                    // タップした日のトレーニング一覧へ
+                    setDay(d);
+                    setTab("history");
+                    requestAnimationFrame(() => logRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+                  }}
+                  className={`aspect-square rounded-md ${d === day && tab === "history" ? "ring-2 ring-accent-2" : d === me.today ? "ring-1 ring-ink/60" : ""} ${future ? "opacity-20" : "active:scale-95"}`}
                   style={{ background: xp ? `rgba(255,107,44,${o})` : "rgba(255,255,255,0.05)" }}
                 />
               );
@@ -202,6 +213,7 @@ export default function MyPage() {
         </Card>
       </section>
 
+      <div ref={logRef} className="scroll-mt-4" />
       <Segmented
         value={tab}
         onChange={setTab}
@@ -215,6 +227,8 @@ export default function MyPage() {
         <DayLog
           activities={me.activities}
           today={me.today}
+          date={day ?? me.today}
+          onDateChange={setDay}
           renderCard={(a) => (
             <ActivityCard
               a={a}
