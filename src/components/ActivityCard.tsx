@@ -25,18 +25,16 @@ export function summarizeSets(sets: SetRecord[], assist = false, timed = false, 
 }
 
 export function ActivityBody({ a }: { a: Activity }) {
-  const [sheet, setSheet] = useState(false);
   if (a.workout) {
     const assist = isAssist(a.workout.exerciseId);
     const timed = isTimed(a.workout.exerciseId);
     const bw = isBodyweight(a.workout.exerciseId);
     return (
       <div>
-        <button onClick={() => setSheet(true)} className="text-left font-bold underline decoration-sub/40 decoration-dotted underline-offset-4" aria-label={`${a.workout.exerciseName}のやり方を見る`}>
+        <p className="font-bold">
           {a.workout.exerciseName}
-          <span className="ml-1 text-[10px] font-normal text-sub no-underline">やり方 ›</span>
-        </button>
-        {sheet && <ExerciseSheet exerciseId={a.workout.exerciseId} name={a.workout.exerciseName} onClose={() => setSheet(false)} />}
+          <span className="ml-1 text-[10px] font-normal text-sub">やり方 ›</span>
+        </p>
         <p className="mt-0.5 font-num text-sm text-ink/80">{summarizeSets(a.workout.sets, assist, timed, bw)}</p>
         <p className="mt-0.5 text-[11px] text-sub">
           {a.workout.sets.length}セット ・{" "}
@@ -95,8 +93,21 @@ export function ActivityCard({
       </div>
     </div>
   );
+  const [sheet, setSheet] = useState(false);
+  const w = a.workout;
   return (
-    <article className="mq-rise skin-card p-2.5">
+    <article
+      className={`mq-rise skin-card p-2.5 ${w ? "cursor-pointer active:brightness-110" : ""}`}
+      // 筋トレの記録は、枠のどこをタップしても種目の詳細を開く（応援ボタン・名前・削除ボタンは除く）
+      onClick={(e) => {
+        // 詳細画面（画面の外側に出している）の中のタップがここまで伝わってきても、開き直さない
+        if (!w || !e.currentTarget.contains(e.target as Node) || (e.target as HTMLElement).closest("a,button")) return;
+        setSheet(true);
+      }}
+      role={w ? "button" : undefined}
+      aria-label={w ? `${w.exerciseName}のやり方を見る` : undefined}
+    >
+      {w && sheet && <ExerciseSheet exerciseId={w.exerciseId} name={w.exerciseName} onClose={() => setSheet(false)} />}
       <div className="flex items-start justify-between">
         {userHref ? <Link href={userHref}>{head}</Link> : head}
         <div className="flex items-center gap-2">
