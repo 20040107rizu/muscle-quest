@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { ExerciseSheet } from "./ExerciseSheet";
 import { isAssist, isBodyweight, isTimed } from "@/domain/exercises";
 import { formatDuration, formatPace, timeAgo, toDateKey } from "@/domain/dates";
 import type { Activity, SetRecord } from "@/domain/types";
@@ -23,13 +25,18 @@ export function summarizeSets(sets: SetRecord[], assist = false, timed = false, 
 }
 
 export function ActivityBody({ a }: { a: Activity }) {
+  const [sheet, setSheet] = useState(false);
   if (a.workout) {
     const assist = isAssist(a.workout.exerciseId);
     const timed = isTimed(a.workout.exerciseId);
     const bw = isBodyweight(a.workout.exerciseId);
     return (
       <div>
-        <p className="font-bold">{a.workout.exerciseName}</p>
+        <button onClick={() => setSheet(true)} className="text-left font-bold underline decoration-sub/40 decoration-dotted underline-offset-4" aria-label={`${a.workout.exerciseName}のやり方を見る`}>
+          {a.workout.exerciseName}
+          <span className="ml-1 text-[10px] font-normal text-sub no-underline">やり方 ›</span>
+        </button>
+        {sheet && <ExerciseSheet exerciseId={a.workout.exerciseId} name={a.workout.exerciseName} onClose={() => setSheet(false)} />}
         <p className="mt-0.5 font-num text-sm text-ink/80">{summarizeSets(a.workout.sets, assist, timed, bw)}</p>
         <p className="mt-0.5 text-[11px] text-sub">
           {a.workout.sets.length}セット ・{" "}

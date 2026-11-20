@@ -1,7 +1,7 @@
 "use client";
 
 import { SkinButton, SkinFace } from "@/components/ui/SkinButton";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { summarizeSets } from "@/components/ActivityCard";
 import { useFeedback } from "@/components/ui/Feedback";
 import { RecordTabs } from "@/components/RecordTabs";
@@ -19,6 +19,17 @@ export default function WorkoutPage() {
   const [selected, setSelected] = useState<Exercise | null>(null);
   /** メニューを進めている途中なら、そのメニューと何種目目か */
   const [run, setRun] = useState<{ menu: WorkoutMenu; index: number } | null>(null);
+
+  // 種目の詳細から「この種目を記録する」で来たとき（/workout?ex=種目ID）は、その種目を開く
+  const exParam = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("ex") : null;
+  useEffect(() => {
+    if (!exParam || !me || selected) return;
+    const ex = [...PRESET_EXERCISES, ...me.customExercises].find((e) => e.id === exParam);
+    if (ex) setSelected(ex);
+    history.replaceState(null, "", "/workout");
+    // 1回だけ
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exParam, !!me]);
 
   if (!me) return <Loading />;
   const all = [...PRESET_EXERCISES, ...me.customExercises];

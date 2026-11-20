@@ -30,16 +30,16 @@ function usePlayableSrc(src: string) {
  * 種目のやり方。筋肉模型のお手本動画（画像生成AIが作成）と、効く筋肉・コツ。
  * 開いた／閉じたはこの端末に覚えておく。
  */
-export function ExerciseGuideCard({ exerciseId }: { exerciseId: string }) {
+export function ExerciseGuideCard({ exerciseId, alwaysOpen = false }: { exerciseId: string; /** 閉じるボタンを出さず、常に開いて表示（種目の詳細画面用） */ alwaysOpen?: boolean }) {
   const g = exerciseGuide(exerciseId);
   const [open, setOpen] = useState(true);
   useEffect(() => {
     try {
-      if (localStorage.getItem(KEY) === "0") setOpen(false);
+      if (!alwaysOpen && localStorage.getItem(KEY) === "0") setOpen(false);
     } catch {
       // 保存できない環境では毎回開いた状態
     }
-  }, []);
+  }, [alwaysOpen]);
   const src = usePlayableSrc(assetUrl(`exercises/${exerciseId}.mp4`));
   if (!g) return null;
 
@@ -54,9 +54,9 @@ export function ExerciseGuideCard({ exerciseId }: { exerciseId: string }) {
 
   return (
     <div className="skin-card p-3">
-      <button onClick={toggle} className="flex w-full items-center justify-between text-left">
+      <button onClick={alwaysOpen ? undefined : toggle} className="flex w-full items-center justify-between text-left">
         <span className="text-sm font-bold">やり方と効く筋肉</span>
-        <span className="text-xs text-sub">{open ? "閉じる ▲" : "見る ▼"}</span>
+        {!alwaysOpen && <span className="text-xs text-sub">{open ? "閉じる ▲" : "見る ▼"}</span>}
       </button>
       {open && (
         <div className="mt-2 space-y-3">
