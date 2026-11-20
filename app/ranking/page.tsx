@@ -40,7 +40,7 @@ export default function RankingPage() {
 
   const def = RANKINGS.find((r) => r.key === key)!;
   const rows: Row[] = [
-    { id: "me", name: me.profile.displayName, isMe: true, metrics: me.metrics, character: me.character, aura: me.profile.aura, titleId: me.profile.titleId, avatar: me.profile.avatar },
+    { id: "me", name: me.profile.displayName, isMe: true, metrics: me.metrics, character: me.character, aura: me.profile.aura, titleId: me.profile.titleId, avatar: me.profile.avatar, href: "/me" },
     ...friends.map((f) => ({ id: f.user.id, name: f.user.name, isMe: false, metrics: f.metrics, character: f.character, href: `/friends/${f.user.id}`, aura: f.aura, titleId: f.titleId, avatar: f.user.avatar })),
   ];
   const ranked = rank(rows, (r) => def.pick(r.metrics));
@@ -59,7 +59,7 @@ export default function RankingPage() {
           const first = r.rank === 1;
           const h = r === podium[0] ? "h-24" : r === podium[1] ? "h-16" : "h-12";
           return (
-            <div key={r.item.id} className="flex w-1/3 flex-col items-center">
+            <Link key={r.item.id} href={r.item.href ?? "/me"} className="flex w-1/3 flex-col items-center">
               <HeroFigure c={r.item.character} aura={r.item.aura} className={first ? "h-40 w-full" : "h-32 w-full"} glow={first} />
               <p className={`mt-1 truncate text-sm font-bold ${r.item.isMe ? "text-accent" : ""}`}>{r.item.name}</p>
               <p className="font-num text-base font-bold">
@@ -69,7 +69,7 @@ export default function RankingPage() {
               <div className={`mt-1 grid w-full place-items-center rounded-t-xl ${h} ${first ? "bg-gradient-to-b from-accent-2/50 to-accent-2/10" : "bg-panel-2"}`}>
                 <span className="font-num text-3xl font-bold">{r.rank}</span>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>

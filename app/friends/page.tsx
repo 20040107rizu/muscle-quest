@@ -22,10 +22,11 @@ export default function FriendsPage() {
   const feed = useMemo(() => {
     if (!me) return [];
     const from = filter === "today" ? me.today : addDays(me.today, -6);
-    return friends
-      .flatMap((f) => f.activities.filter((a) => a.date >= from).map((a) => ({ a, f })))
+    // 自分の記録もいっしょに並べる（f が null のものが自分）
+    const mine = me.activities.filter((a) => a.date >= from).map((a) => ({ a, f: null as (typeof friends)[number] | null }));
+    return [...friends.flatMap((f) => f.activities.filter((a) => a.date >= from).map((a) => ({ a, f }))), ...mine]
       .sort((x, y) => y.a.createdAt - x.a.createdAt)
-      .slice(0, 40);
+      .slice(0, 50);
   }, [friends, filter, me]);
 
   if (!me) return <Loading />;
@@ -71,19 +72,24 @@ export default function FriendsPage() {
           />
         </div>
         <div className="space-y-2">
-          {feed.map(({ a, f }) => (
-            <ActivityCard
-              key={a.id}
-              a={a}
-              name={f.user.name}
-              userHref={`/friends/${f.user.id}`}
-              now={me.now}
-              myReactions={myReactions}
-              onReact={(k) => getRepo().toggleReaction(a.id, k)}
-              received={cheersFor(a.id)}
-              avatar={f.user.avatar}
-            />
-          ))}
+          {feed.map(({ a, f }) =>
+            f ? (
+              <ActivityCard
+                key={a.id}
+                a={a}
+                name={f.user.name}
+                userHref={`/friends/${f.user.id}`}
+                now={me.now}
+                myReactions={myReactions}
+                onReact={(k) => getRepo().toggleReaction(a.id, k)}
+                received={cheersFor(a.id)}
+                avatar={f.user.avatar}
+              />
+            ) : (
+              // 自分の記録（自分には応援できないので、届いた応援だけ出す）
+              <ActivityCard key={a.id} a={a} name={me.profile.displayName} userHref="/me" now={me.now} received={cheersFor(a.id)} avatar={me.profile.avatar} />
+            ),
+          )}
           {feed.length === 0 && <Card className="text-center text-sm text-sub">{filter === "today" ? "今日はまだ誰も記録していません。一番乗りしよう！" : "記録がありません"}</Card>}
         </div>
       </section>
