@@ -8,6 +8,7 @@ export const PRESET_EXERCISES: Exercise[] = [
   { id: "close_grip_bench", name: "ベンチプレス（クローズグリップ）", distribution: { chest: 0.5, arms: 0.4, shoulders: 0.1 }, maxWeightKg: 300, step: 2.5 },
   { id: "incline_chest_press", name: "インクラインチェストプレス（マシン）", distribution: { chest: 0.75, shoulders: 0.15, arms: 0.1 }, maxWeightKg: 250, step: 2.5 },
   { id: "cable_crossover", name: "ケーブルクロスオーバー", distribution: { chest: 0.85, shoulders: 0.15 }, maxWeightKg: 150, step: 2.5 },
+  { id: "dips", name: "ディップス", distribution: { chest: 0.5, arms: 0.4, shoulders: 0.1 }, bodyweight: true, maxWeightKg: 100, step: 2.5 },
   { id: "push_up", name: "腕立て伏せ", distribution: { chest: 0.6, arms: 0.25, core: 0.15 }, bodyweight: true, maxWeightKg: 100, step: 5 },
   { id: "lat_pulldown", name: "ラットプルダウン", distribution: { back: 0.75, arms: 0.25 }, maxWeightKg: 250, step: 2.5 },
   { id: "seated_row", name: "シーテッドロー", distribution: { back: 0.75, arms: 0.15, shoulders: 0.1 }, maxWeightKg: 250, step: 2.5 },
