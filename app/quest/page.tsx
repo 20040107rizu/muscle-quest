@@ -8,32 +8,8 @@ import Link from "next/link";
 import { BossArt } from "@/components/BossArt";
 import { Card, Loading, PageHeader } from "@/components/ui/primitives";
 import { clearId, currentFloor, DUNGEONS, findDungeon, findTitle, floorProgress, isDungeonCleared, isUnlocked, TITLES } from "@/domain/quests";
-import { useFriends, useMyData, type FriendView } from "@/data/hooks";
-import { Initial } from "@/components/ui/primitives";
-
-/** 友達がこのダンジョンのどこにいるか（1階でも倒した人だけ） */
-function FriendsHere({ d, friends }: { d: (typeof DUNGEONS)[number]; friends: FriendView[] }) {
-  const here = friends
-    .map((f) => {
-      const n = d.floors.filter((_, i) => f.cleared.has(clearId(d.id, i))).length;
-      return { f, n, done: isDungeonCleared(d, f.cleared) };
-    })
-    .filter((x) => x.n > 0)
-    .sort((a, b) => b.n - a.n);
-  if (!here.length) return null;
-  return (
-    <div className="mt-2 flex flex-wrap gap-1.5">
-      {here.slice(0, 6).map(({ f, n, done }) => (
-        <span key={f.user.id} className="flex items-center gap-1 rounded-full bg-black/30 py-0.5 pl-0.5 pr-2 text-[10px]">
-          <Initial name={f.user.name} size={20} src={f.user.avatar} color="#7c8597" />
-          <span className="max-w-[5.5rem] truncate font-bold">{f.user.name}</span>
-          <span className={done ? "font-bold text-accent-2" : "text-sub"}>{done ? "踏破" : `${d.floors[n]?.name.split(" ")[0] ?? ""}で挑戦中`}</span>
-        </span>
-      ))}
-      {here.length > 6 && <span className="self-center text-[10px] text-sub">ほか{here.length - 6}人</span>}
-    </div>
-  );
-}
+import { useFriends, useMyData } from "@/data/hooks";
+import { FriendsInDungeon } from "@/components/FriendsOnFloor";
 
 export default function QuestPage() {
   const me = useMyData();
@@ -121,7 +97,7 @@ export default function QuestPage() {
                     </div>
                   )}
                   {done && <p className="mt-1.5 text-[11px] font-bold text-accent-2">踏破済み</p>}
-                  <FriendsHere d={d} friends={friends} />
+                  <FriendsInDungeon d={d} friends={friends} first={d.unlockAfter.length === 0} />
                 </div>
               </div>
             </div>

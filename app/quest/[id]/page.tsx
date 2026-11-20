@@ -1,6 +1,7 @@
 "use client";
 
 import { TitleView } from "@/components/ui/TitleView";
+import { FriendChip, friendPositions } from "@/components/FriendsOnFloor";
 import { TitleGet } from "@/components/fx/TitleGet";
 import { TITLE_RARITY_ORDER } from "@/domain/titles";
 import { SkinGauge } from "@/components/ui/SkinGauge";
@@ -15,13 +16,14 @@ import { ItemGet } from "@/components/fx/ItemGet";
 import { FxImg, FxRays } from "@/components/fx/FxImg";
 import { Card, Loading } from "@/components/ui/primitives";
 import { clearId, currentFloor, findDungeon, findTitle, floorProgress, isUnlocked } from "@/domain/quests";
-import { getRepo, useMyData, wearTitle } from "@/data/hooks";
+import { getRepo, useFriends, useMyData, wearTitle } from "@/data/hooks";
 
 type Phase = "idle" | "fighting" | "won" | "lost";
 
 export default function DungeonPage() {
   const { id } = useParams<{ id: string }>();
   const me = useMyData();
+  const friends = useFriends(me?.now ?? 0);
   const d = findDungeon(id);
   const [phase, setPhase] = useState<Phase>("idle");
   const [hp, setHp] = useState<number | null>(null);
@@ -43,6 +45,9 @@ export default function DungeonPage() {
 
   if (!me) return <Loading />;
   if (!d) return <p className="pt-10 text-center text-sm text-sub">ダンジョンが見つかりません</p>;
+  // 友達がどの階で止まっているか
+  const positions = friendPositions(d, friends, d.unlockAfter.length === 0);
+  const stuckAt = (i: number) => positions.filter((x) => x.floor === i);
   if (!isUnlocked(d, me.cleared)) return <p className="pt-10 text-center text-sm text-sub">まだ解放されていません</p>;
 
   // 戦闘中・撃破直後は戦っている階を表示し続ける（クリア保存で次の階に切り替わっても演出を見せる）
@@ -199,6 +204,13 @@ export default function DungeonPage() {
             )}
           </div>
           <p className="text-lg font-black">{floor.boss}</p>
+          {fi != null && stuckAt(fi).length > 0 && (
+            <div className="mt-1 flex flex-wrap justify-center gap-1.5">
+              {stuckAt(fi).map(({ f }) => (
+                <FriendChip key={f.user.id} f={f} label="も挑戦中" />
+              ))}
+            </div>
+          )}
           <div className="mx-auto mt-2 max-w-[16rem]">
             <div className="flex justify-between text-[10px] text-sub">
               <span>HP</span>
@@ -277,6 +289,13 @@ export default function DungeonPage() {
                 <div className="flex-1">
                   <p className={`text-sm font-bold ${done || cur ? "" : "text-sub"}`}>{f.name}</p>
                   <p className="text-[11px] text-sub">{done || cur ? f.boss : "???"}</p>
+                  {stuckAt(i).length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {stuckAt(i).map(({ f: fr }) => (
+                        <FriendChip key={fr.user.id} f={fr} label="ここで停止中" />
+                      ))}
+                    </div>
+                  )}
                 </div>
                 {done && <span className="text-[10px] font-bold text-good">撃破</span>}
                 {cur && <span className="text-[10px] font-bold text-accent-2">挑戦中</span>}
