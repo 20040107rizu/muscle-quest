@@ -163,5 +163,7 @@ export interface PlayerSnapshot {
   avatarUrl?: string;
   /** 撃破したクエストの階（「ダンジョンID:階」。サーバーが確かめたもの） */
   clears?: string[];
+  /** 筋トレメニュー */
+  menus?: { name: string; exercises: { id: string; name: string }[] }[];
   activities: Activity[];
 }

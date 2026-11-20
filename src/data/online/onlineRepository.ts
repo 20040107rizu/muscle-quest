@@ -1,5 +1,5 @@
 import type { Exercise, MuscleGroup, Profile } from "@/domain/types";
-import { primaryGroup } from "@/domain/exercises";
+import { findExercise, primaryGroup } from "@/domain/exercises";
 import { LocalRepository } from "../local/localRepository";
 import type { PlayerSnapshot, ReactionKind, RunInput, SaveResult, Social, WorkoutInput } from "../repository";
 
@@ -93,6 +93,10 @@ export class OnlineRepository extends LocalRepository {
           battles: battles.filter((b) => !b.id.startsWith("in:")).map((b) => ({ friendId: b.friendId, start: b.start })),
           avatar: profile.avatar ?? null,
           clears: (await this.listQuestClears()).map((c) => c.id),
+          menus: (await this.listMenus()).map((m) => ({
+            name: m.name,
+            exercises: m.exerciseIds.map((id) => ({ id, name: findExercise(id, custom)?.name ?? "" })).filter((e) => e.name),
+          })),
         }),
       });
       if (res.ok) {
@@ -194,6 +198,15 @@ export class OnlineRepository extends LocalRepository {
   }
   async setTitle(titleId: string | null) {
     await super.setTitle(titleId);
+    this.queueSync();
+  }
+  async saveMenu(name: string, exerciseIds: string[]) {
+    const m = await super.saveMenu(name, exerciseIds);
+    this.queueSync();
+    return m;
+  }
+  async deleteMenu(id: string) {
+    await super.deleteMenu(id);
     this.queueSync();
   }
   async setAvatar(dataUrl: string | null) {

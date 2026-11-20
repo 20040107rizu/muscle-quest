@@ -36,6 +36,8 @@ export async function POST(req: Request) {
     cheers?: { activityId: string; kind: string }[];
     /** 自分が申し込んだ対決 */
     battles?: { friendId: string; start: string }[];
+    /** 筋トレメニュー（友達のページで見せる） */
+    menus?: { name: string; exercises: { id: string; name: string }[] }[];
     /** 撃破したクエストの階（「ダンジョンID:階」） */
     clears?: string[];
     /** プロフィール写真（小さく縮めた JPEG の data URL。null で外す。送らなければ変えない） */
@@ -81,6 +83,14 @@ export async function POST(req: Request) {
     await rpc<number>("mq_set_cheers", { p_token_hash: tokenHash, p_cheers: cheers });
     const battles = (Array.isArray(body.battles) ? body.battles : []).slice(0, 50).map((b) => ({ opponent: String(b?.friendId ?? ""), start: String(b?.start ?? "") }));
     if (battles.length) await rpc<number>("mq_add_battles", { p_token_hash: tokenHash, p_battles: battles });
+    // メニュー：名前は20文字・種目は12個・メニューは10個まで
+    const clean = (v: unknown, n: number) => String(v ?? "").replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, n);
+    const menus = (Array.isArray(body.menus) ? body.menus : []).slice(0, 10).flatMap((m) => {
+      const name = clean(m?.name, 20);
+      const exercises = (Array.isArray(m?.exercises) ? m.exercises : []).slice(0, 12).map((e) => ({ id: clean(e?.id, 80), name: clean(e?.name, 30) })).filter((e) => e.id && e.name);
+      return name && exercises.length ? [{ name, exercises }] : [];
+    });
+    await rpc<null>("mq_set_menus", { p_token_hash: tokenHash, p_menus: menus });
     const clears = verifyClears(acts, body.clears, Date.now());
     if (clears.length) await rpc<null>("mq_add_clears", { p_token_hash: tokenHash, p_clears: clears });
     if (body.avatar === null || (typeof body.avatar === "string" && body.avatar.startsWith("data:image/jpeg;base64,") && body.avatar.length < 120000)) {

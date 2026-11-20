@@ -13,6 +13,7 @@ import { getRepo, useFriends, useCheers, useMyData } from "@/data/hooks";
 import { findTitle } from "@/domain/quests";
 import { BattlePanel } from "@/components/Battle";
 import { DayLog } from "@/components/DayLog";
+import { FriendMenus } from "@/components/FriendMenus";
 
 export default function FriendDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -87,6 +88,8 @@ export default function FriendDetailPage() {
       </Card>
 
       <BattlePanel friend={view} />
+
+      <FriendMenus friend={view} />
 
       <section>
         <SectionTitle>{user.name}さんのトレーニング</SectionTitle>

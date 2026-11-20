@@ -38,3 +38,4 @@
 - 応援と1週間対決を相手に届けるため、`supabase/online_social.sql` も実行済み（`online_setup.sql` のあとに実行する）。
 - プロフィール写真のため `supabase/online_avatar.sql` も実行済み（online_social.sql のあと）。
 - クエストの進み具合のため `supabase/online_quest.sql` も実行済み（online_avatar.sql のあと）。
+- 友達のメニュー表示のため `supabase/online_menus.sql` も実行済み（online_quest.sql のあと）。
