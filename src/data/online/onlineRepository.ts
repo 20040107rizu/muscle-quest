@@ -92,6 +92,7 @@ export class OnlineRepository extends LocalRepository {
           // 自分が申し込んだ対決だけ送る（申し込まれた対決は "in:" で始まる）
           battles: battles.filter((b) => !b.id.startsWith("in:")).map((b) => ({ friendId: b.friendId, start: b.start })),
           avatar: profile.avatar ?? null,
+          clears: (await this.listQuestClears()).map((c) => c.id),
         }),
       });
       if (res.ok) {
@@ -161,6 +162,11 @@ export class OnlineRepository extends LocalRepository {
   async toggleReaction(activityId: string, kind: ReactionKind) {
     await super.toggleReaction(activityId, kind);
     this.queueSync();
+  }
+  async challengeFloor(dungeonId: string, floor: number) {
+    const r = await super.challengeFloor(dungeonId, floor);
+    if (r.ok) this.queueSync(500);
+    return r;
   }
   async startBattle(friendId: string) {
     const r = await super.startBattle(friendId);

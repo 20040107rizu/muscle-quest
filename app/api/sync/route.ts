@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { findItem } from "@/domain/items";
 import { findTitle } from "@/domain/quests";
 import { hashToken, rpc, serverConfigured } from "@/server/db";
-import { recompute, type SyncCustomExercise, type SyncRun, type SyncWorkout } from "@/server/recompute";
+import { recompute, verifyClears, type SyncCustomExercise, type SyncRun, type SyncWorkout } from "@/server/recompute";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +36,8 @@ export async function POST(req: Request) {
     cheers?: { activityId: string; kind: string }[];
     /** 自分が申し込んだ対決 */
     battles?: { friendId: string; start: string }[];
+    /** 撃破したクエストの階（「ダンジョンID:階」） */
+    clears?: string[];
     /** プロフィール写真（小さく縮めた JPEG の data URL。null で外す。送らなければ変えない） */
     avatar?: string | null;
   };
@@ -79,6 +81,8 @@ export async function POST(req: Request) {
     await rpc<number>("mq_set_cheers", { p_token_hash: tokenHash, p_cheers: cheers });
     const battles = (Array.isArray(body.battles) ? body.battles : []).slice(0, 50).map((b) => ({ opponent: String(b?.friendId ?? ""), start: String(b?.start ?? "") }));
     if (battles.length) await rpc<number>("mq_add_battles", { p_token_hash: tokenHash, p_battles: battles });
+    const clears = verifyClears(acts, body.clears, Date.now());
+    if (clears.length) await rpc<null>("mq_add_clears", { p_token_hash: tokenHash, p_clears: clears });
     if (body.avatar === null || (typeof body.avatar === "string" && body.avatar.startsWith("data:image/jpeg;base64,") && body.avatar.length < 120000)) {
       await rpc<null>("mq_set_avatar", { p_token_hash: tokenHash, p_data: body.avatar });
     }

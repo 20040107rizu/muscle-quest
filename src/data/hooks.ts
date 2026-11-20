@@ -100,6 +100,8 @@ export interface FriendView {
   metrics: UserMetrics;
   titleId?: string;
   aura?: string;
+  /** 撃破したクエストの階 */
+  cleared: Set<string>;
 }
 
 export function buildFriendView(p: PlayerSnapshot, now: number): FriendView {
@@ -116,6 +118,7 @@ export function buildFriendView(p: PlayerSnapshot, now: number): FriendView {
     metrics: computeMetrics(p.activities, today),
     titleId: p.titleId,
     aura: p.aura,
+    cleared: new Set(p.clears ?? []),
   };
 }
 

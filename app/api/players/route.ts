@@ -9,6 +9,7 @@ interface Row {
   titleId: string | null;
   aura: string | null;
   avatarAt: number | null;
+  clears: string[] | null;
   activities: { id: string; type: "workout" | "run"; date: string; createdAt: number; xp: number; byStat: Record<string, number>; detail: Record<string, unknown> }[];
 }
 
@@ -46,6 +47,7 @@ export async function GET(req: Request) {
       name: p.name,
       titleId: p.titleId ?? undefined,
       aura: p.aura ?? undefined,
+      clears: Array.isArray(p.clears) ? p.clears : [],
       avatarUrl: p.avatarAt ? `/api/avatar/${p.id}?v=${p.avatarAt}` : undefined,
       activities: p.activities.map((a) => ({
         id: `${p.id}:${a.id}`,

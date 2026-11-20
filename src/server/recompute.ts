@@ -2,6 +2,9 @@ import { validateRun, validateSets } from "@/domain/antiCheat";
 import { findExercise, makeCustomExercise } from "@/domain/exercises";
 import { MUSCLE_GROUPS, type Exercise, type MuscleGroup, type RunRecord, type SetRecord, type XpBreakdown } from "@/domain/types";
 import { applyDailyCap, computeRunXp, computeWorkoutXp } from "@/domain/xp";
+import { buildCharacter } from "@/domain/character";
+import { buildQuestStats, simulateClears } from "@/domain/quests";
+import type { Activity } from "@/domain/types";
 
 /**
  * サーバー側で経験値を計算し直す。ブラウザから送られた経験値は使わない。
@@ -45,6 +48,28 @@ export interface ServerActivity {
 function latestLocalDate(receivedAt: number) {
   const d = new Date(receivedAt + 14 * 3600_000);
   return d.toISOString().slice(0, 10);
+}
+
+/**
+ * 送られてきた「撃破した階」のうち、記録から見て本当に倒せる力があるものだけを返す。
+ * （記録からの条件を満たしている階だけを順に進めた結果と照らし合わせる）
+ */
+export function verifyClears(acts: ServerActivity[], claimed: unknown, now: number): string[] {
+  if (!Array.isArray(claimed)) return [];
+  const activities: Activity[] = acts.map((a) => ({
+    id: a.id,
+    userId: "",
+    type: a.type,
+    date: a.date,
+    createdAt: a.createdAt,
+    xp: a.xp,
+    byStat: a.byStat,
+    ...(a.type === "workout" ? { workout: a.detail as Activity["workout"] } : { run: a.detail as Activity["run"] }),
+  }));
+  const today = latestLocalDate(now);
+  const character = buildCharacter(activities.map((a) => ({ total: a.xp, byStat: a.byStat, date: a.date })), activities.map((a) => a.date), today);
+  const possible = simulateClears(buildQuestStats(activities, character, today));
+  return [...new Set(claimed.map(String))].filter((id) => possible.has(id)).slice(0, 200);
 }
 
 export function recompute(input: {

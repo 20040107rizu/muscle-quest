@@ -8,10 +8,36 @@ import Link from "next/link";
 import { BossArt } from "@/components/BossArt";
 import { Card, Loading, PageHeader } from "@/components/ui/primitives";
 import { clearId, currentFloor, DUNGEONS, findDungeon, findTitle, floorProgress, isDungeonCleared, isUnlocked, TITLES } from "@/domain/quests";
-import { useMyData } from "@/data/hooks";
+import { useFriends, useMyData, type FriendView } from "@/data/hooks";
+import { Initial } from "@/components/ui/primitives";
+
+/** 友達がこのダンジョンのどこにいるか（1階でも倒した人だけ） */
+function FriendsHere({ d, friends }: { d: (typeof DUNGEONS)[number]; friends: FriendView[] }) {
+  const here = friends
+    .map((f) => {
+      const n = d.floors.filter((_, i) => f.cleared.has(clearId(d.id, i))).length;
+      return { f, n, done: isDungeonCleared(d, f.cleared) };
+    })
+    .filter((x) => x.n > 0)
+    .sort((a, b) => b.n - a.n);
+  if (!here.length) return null;
+  return (
+    <div className="mt-2 flex flex-wrap gap-1.5">
+      {here.slice(0, 6).map(({ f, n, done }) => (
+        <span key={f.user.id} className="flex items-center gap-1 rounded-full bg-black/30 py-0.5 pl-0.5 pr-2 text-[10px]">
+          <Initial name={f.user.name} size={20} src={f.user.avatar} color="#7c8597" />
+          <span className="max-w-[5.5rem] truncate font-bold">{f.user.name}</span>
+          <span className={done ? "font-bold text-accent-2" : "text-sub"}>{done ? "踏破" : `${d.floors[n]?.name.split(" ")[0] ?? ""}で挑戦中`}</span>
+        </span>
+      ))}
+      {here.length > 6 && <span className="self-center text-[10px] text-sub">ほか{here.length - 6}人</span>}
+    </div>
+  );
+}
 
 export default function QuestPage() {
   const me = useMyData();
+  const friends = useFriends(me?.now ?? 0);
   if (!me) return <Loading />;
   const clearedDungeons = DUNGEONS.filter((d) => isDungeonCleared(d, me.cleared)).length;
   const title = findTitle(me.profile.titleId);
@@ -40,7 +66,7 @@ export default function QuestPage() {
           </p>
         </div>
         <div className="text-center">
-          <p className="text-[10px] text-sub">オーラ</p>
+          <p className="whitespace-nowrap text-[10px] text-sub">オーラ</p>
           <p className="font-num text-xl font-bold">
             {me.owned.items.length}
             <span className="text-xs text-sub">/{ITEMS.length}</span>
@@ -58,7 +84,6 @@ export default function QuestPage() {
           // 最後に戦ったときの残りHP（未挑戦なら undefined → ???）
           const lastHp = fi != null ? me.lastHp.get(clearId(d.id, fi)) : undefined;
           const clearedFloors = d.floors.length - (fi == null ? 0 : d.floors.length - fi);
-          const ttl = findTitle(d.reward.titleId);
           const body = (
             <div
               className={`relative overflow-hidden rounded-2xl border p-4 ${unlocked ? "border-line bg-panel" : "border-line/50 bg-panel/50"}`}
@@ -96,9 +121,7 @@ export default function QuestPage() {
                     </div>
                   )}
                   {done && <p className="mt-1.5 text-[11px] font-bold text-accent-2">踏破済み</p>}
-                  <p className="mt-2 text-[10px] text-sub">
-                    報酬: {ttl && `称号【${ttl.name}】`}
-                  </p>
+                  <FriendsHere d={d} friends={friends} />
                 </div>
               </div>
             </div>

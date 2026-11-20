@@ -121,3 +121,14 @@ describe("応援と対決が相手に届く（端末側）", () => {
     expect(last.battles).toEqual([]);
   });
 });
+
+describe("クエストの進み具合（友達に見せる）", () => {
+  it("記録から倒せる階だけ認める", async () => {
+    const { verifyClears } = await import("@/server/recompute");
+    const sets = Array.from({ length: 5 }, () => set(60, 10));
+    const acts = recompute({ ...base, workouts: [{ id: "w1", exerciseId: "squat", date: today, createdAt: now - 1000, sets }], runs: [] });
+    // B1（合計5セット）は倒せる。B2（3日運動）はまだ。ほかのダンジョンは解放前
+    expect(verifyClears(acts, ["cave:0", "cave:1", "chest_temple:0", "nope"], now)).toEqual(["cave:0"]);
+    expect(verifyClears(acts, "bad", now)).toEqual([]);
+  });
+});

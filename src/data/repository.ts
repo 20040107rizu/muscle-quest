@@ -161,5 +161,7 @@ export interface PlayerSnapshot {
   aura?: string;
   /** プロフィール写真の URL（設定していなければ undefined） */
   avatarUrl?: string;
+  /** 撃破したクエストの階（「ダンジョンID:階」。サーバーが確かめたもの） */
+  clears?: string[];
   activities: Activity[];
 }
