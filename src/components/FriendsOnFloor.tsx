@@ -22,6 +22,12 @@ function isUnlocked2(d: Dungeon, f: FriendView) {
   return isUnlocked(d, f.cleared);
 }
 
+/** 階の呼び名（「B2 湿った回廊」→「B2」）。まだ見ていないボスの名前がばれないよう、ボス名は使わない */
+export function floorLabel(d: Dungeon, i: number) {
+  const name = d.floors[i]?.name ?? "";
+  return name.includes(" ") ? name.split(" ")[0] : name || `${i + 1}階`;
+}
+
 /** アイコン＋名前の小さな札 */
 export function FriendChip({ f, label, strong = false }: { f: FriendView; label?: string; strong?: boolean }) {
   return (
@@ -40,7 +46,7 @@ export function FriendsInDungeon({ d, friends, first }: { d: Dungeon; friends: F
   return (
     <div className="mt-2 flex flex-wrap gap-1.5">
       {here.slice(0, 6).map(({ f, done, floor }) => (
-        <FriendChip key={f.user.id} f={f} label={done ? "踏破" : floor != null ? `${d.floors[floor].boss}で停止中` : undefined} strong={done} />
+        <FriendChip key={f.user.id} f={f} label={done ? "踏破" : floor != null ? `${floorLabel(d, floor)}で停止中` : undefined} strong={done} />
       ))}
       {here.length > 6 && <span className="self-center text-[10px] text-sub">ほか{here.length - 6}人</span>}
     </div>
