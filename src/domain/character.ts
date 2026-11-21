@@ -108,21 +108,21 @@ export function heroStage(level: number): number {
   return TIERS.indexOf(tierFor(level)) + 1;
 }
 
-export const HERO_TYPES = ["balance", "chest", "back", "shoulder", "arm", "leg", "core", "runner"] as const;
-export type HeroType = (typeof HERO_TYPES)[number];
+/** 単独の体型（部位ごと）。組み合わせの体型は、この順に「_」でつないだ名前（例: chest_back） */
+export const BASE_TYPES = ["chest", "back", "shoulder", "arm", "leg", "core", "runner"] as const;
+export type BaseType = (typeof BASE_TYPES)[number];
+/** 体型の名前。"balance" か、1〜3つの BaseType を BASE_TYPES の順に "_" でつないだもの */
+export type HeroType = string;
 
-export const HERO_TYPE_LABELS: Record<HeroType, string> = {
-  balance: "バランス型",
-  chest: "胸型",
-  back: "背中型",
-  shoulder: "肩型",
-  arm: "腕型",
-  leg: "脚型",
-  core: "体幹型",
-  runner: "ランナー型",
-};
+const BASE_LABELS: Record<BaseType, string> = { chest: "胸", back: "背中", shoulder: "肩", arm: "腕", leg: "脚", core: "体幹", runner: "ランナー" };
 
-const STAT_TO_TYPE: Record<StatKey, HeroType> = {
+/** 体型の表示名（例: 胸型、胸＋背中型、バランス型） */
+export function heroTypeLabel(t: HeroType): string {
+  if (t === "balance") return "バランス型";
+  return t.split("_").map((x) => BASE_LABELS[x as BaseType] ?? x).join("＋") + "型";
+}
+
+const STAT_TO_TYPE: Record<StatKey, BaseType> = {
   chest: "chest",
   back: "back",
   shoulders: "shoulder",
@@ -133,14 +133,22 @@ const STAT_TO_TYPE: Record<StatKey, HeroType> = {
 };
 
 /**
- * 体型タイプ。いちばん育っている部位が2番目の1.3倍以上なら
- * その部位のタイプ、そうでなければバランス型。
+ * 体型。部位の経験値を多い順に並べ、
+ * - 1位が2位の1.3倍以上 → その部位の体型
+ * - 2位が3位の1.3倍以上（1位と2位が同じくらい）→ 2部位の組み合わせ
+ * - 3位が4位の1.3倍以上（上位3つが同じくらい）→ 3部位の組み合わせ
+ * - それ以外（4つ以上が同じくらい）・まだ経験値が少ない → バランス型
  */
 export function heroType(stats: Record<StatKey, number>): HeroType {
   const entries = Object.entries(stats) as [StatKey, number][];
   const total = entries.reduce((a, [, v]) => a + v, 0);
   if (total < 300) return "balance";
   const sorted = [...entries].sort((a, b) => b[1] - a[1]);
-  const [[topKey, topVal], [, second]] = sorted;
-  return topVal >= second * 1.3 ? STAT_TO_TYPE[topKey] : "balance";
+  for (const k of [1, 2, 3]) {
+    if (sorted[k - 1][1] > 0 && sorted[k - 1][1] >= sorted[k][1] * 1.3) {
+      const parts = sorted.slice(0, k).map(([key]) => STAT_TO_TYPE[key]);
+      return BASE_TYPES.filter((b) => parts.includes(b)).join("_");
+    }
+  }
+  return "balance";
 }

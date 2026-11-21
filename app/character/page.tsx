@@ -8,7 +8,7 @@ import { AuraTitlePanel } from "@/components/AuraTitlePanel";
 import { StatBars } from "@/components/StatBars";
 import { Card, LevelBadge, Loading, SectionTitle, XpBar } from "@/components/ui/primitives";
 import { heroImage } from "@/components/heroImages";
-import { HERO_TYPE_LABELS, heroStage, heroType, TIERS } from "@/domain/character";
+import { heroStage, heroType, heroTypeLabel, TIERS } from "@/domain/character";
 import { PRESET_EXERCISES } from "@/domain/exercises";
 import { STAT_LABELS, type MuscleGroup, type StatKey } from "@/domain/types";
 import { useMyData } from "@/data/hooks";
@@ -45,8 +45,8 @@ export default function CharacterPage() {
           <p className="mt-1 text-xl font-black">{c.tier.name}</p>
           <p className={`mt-1 text-xs font-bold ${condition.color}`}>● {condition.label}</p>
           <p className="mt-1 text-[11px] text-sub">
-            体型: {HERO_TYPE_LABELS[heroType(c.stats)]}
-            {heroImage(heroType(c.stats), heroStage(c.level)).fallback && <span className="block text-[10px]">（画像準備中・バランス型で表示）</span>}
+            体型: {heroTypeLabel(heroType(c.stats))}
+            {heroImage(heroType(c.stats), heroStage(c.level)).fallback && <span className="block text-[10px]">（この体型の絵は準備中。近い体型で表示）</span>}
           </p>
         </div>
         <HeroFigure c={c} aura={me.profile.aura} glow={c.daysSinceActive === 0} className="mx-auto h-[400px] w-full pt-4" />

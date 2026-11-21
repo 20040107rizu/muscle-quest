@@ -1,323 +1,53 @@
 {
  "arm_2": {
-  "w": 183,
-  "h": 520,
-  "cx": 0.5055,
-  "headTop": 0.0058,
-  "forehead": 0.0538,
-  "headW": 0.2896,
-  "neck": 0.1212,
-  "neckW": 0.1639,
-  "shoulder": 0.175,
-  "shoulderW": 0.6667,
-  "waistTop": 0.4,
-  "waistBottom": 0.4173,
-  "waistX0": 0.3279,
-  "waistX1": 0.6831,
-  "hem": 0.5904,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0874,
-   "y": 0.4577,
-   "w": 0.071,
-   "fistX": 0.1148,
-   "fistY": 0.5077
-  },
-  "wristR": {
-   "x": 0.918,
-   "y": 0.4577,
-   "w": 0.071,
-   "fistX": 0.8852,
-   "fistY": 0.5077
-  }
- },
- "arm_3": {
   "w": 180,
   "h": 520,
-  "cx": 0.4861,
-  "headTop": 0.0058,
-  "forehead": 0.0538,
-  "headW": 0.2889,
-  "neck": 0.1231,
-  "neckW": 0.1667,
-  "shoulder": 0.1712,
-  "shoulderW": 0.7167,
-  "waistTop": 0.4019,
-  "waistBottom": 0.4173,
-  "waistX0": 0.3056,
-  "waistX1": 0.6667,
-  "hem": 0.5904,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0694,
-   "y": 0.4596,
-   "w": 0.0889,
-   "fistX": 0.1056,
-   "fistY": 0.5096
-  },
-  "wristR": {
-   "x": 0.9083,
-   "y": 0.4577,
-   "w": 0.0778,
-   "fistX": 0.875,
-   "fistY": 0.5077
-  }
+  "cx": 0.5
+ },
+ "arm_3": {
+  "w": 195,
+  "h": 520,
+  "cx": 0.5
  },
  "arm_4": {
-  "w": 193,
+  "w": 211,
   "h": 520,
-  "cx": 0.4974,
-  "headTop": 0.0038,
-  "forehead": 0.05,
-  "headW": 0.2642,
-  "neck": 0.1154,
-  "neckW": 0.1658,
-  "shoulder": 0.1654,
-  "shoulderW": 0.7306,
-  "waistTop": 0.4038,
-  "waistBottom": 0.4173,
-  "waistX0": 0.3264,
-  "waistX1": 0.6684,
-  "hem": 0.5904,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0777,
-   "y": 0.4615,
-   "w": 0.0984,
-   "fistX": 0.114,
-   "fistY": 0.5115
-  },
-  "wristR": {
-   "x": 0.9119,
-   "y": 0.4615,
-   "w": 0.0984,
-   "fistX": 0.8782,
-   "fistY": 0.5115
-  }
+  "cx": 0.504
  },
  "arm_5": {
-  "w": 206,
+  "w": 221,
   "h": 520,
-  "cx": 0.5,
-  "headTop": 0.0038,
-  "forehead": 0.05,
-  "headW": 0.2524,
-  "neck": 0.1154,
-  "neckW": 0.1553,
-  "shoulder": 0.1596,
-  "shoulderW": 0.7039,
-  "waistTop": 0.4058,
-  "waistBottom": 0.4212,
-  "waistX0": 0.3398,
-  "waistX1": 0.6602,
-  "hem": 0.5885,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0922,
-   "y": 0.4654,
-   "w": 0.1117,
-   "fistX": 0.1286,
-   "fistY": 0.5154
-  },
-  "wristR": {
-   "x": 0.9053,
-   "y": 0.4654,
-   "w": 0.1068,
-   "fistX": 0.8689,
-   "fistY": 0.5154
-  }
+  "cx": 0.504
  },
  "arm_6": {
-  "w": 240,
+  "w": 249,
   "h": 520,
-  "cx": 0.5,
-  "headTop": 0.0077,
-  "forehead": 0.0538,
-  "headW": 0.2458,
-  "neck": 0.1212,
-  "neckW": 0.1667,
-  "shoulder": 0.1635,
-  "shoulderW": 0.7083,
-  "waistTop": 0.4077,
-  "waistBottom": 0.4231,
-  "waistX0": 0.2042,
-  "waistX1": 0.7958,
-  "hem": 0.5808,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.1333,
-   "y": 0.4885,
-   "w": 0.1458,
-   "fistX": 0.1521,
-   "fistY": 0.5385
-  },
-  "wristR": {
-   "x": 0.8438,
-   "y": 0.4885,
-   "w": 0.175,
-   "fistX": 0.8333,
-   "fistY": 0.5385
-  }
+  "cx": 0.495
  },
  "back_2": {
-  "w": 182,
+  "w": 177,
   "h": 520,
-  "cx": 0.4973,
-  "headTop": 0.0038,
-  "forehead": 0.0519,
-  "headW": 0.2912,
-  "neck": 0.1192,
-  "neckW": 0.1593,
-  "shoulder": 0.1692,
-  "shoulderW": 0.6648,
-  "waistTop": 0.4,
-  "waistBottom": 0.4154,
-  "waistX0": 0.3077,
-  "waistX1": 0.6868,
-  "hem": 0.5885,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0824,
-   "y": 0.4558,
-   "w": 0.0714,
-   "fistX": 0.1099,
-   "fistY": 0.5058
-  },
-  "wristR": {
-   "x": 0.9258,
-   "y": 0.4558,
-   "w": 0.0659,
-   "fistX": 0.8956,
-   "fistY": 0.5058
-  }
+  "cx": 0.496
  },
  "back_3": {
-  "w": 176,
+  "w": 197,
   "h": 520,
-  "cx": 0.4773,
-  "headTop": 0.0038,
-  "forehead": 0.05,
-  "headW": 0.2898,
-  "neck": 0.1173,
-  "neckW": 0.1648,
-  "shoulder": 0.1673,
-  "shoulderW": 0.6989,
-  "waistTop": 0.4,
-  "waistBottom": 0.4154,
-  "waistX0": 0.2898,
-  "waistX1": 0.6648,
-  "hem": 0.5885,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0511,
-   "y": 0.4577,
-   "w": 0.0739,
-   "fistX": 0.0852,
-   "fistY": 0.5077
-  },
-  "wristR": {
-   "x": 0.9176,
-   "y": 0.4558,
-   "w": 0.0682,
-   "fistX": 0.8864,
-   "fistY": 0.5058
-  }
+  "cx": 0.502
  },
  "back_4": {
-  "w": 192,
+  "w": 214,
   "h": 520,
-  "cx": 0.4818,
-  "headTop": 0.0038,
-  "forehead": 0.0481,
-  "headW": 0.2708,
-  "neck": 0.1135,
-  "neckW": 0.1615,
-  "shoulder": 0.1615,
-  "shoulderW": 0.7083,
-  "waistTop": 0.4,
-  "waistBottom": 0.4154,
-  "waistX0": 0.2917,
-  "waistX1": 0.6719,
-  "hem": 0.5865,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0573,
-   "y": 0.4577,
-   "w": 0.0781,
-   "fistX": 0.0911,
-   "fistY": 0.5077
-  },
-  "wristR": {
-   "x": 0.9297,
-   "y": 0.4558,
-   "w": 0.0729,
-   "fistX": 0.8958,
-   "fistY": 0.5058
-  }
+  "cx": 0.498
  },
  "back_5": {
-  "w": 208,
+  "w": 216,
   "h": 520,
-  "cx": 0.4808,
-  "headTop": 0.0038,
-  "forehead": 0.0481,
-  "headW": 0.2452,
-  "neck": 0.1096,
-  "neckW": 0.1538,
-  "shoulder": 0.1558,
-  "shoulderW": 0.6779,
-  "waistTop": 0.4038,
-  "waistBottom": 0.4173,
-  "waistX0": 0.3077,
-  "waistX1": 0.6538,
-  "hem": 0.5846,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0625,
-   "y": 0.4596,
-   "w": 0.0817,
-   "fistX": 0.0938,
-   "fistY": 0.5096
-  },
-  "wristR": {
-   "x": 0.9207,
-   "y": 0.4577,
-   "w": 0.0769,
-   "fistX": 0.8822,
-   "fistY": 0.5077
-  }
+  "cx": 0.496
  },
  "back_6": {
-  "w": 230,
+  "w": 229,
   "h": 520,
-  "cx": 0.487,
-  "headTop": 0.0038,
-  "forehead": 0.0481,
-  "headW": 0.2261,
-  "neck": 0.1096,
-  "neckW": 0.1522,
-  "shoulder": 0.1519,
-  "shoulderW": 0.6739,
-  "waistTop": 0.4096,
-  "waistBottom": 0.4212,
-  "waistX0": 0.3174,
-  "waistX1": 0.6565,
-  "hem": 0.5827,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0674,
-   "y": 0.4635,
-   "w": 0.0783,
-   "fistX": 0.1,
-   "fistY": 0.5135
-  },
-  "wristR": {
-   "x": 0.9261,
-   "y": 0.4654,
-   "w": 0.0739,
-   "fistX": 0.887,
-   "fistY": 0.5154
-  }
+  "cx": 0.496
  },
  "balance_1": {
   "w": 119,
@@ -485,803 +215,128 @@
   }
  },
  "chest_2": {
-  "w": 171,
+  "w": 160,
   "h": 520,
-  "cx": 0.4912,
-  "headTop": 0.0038,
-  "forehead": 0.05,
-  "headW": 0.2865,
-  "neck": 0.1154,
-  "neckW": 0.1579,
-  "shoulder": 0.1635,
-  "shoulderW": 0.6784,
-  "waistTop": 0.3865,
-  "waistBottom": 0.4,
-  "waistX0": 0.2924,
-  "waistX1": 0.6901,
-  "hem": 0.5885,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0643,
-   "y": 0.4538,
-   "w": 0.076,
-   "fistX": 0.1082,
-   "fistY": 0.5038
-  },
-  "wristR": {
-   "x": 0.9211,
-   "y": 0.4519,
-   "w": 0.0702,
-   "fistX": 0.8889,
-   "fistY": 0.5019
-  }
+  "cx": 0.498
  },
  "chest_3": {
   "w": 174,
   "h": 520,
-  "cx": 0.4655,
-  "headTop": 0.0038,
-  "forehead": 0.0481,
-  "headW": 0.2816,
-  "neck": 0.1096,
-  "neckW": 0.1609,
-  "shoulder": 0.1615,
-  "shoulderW": 0.6839,
-  "waistTop": 0.3865,
-  "waistBottom": 0.4,
-  "waistX0": 0.2816,
-  "waistX1": 0.6494,
-  "hem": 0.5827,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0603,
-   "y": 0.4519,
-   "w": 0.0805,
-   "fistX": 0.0977,
-   "fistY": 0.5019
-  },
-  "wristR": {
-   "x": 0.9052,
-   "y": 0.4519,
-   "w": 0.0805,
-   "fistX": 0.8649,
-   "fistY": 0.5019
-  }
+  "cx": 0.502
  },
  "chest_4": {
-  "w": 178,
+  "w": 190,
   "h": 520,
-  "cx": 0.4944,
-  "headTop": 0.0038,
-  "forehead": 0.0481,
-  "headW": 0.2809,
-  "neck": 0.1096,
-  "neckW": 0.1573,
-  "shoulder": 0.1538,
-  "shoulderW": 0.7022,
-  "waistTop": 0.3885,
-  "waistBottom": 0.4019,
-  "waistX0": 0.3146,
-  "waistX1": 0.6742,
-  "hem": 0.5827,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0618,
-   "y": 0.4558,
-   "w": 0.0843,
-   "fistX": 0.1039,
-   "fistY": 0.5058
-  },
-  "wristR": {
-   "x": 0.9382,
-   "y": 0.4558,
-   "w": 0.0843,
-   "fistX": 0.8904,
-   "fistY": 0.5058
-  }
+  "cx": 0.5
  },
  "chest_5": {
-  "w": 182,
+  "w": 202,
   "h": 520,
-  "cx": 0.4945,
-  "headTop": 0.0038,
-  "forehead": 0.0462,
-  "headW": 0.2637,
-  "neck": 0.1077,
-  "neckW": 0.1648,
-  "shoulder": 0.1558,
-  "shoulderW": 0.6758,
-  "waistTop": 0.3962,
-  "waistBottom": 0.4115,
-  "waistX0": 0.3022,
-  "waistX1": 0.6868,
-  "hem": 0.5788,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0632,
-   "y": 0.4635,
-   "w": 0.0879,
-   "fistX": 0.1044,
-   "fistY": 0.5135
-  },
-  "wristR": {
-   "x": 0.9396,
-   "y": 0.4615,
-   "w": 0.0824,
-   "fistX": 0.8984,
-   "fistY": 0.5115
-  }
+  "cx": 0.499
  },
  "chest_6": {
-  "w": 180,
+  "w": 217,
   "h": 520,
-  "cx": 0.4972,
-  "headTop": 0.0038,
-  "forehead": 0.0462,
-  "headW": 0.2722,
-  "neck": 0.1058,
-  "neckW": 0.1722,
-  "shoulder": 0.1538,
-  "shoulderW": 0.7222,
-  "waistTop": 0.3942,
-  "waistBottom": 0.4096,
-  "waistX0": 0.3056,
-  "waistX1": 0.6889,
-  "hem": 0.5808,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0694,
-   "y": 0.4635,
-   "w": 0.1,
-   "fistX": 0.1028,
-   "fistY": 0.5135
-  },
-  "wristR": {
-   "x": 0.9083,
-   "y": 0.4865,
-   "w": 0.1333,
-   "fistX": 0.8806,
-   "fistY": 0.5365
-  }
+  "cx": 0.497
  },
  "core_2": {
-  "w": 183,
+  "w": 167,
   "h": 520,
-  "cx": 0.5027,
-  "headTop": 0.0058,
-  "forehead": 0.0519,
-  "headW": 0.2842,
-  "neck": 0.1192,
-  "neckW": 0.1694,
-  "shoulder": 0.1731,
-  "shoulderW": 0.6612,
-  "waistTop": 0.4077,
-  "waistBottom": 0.4231,
-  "waistX0": 0.3279,
-  "waistX1": 0.6776,
-  "hem": 0.5942,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0902,
-   "y": 0.4615,
-   "w": 0.0656,
-   "fistX": 0.123,
-   "fistY": 0.5115
-  },
-  "wristR": {
-   "x": 0.918,
-   "y": 0.4615,
-   "w": 0.071,
-   "fistX": 0.8798,
-   "fistY": 0.5115
-  }
+  "cx": 0.499
  },
  "core_3": {
-  "w": 181,
+  "w": 170,
   "h": 520,
-  "cx": 0.4862,
-  "headTop": 0.0038,
-  "forehead": 0.0519,
-  "headW": 0.2928,
-  "neck": 0.1192,
-  "neckW": 0.1713,
-  "shoulder": 0.1712,
-  "shoulderW": 0.6906,
-  "waistTop": 0.4077,
-  "waistBottom": 0.4231,
-  "waistX0": 0.3039,
-  "waistX1": 0.6685,
-  "hem": 0.5923,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.058,
-   "y": 0.4615,
-   "w": 0.0773,
-   "fistX": 0.0967,
-   "fistY": 0.5115
-  },
-  "wristR": {
-   "x": 0.9171,
-   "y": 0.4615,
-   "w": 0.0718,
-   "fistX": 0.8785,
-   "fistY": 0.5115
-  }
+  "cx": 0.494
  },
  "core_4": {
-  "w": 189,
+  "w": 171,
   "h": 520,
-  "cx": 0.4894,
-  "headTop": 0.0038,
-  "forehead": 0.0519,
-  "headW": 0.2751,
-  "neck": 0.1212,
-  "neckW": 0.164,
-  "shoulder": 0.1673,
-  "shoulderW": 0.6825,
-  "waistTop": 0.4096,
-  "waistBottom": 0.425,
-  "waistX0": 0.3069,
-  "waistX1": 0.672,
-  "hem": 0.5904,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0582,
-   "y": 0.4615,
-   "w": 0.0794,
-   "fistX": 0.0926,
-   "fistY": 0.5115
-  },
-  "wristR": {
-   "x": 0.9206,
-   "y": 0.4615,
-   "w": 0.0794,
-   "fistX": 0.8836,
-   "fistY": 0.5115
-  }
+  "cx": 0.5
  },
  "core_5": {
-  "w": 199,
+  "w": 174,
   "h": 520,
-  "cx": 0.4899,
-  "headTop": 0.0038,
-  "forehead": 0.05,
-  "headW": 0.2663,
-  "neck": 0.1154,
-  "neckW": 0.1658,
-  "shoulder": 0.1654,
-  "shoulderW": 0.7035,
-  "waistTop": 0.4135,
-  "waistBottom": 0.4288,
-  "waistX0": 0.3015,
-  "waistX1": 0.6784,
-  "hem": 0.5846,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0578,
-   "y": 0.4635,
-   "w": 0.0804,
-   "fistX": 0.0955,
-   "fistY": 0.5135
-  },
-  "wristR": {
-   "x": 0.9347,
-   "y": 0.4654,
-   "w": 0.0854,
-   "fistX": 0.897,
-   "fistY": 0.5154
-  }
+  "cx": 0.499
  },
  "core_6": {
-  "w": 221,
+  "w": 175,
   "h": 520,
-  "cx": 0.5,
-  "headTop": 0.0135,
-  "forehead": 0.0615,
-  "headW": 0.2805,
-  "neck": 0.1288,
-  "neckW": 0.1991,
-  "shoulder": 0.175,
-  "shoulderW": 0.7149,
-  "waistTop": 0.4173,
-  "waistBottom": 0.4327,
-  "waistX0": 0.3303,
-  "waistX1": 0.6697,
-  "hem": 0.5827,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.1697,
-   "y": 0.4904,
-   "w": 0.009,
-   "fistX": 0.1471,
-   "fistY": 0.5404
-  },
-  "wristR": {
-   "x": 0.8145,
-   "y": 0.4904,
-   "w": 0.0136,
-   "fistX": 0.8484,
-   "fistY": 0.5404
-  }
+  "cx": 0.499
  },
  "leg_2": {
-  "w": 182,
+  "w": 174,
   "h": 520,
-  "cx": 0.5027,
-  "headTop": 0.0038,
-  "forehead": 0.0519,
-  "headW": 0.2857,
-  "neck": 0.1212,
-  "neckW": 0.1648,
-  "shoulder": 0.1731,
-  "shoulderW": 0.6758,
-  "waistTop": 0.3981,
-  "waistBottom": 0.4135,
-  "waistX0": 0.3242,
-  "waistX1": 0.6813,
-  "hem": 0.5885,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0824,
-   "y": 0.4577,
-   "w": 0.0714,
-   "fistX": 0.1099,
-   "fistY": 0.5077
-  },
-  "wristR": {
-   "x": 0.9176,
-   "y": 0.4558,
-   "w": 0.0714,
-   "fistX": 0.8846,
-   "fistY": 0.5058
-  }
+  "cx": 0.499
  },
  "leg_3": {
-  "w": 180,
+  "w": 179,
   "h": 520,
-  "cx": 0.4833,
-  "headTop": 0.0058,
-  "forehead": 0.0519,
-  "headW": 0.2889,
-  "neck": 0.1192,
-  "neckW": 0.1722,
-  "shoulder": 0.1731,
-  "shoulderW": 0.6944,
-  "waistTop": 0.4,
-  "waistBottom": 0.4154,
-  "waistX0": 0.3056,
-  "waistX1": 0.6611,
-  "hem": 0.5788,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0611,
-   "y": 0.4577,
-   "w": 0.0722,
-   "fistX": 0.0917,
-   "fistY": 0.5077
-  },
-  "wristR": {
-   "x": 0.9111,
-   "y": 0.4577,
-   "w": 0.0722,
-   "fistX": 0.8806,
-   "fistY": 0.5077
-  }
+  "cx": 0.497
  },
  "leg_4": {
-  "w": 189,
+  "w": 192,
   "h": 520,
-  "cx": 0.4868,
-  "headTop": 0.0038,
-  "forehead": 0.05,
-  "headW": 0.2751,
-  "neck": 0.1173,
-  "neckW": 0.164,
-  "shoulder": 0.1692,
-  "shoulderW": 0.7037,
-  "waistTop": 0.4,
-  "waistBottom": 0.4154,
-  "waistX0": 0.3122,
-  "waistX1": 0.6614,
-  "hem": 0.5673,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0556,
-   "y": 0.4596,
-   "w": 0.0741,
-   "fistX": 0.0873,
-   "fistY": 0.5096
-  },
-  "wristR": {
-   "x": 0.9127,
-   "y": 0.475,
-   "w": 0.0952,
-   "fistX": 0.873,
-   "fistY": 0.525
-  }
+  "cx": 0.499
  },
  "leg_5": {
   "w": 196,
   "h": 520,
-  "cx": 0.4872,
-  "headTop": 0.0038,
-  "forehead": 0.0519,
-  "headW": 0.2704,
-  "neck": 0.1192,
-  "neckW": 0.1582,
-  "shoulder": 0.1635,
-  "shoulderW": 0.6939,
-  "waistTop": 0.4,
-  "waistBottom": 0.4154,
-  "waistX0": 0.3112,
-  "waistX1": 0.6633,
-  "hem": 0.5558,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0587,
-   "y": 0.4635,
-   "w": 0.0714,
-   "fistX": 0.1224,
-   "fistY": 0.5135
-  },
-  "wristR": {
-   "x": 0.9362,
-   "y": 0.4635,
-   "w": 0.0714,
-   "fistX": 0.8776,
-   "fistY": 0.5135
-  }
+  "cx": 0.497
  },
  "leg_6": {
-  "w": 215,
+  "w": 206,
   "h": 520,
-  "cx": 0.4977,
-  "headTop": 0.0096,
-  "forehead": 0.0596,
-  "headW": 0.2744,
-  "neck": 0.1288,
-  "neckW": 0.1767,
-  "shoulder": 0.1712,
-  "shoulderW": 0.6837,
-  "waistTop": 0.4058,
-  "waistBottom": 0.4212,
-  "waistX0": 0.3256,
-  "waistX1": 0.6698,
-  "hem": 0.5423,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.1395,
-   "y": 0.45,
-   "w": 0.014,
-   "fistX": 0.1535,
-   "fistY": 0.5
-  },
-  "wristR": {
-   "x": 0.8488,
-   "y": 0.45,
-   "w": 0.0093,
-   "fistX": 0.8395,
-   "fistY": 0.5
-  }
+  "cx": 0.499
  },
  "runner_2": {
-  "w": 176,
+  "w": 150,
   "h": 520,
-  "cx": 0.5057,
-  "headTop": 0.0038,
-  "forehead": 0.0538,
-  "headW": 0.3011,
-  "neck": 0.125,
-  "neckW": 0.1705,
-  "shoulder": 0.1827,
-  "shoulderW": 0.6705,
-  "waistTop": 0.4077,
-  "waistBottom": 0.4231,
-  "waistX0": 0.3295,
-  "waistX1": 0.6818,
-  "hem": 0.5827,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0625,
-   "y": 0.4635,
-   "w": 0.0625,
-   "fistX": 0.0938,
-   "fistY": 0.5135
-  },
-  "wristR": {
-   "x": 0.9403,
-   "y": 0.4635,
-   "w": 0.0682,
-   "fistX": 0.9062,
-   "fistY": 0.5135
-  }
+  "cx": 0.497
  },
  "runner_3": {
-  "w": 173,
+  "w": 155,
   "h": 520,
-  "cx": 0.5,
-  "headTop": 0.0038,
-  "forehead": 0.0538,
-  "headW": 0.3064,
-  "neck": 0.125,
-  "neckW": 0.1734,
-  "shoulder": 0.1808,
-  "shoulderW": 0.6879,
-  "waistTop": 0.4077,
-  "waistBottom": 0.4212,
-  "waistX0": 0.3237,
-  "waistX1": 0.6763,
-  "hem": 0.5827,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0549,
-   "y": 0.4635,
-   "w": 0.0694,
-   "fistX": 0.0867,
-   "fistY": 0.5135
-  },
-  "wristR": {
-   "x": 0.9393,
-   "y": 0.4635,
-   "w": 0.0694,
-   "fistX": 0.9046,
-   "fistY": 0.5135
-  }
+  "cx": 0.5
  },
  "runner_4": {
-  "w": 178,
+  "w": 160,
   "h": 520,
-  "cx": 0.5028,
-  "headTop": 0.0038,
-  "forehead": 0.0538,
-  "headW": 0.3034,
-  "neck": 0.1269,
-  "neckW": 0.1742,
-  "shoulder": 0.1788,
-  "shoulderW": 0.7022,
-  "waistTop": 0.4058,
-  "waistBottom": 0.4192,
-  "waistX0": 0.3258,
-  "waistX1": 0.6798,
-  "hem": 0.5808,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0562,
-   "y": 0.4635,
-   "w": 0.073,
-   "fistX": 0.0899,
-   "fistY": 0.5135
-  },
-  "wristR": {
-   "x": 0.941,
-   "y": 0.4635,
-   "w": 0.0674,
-   "fistX": 0.9045,
-   "fistY": 0.5135
-  }
+  "cx": 0.5
  },
  "runner_5": {
-  "w": 180,
+  "w": 159,
   "h": 520,
-  "cx": 0.5,
-  "headTop": 0.0058,
-  "forehead": 0.0558,
-  "headW": 0.3056,
-  "neck": 0.1269,
-  "neckW": 0.1778,
-  "shoulder": 0.1769,
-  "shoulderW": 0.7056,
-  "waistTop": 0.4077,
-  "waistBottom": 0.4212,
-  "waistX0": 0.3222,
-  "waistX1": 0.6778,
-  "hem": 0.5769,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0556,
-   "y": 0.4635,
-   "w": 0.0722,
-   "fistX": 0.0972,
-   "fistY": 0.5135
-  },
-  "wristR": {
-   "x": 0.9389,
-   "y": 0.4654,
-   "w": 0.0722,
-   "fistX": 0.9,
-   "fistY": 0.5154
-  }
+  "cx": 0.501
  },
  "runner_6": {
-  "w": 196,
+  "w": 160,
   "h": 520,
-  "cx": 0.4923,
-  "headTop": 0.0135,
-  "forehead": 0.0692,
-  "headW": 0.3878,
-  "neck": 0.1481,
-  "neckW": 0.2755,
-  "shoulder": 0.2077,
-  "shoulderW": 0.7245,
-  "waistTop": 0.4115,
-  "waistBottom": 0.4269,
-  "waistX0": 0.3265,
-  "waistX1": 0.6582,
-  "hem": 0.5673,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.2219,
-   "y": 0.475,
-   "w": 0.1429,
-   "fistX": 0.1633,
-   "fistY": 0.525
-  },
-  "wristR": {
-   "x": 0.8291,
-   "y": 0.475,
-   "w": 0.2653,
-   "fistX": 0.8342,
-   "fistY": 0.525
-  }
+  "cx": 0.498
  },
  "shoulder_2": {
-  "w": 181,
+  "w": 167,
   "h": 520,
-  "cx": 0.5028,
-  "headTop": 0.0038,
-  "forehead": 0.05,
-  "headW": 0.2818,
-  "neck": 0.1173,
-  "neckW": 0.1602,
-  "shoulder": 0.1692,
-  "shoulderW": 0.674,
-  "waistTop": 0.3981,
-  "waistBottom": 0.4135,
-  "waistX0": 0.3149,
-  "waistX1": 0.6906,
-  "hem": 0.5904,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0773,
-   "y": 0.4596,
-   "w": 0.0718,
-   "fistX": 0.1105,
-   "fistY": 0.5096
-  },
-  "wristR": {
-   "x": 0.9309,
-   "y": 0.4577,
-   "w": 0.0663,
-   "fistX": 0.8923,
-   "fistY": 0.5077
-  }
+  "cx": 0.502
  },
  "shoulder_3": {
-  "w": 180,
+  "w": 171,
   "h": 520,
-  "cx": 0.4833,
-  "headTop": 0.0038,
-  "forehead": 0.05,
-  "headW": 0.2889,
-  "neck": 0.1154,
-  "neckW": 0.1611,
-  "shoulder": 0.1635,
-  "shoulderW": 0.7444,
-  "waistTop": 0.4,
-  "waistBottom": 0.4154,
-  "waistX0": 0.2944,
-  "waistX1": 0.6722,
-  "hem": 0.5904,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0556,
-   "y": 0.4596,
-   "w": 0.0722,
-   "fistX": 0.0889,
-   "fistY": 0.5096
-  },
-  "wristR": {
-   "x": 0.9222,
-   "y": 0.4577,
-   "w": 0.0722,
-   "fistX": 0.8861,
-   "fistY": 0.5077
-  }
+  "cx": 0.498
  },
  "shoulder_4": {
-  "w": 193,
+  "w": 180,
   "h": 520,
-  "cx": 0.4896,
-  "headTop": 0.0038,
-  "forehead": 0.0519,
-  "headW": 0.2694,
-  "neck": 0.1212,
-  "neckW": 0.1554,
-  "shoulder": 0.1577,
-  "shoulderW": 0.7772,
-  "waistTop": 0.4,
-  "waistBottom": 0.4154,
-  "waistX0": 0.3057,
-  "waistX1": 0.6736,
-  "hem": 0.5904,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.0674,
-   "y": 0.4596,
-   "w": 0.0777,
-   "fistX": 0.1062,
-   "fistY": 0.5096
-  },
-  "wristR": {
-   "x": 0.9352,
-   "y": 0.4596,
-   "w": 0.0725,
-   "fistX": 0.8938,
-   "fistY": 0.5096
-  }
+  "cx": 0.504
  },
  "shoulder_5": {
-  "w": 203,
+  "w": 193,
   "h": 520,
-  "cx": 0.4926,
-  "headTop": 0.0038,
-  "forehead": 0.0481,
-  "headW": 0.2463,
-  "neck": 0.1135,
-  "neckW": 0.1527,
-  "shoulder": 0.1519,
-  "shoulderW": 0.7734,
-  "waistTop": 0.4038,
-  "waistBottom": 0.4192,
-  "waistX0": 0.3153,
-  "waistX1": 0.67,
-  "hem": 0.5885,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.069,
-   "y": 0.4654,
-   "w": 0.0837,
-   "fistX": 0.1084,
-   "fistY": 0.5154
-  },
-  "wristR": {
-   "x": 0.9335,
-   "y": 0.4635,
-   "w": 0.0788,
-   "fistX": 0.8867,
-   "fistY": 0.5135
-  }
+  "cx": 0.499
  },
  "shoulder_6": {
-  "w": 225,
+  "w": 213,
   "h": 520,
-  "cx": 0.5,
-  "headTop": 0.0038,
-  "forehead": 0.05,
-  "headW": 0.2311,
-  "neck": 0.1154,
-  "neckW": 0.1511,
-  "shoulder": 0.15,
-  "shoulderW": 0.7556,
-  "waistTop": 0.4038,
-  "waistBottom": 0.4212,
-  "waistX0": 0.3333,
-  "waistX1": 0.6667,
-  "hem": 0.5865,
-  "feetTop": 0.8885,
-  "wristL": {
-   "x": 0.1089,
-   "y": 0.4942,
-   "w": 0.1333,
-   "fistX": 0.1467,
-   "fistY": 0.5442
-  },
-  "wristR": {
-   "x": 0.8867,
-   "y": 0.4942,
-   "w": 0.1333,
-   "fistX": 0.8511,
-   "fistY": 0.5442
-  }
+  "cx": 0.497
  }
 }

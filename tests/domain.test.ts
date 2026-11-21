@@ -92,6 +92,10 @@ describe("hero appearance", () => {
     expect(heroType({ ...base, chest: 1500 })).toBe("chest");
     expect(heroType({ ...base, cardio: 2000 })).toBe("runner");
     // 1位と2位が近ければバランス型（低い部位に引きずられない）
+    // 2つ・3つが同じくらいなら組み合わせの体型、4つ以上ならバランス型
+    expect(heroType({ chest: 0, back: 0, shoulders: 1000, arms: 1000, legs: 100, core: 0, cardio: 0 })).toBe("shoulder_arm");
+    expect(heroType({ chest: 900, back: 1000, shoulders: 0, arms: 0, legs: 950, core: 0, cardio: 0 })).toBe("chest_back_leg");
+    expect(heroType({ chest: 1000, back: 1000, shoulders: 1000, arms: 1000, legs: 0, core: 0, cardio: 0 })).toBe("balance");
     expect(heroType({ chest: 141, back: 153, shoulders: 192, arms: 150, legs: 162, core: 39, cardio: 0 })).toBe("balance");
     expect(heroType({ ...base, chest: 0, back: 0, shoulders: 0, arms: 0, legs: 0, core: 0, cardio: 0 })).toBe("balance");
   });
