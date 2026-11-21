@@ -49,6 +49,31 @@
   "h": 520,
   "cx": 0.497
  },
+ "arm_core_runner_2": {
+  "w": 164,
+  "h": 520,
+  "cx": 0.498
+ },
+ "arm_core_runner_3": {
+  "w": 174,
+  "h": 520,
+  "cx": 0.5
+ },
+ "arm_core_runner_4": {
+  "w": 187,
+  "h": 520,
+  "cx": 0.498
+ },
+ "arm_core_runner_5": {
+  "w": 190,
+  "h": 520,
+  "cx": 0.499
+ },
+ "arm_core_runner_6": {
+  "w": 205,
+  "h": 520,
+  "cx": 0.502
+ },
  "arm_leg_2": {
   "w": 184,
   "h": 520,
@@ -73,6 +98,56 @@
   "w": 230,
   "h": 520,
   "cx": 0.501
+ },
+ "arm_leg_core_2": {
+  "w": 181,
+  "h": 520,
+  "cx": 0.498
+ },
+ "arm_leg_core_3": {
+  "w": 195,
+  "h": 520,
+  "cx": 0.499
+ },
+ "arm_leg_core_4": {
+  "w": 206,
+  "h": 520,
+  "cx": 0.5
+ },
+ "arm_leg_core_5": {
+  "w": 215,
+  "h": 520,
+  "cx": 0.5
+ },
+ "arm_leg_core_6": {
+  "w": 232,
+  "h": 520,
+  "cx": 0.496
+ },
+ "arm_leg_runner_2": {
+  "w": 174,
+  "h": 520,
+  "cx": 0.506
+ },
+ "arm_leg_runner_3": {
+  "w": 177,
+  "h": 520,
+  "cx": 0.5
+ },
+ "arm_leg_runner_4": {
+  "w": 186,
+  "h": 520,
+  "cx": 0.498
+ },
+ "arm_leg_runner_5": {
+  "w": 202,
+  "h": 520,
+  "cx": 0.5
+ },
+ "arm_leg_runner_6": {
+  "w": 222,
+  "h": 520,
+  "cx": 0.497
  },
  "arm_runner_2": {
   "w": 169,
@@ -149,6 +224,81 @@
   "h": 520,
   "cx": 0.494
  },
+ "back_arm_core_2": {
+  "w": 226,
+  "h": 520,
+  "cx": 0.471
+ },
+ "back_arm_core_3": {
+  "w": 249,
+  "h": 520,
+  "cx": 0.484
+ },
+ "back_arm_core_4": {
+  "w": 258,
+  "h": 520,
+  "cx": 0.498
+ },
+ "back_arm_core_5": {
+  "w": 258,
+  "h": 520,
+  "cx": 0.499
+ },
+ "back_arm_core_6": {
+  "w": 264,
+  "h": 520,
+  "cx": 0.5
+ },
+ "back_arm_leg_2": {
+  "w": 198,
+  "h": 520,
+  "cx": 0.495
+ },
+ "back_arm_leg_3": {
+  "w": 213,
+  "h": 520,
+  "cx": 0.498
+ },
+ "back_arm_leg_4": {
+  "w": 235,
+  "h": 520,
+  "cx": 0.5
+ },
+ "back_arm_leg_5": {
+  "w": 246,
+  "h": 520,
+  "cx": 0.499
+ },
+ "back_arm_leg_6": {
+  "w": 276,
+  "h": 520,
+  "cx": 0.523
+ },
+ "back_arm_runner_2": {
+  "w": 182,
+  "h": 520,
+  "cx": 0.502
+ },
+ "back_arm_runner_3": {
+  "w": 198,
+  "h": 520,
+  "cx": 0.501
+ },
+ "back_arm_runner_4": {
+  "w": 210,
+  "h": 520,
+  "cx": 0.5
+ },
+ "back_arm_runner_5": {
+  "w": 228,
+  "h": 520,
+  "cx": 0.494
+ },
+ "back_arm_runner_6": {
+  "w": 240,
+  "h": 520,
+  "cx": 0.497
+ },
  "back_core_2": {
   "w": 185,
   "h": 520,
@@ -171,6 +321,31 @@
  },
  "back_core_6": {
   "w": 220,
+  "h": 520,
+  "cx": 0.497
+ },
+ "back_core_runner_2": {
+  "w": 173,
+  "h": 520,
+  "cx": 0.5
+ },
+ "back_core_runner_3": {
+  "w": 183,
+  "h": 520,
+  "cx": 0.502
+ },
+ "back_core_runner_4": {
+  "w": 194,
+  "h": 520,
+  "cx": 0.498
+ },
+ "back_core_runner_5": {
+  "w": 198,
+  "h": 520,
+  "cx": 0.498
+ },
+ "back_core_runner_6": {
+  "w": 208,
   "h": 520,
   "cx": 0.497
  },
@@ -198,6 +373,56 @@
   "w": 224,
   "h": 520,
   "cx": 0.5
+ },
+ "back_leg_core_2": {
+  "w": 194,
+  "h": 520,
+  "cx": 0.5
+ },
+ "back_leg_core_3": {
+  "w": 202,
+  "h": 520,
+  "cx": 0.5
+ },
+ "back_leg_core_4": {
+  "w": 213,
+  "h": 520,
+  "cx": 0.498
+ },
+ "back_leg_core_5": {
+  "w": 218,
+  "h": 520,
+  "cx": 0.5
+ },
+ "back_leg_core_6": {
+  "w": 229,
+  "h": 520,
+  "cx": 0.502
+ },
+ "back_leg_runner_2": {
+  "w": 188,
+  "h": 520,
+  "cx": 0.497
+ },
+ "back_leg_runner_3": {
+  "w": 192,
+  "h": 520,
+  "cx": 0.499
+ },
+ "back_leg_runner_4": {
+  "w": 197,
+  "h": 520,
+  "cx": 0.498
+ },
+ "back_leg_runner_5": {
+  "w": 208,
+  "h": 520,
+  "cx": 0.499
+ },
+ "back_leg_runner_6": {
+  "w": 216,
+  "h": 520,
+  "cx": 0.496
  },
  "back_runner_2": {
   "w": 169,
@@ -248,6 +473,106 @@
   "w": 225,
   "h": 520,
   "cx": 0.502
+ },
+ "back_shoulder_arm_2": {
+  "w": 201,
+  "h": 520,
+  "cx": 0.499
+ },
+ "back_shoulder_arm_3": {
+  "w": 226,
+  "h": 520,
+  "cx": 0.503
+ },
+ "back_shoulder_arm_4": {
+  "w": 244,
+  "h": 520,
+  "cx": 0.501
+ },
+ "back_shoulder_arm_5": {
+  "w": 257,
+  "h": 520,
+  "cx": 0.497
+ },
+ "back_shoulder_arm_6": {
+  "w": 277,
+  "h": 520,
+  "cx": 0.52
+ },
+ "back_shoulder_core_2": {
+  "w": 188,
+  "h": 520,
+  "cx": 0.501
+ },
+ "back_shoulder_core_3": {
+  "w": 207,
+  "h": 520,
+  "cx": 0.503
+ },
+ "back_shoulder_core_4": {
+  "w": 225,
+  "h": 520,
+  "cx": 0.502
+ },
+ "back_shoulder_core_5": {
+  "w": 234,
+  "h": 520,
+  "cx": 0.503
+ },
+ "back_shoulder_core_6": {
+  "w": 250,
+  "h": 520,
+  "cx": 0.503
+ },
+ "back_shoulder_leg_2": {
+  "w": 191,
+  "h": 520,
+  "cx": 0.499
+ },
+ "back_shoulder_leg_3": {
+  "w": 206,
+  "h": 520,
+  "cx": 0.501
+ },
+ "back_shoulder_leg_4": {
+  "w": 217,
+  "h": 520,
+  "cx": 0.504
+ },
+ "back_shoulder_leg_5": {
+  "w": 224,
+  "h": 520,
+  "cx": 0.501
+ },
+ "back_shoulder_leg_6": {
+  "w": 246,
+  "h": 520,
+  "cx": 0.496
+ },
+ "back_shoulder_runner_2": {
+  "w": 175,
+  "h": 520,
+  "cx": 0.502
+ },
+ "back_shoulder_runner_3": {
+  "w": 193,
+  "h": 520,
+  "cx": 0.497
+ },
+ "back_shoulder_runner_4": {
+  "w": 205,
+  "h": 520,
+  "cx": 0.497
+ },
+ "back_shoulder_runner_5": {
+  "w": 219,
+  "h": 520,
+  "cx": 0.504
+ },
+ "back_shoulder_runner_6": {
+  "w": 239,
+  "h": 520,
+  "cx": 0.498
  },
  "balance_1": {
   "w": 119,
@@ -464,6 +789,81 @@
   "h": 520,
   "cx": 0.499
  },
+ "chest_arm_core_2": {
+  "w": 191,
+  "h": 520,
+  "cx": 0.501
+ },
+ "chest_arm_core_3": {
+  "w": 205,
+  "h": 520,
+  "cx": 0.499
+ },
+ "chest_arm_core_4": {
+  "w": 222,
+  "h": 520,
+  "cx": 0.5
+ },
+ "chest_arm_core_5": {
+  "w": 232,
+  "h": 520,
+  "cx": 0.498
+ },
+ "chest_arm_core_6": {
+  "w": 244,
+  "h": 520,
+  "cx": 0.499
+ },
+ "chest_arm_leg_2": {
+  "w": 181,
+  "h": 520,
+  "cx": 0.499
+ },
+ "chest_arm_leg_3": {
+  "w": 208,
+  "h": 520,
+  "cx": 0.503
+ },
+ "chest_arm_leg_4": {
+  "w": 223,
+  "h": 520,
+  "cx": 0.5
+ },
+ "chest_arm_leg_5": {
+  "w": 233,
+  "h": 520,
+  "cx": 0.5
+ },
+ "chest_arm_leg_6": {
+  "w": 247,
+  "h": 520,
+  "cx": 0.498
+ },
+ "chest_arm_runner_2": {
+  "w": 171,
+  "h": 520,
+  "cx": 0.501
+ },
+ "chest_arm_runner_3": {
+  "w": 187,
+  "h": 520,
+  "cx": 0.502
+ },
+ "chest_arm_runner_4": {
+  "w": 202,
+  "h": 520,
+  "cx": 0.499
+ },
+ "chest_arm_runner_5": {
+  "w": 213,
+  "h": 520,
+  "cx": 0.498
+ },
+ "chest_arm_runner_6": {
+  "w": 223,
+  "h": 520,
+  "cx": 0.501
+ },
  "chest_back_2": {
   "w": 170,
   "h": 520,
@@ -488,6 +888,31 @@
   "w": 223,
   "h": 520,
   "cx": 0.498
+ },
+ "chest_back_arm_2": {
+  "w": 199,
+  "h": 520,
+  "cx": 0.501
+ },
+ "chest_back_arm_3": {
+  "w": 220,
+  "h": 520,
+  "cx": 0.506
+ },
+ "chest_back_arm_4": {
+  "w": 241,
+  "h": 520,
+  "cx": 0.503
+ },
+ "chest_back_arm_5": {
+  "w": 254,
+  "h": 520,
+  "cx": 0.501
+ },
+ "chest_back_arm_6": {
+  "w": 274,
+  "h": 520,
+  "cx": 0.519
  },
  "chest_back_core_2": {
   "w": 185,
@@ -614,6 +1039,31 @@
   "h": 520,
   "cx": 0.499
  },
+ "chest_core_runner_2": {
+  "w": 158,
+  "h": 520,
+  "cx": 0.503
+ },
+ "chest_core_runner_3": {
+  "w": 164,
+  "h": 520,
+  "cx": 0.504
+ },
+ "chest_core_runner_4": {
+  "w": 170,
+  "h": 520,
+  "cx": 0.5
+ },
+ "chest_core_runner_5": {
+  "w": 179,
+  "h": 520,
+  "cx": 0.502
+ },
+ "chest_core_runner_6": {
+  "w": 194,
+  "h": 520,
+  "cx": 0.504
+ },
  "chest_leg_2": {
   "w": 174,
   "h": 520,
@@ -638,6 +1088,56 @@
   "w": 213,
   "h": 520,
   "cx": 0.496
+ },
+ "chest_leg_core_2": {
+  "w": 181,
+  "h": 520,
+  "cx": 0.496
+ },
+ "chest_leg_core_3": {
+  "w": 187,
+  "h": 520,
+  "cx": 0.499
+ },
+ "chest_leg_core_4": {
+  "w": 197,
+  "h": 520,
+  "cx": 0.497
+ },
+ "chest_leg_core_5": {
+  "w": 206,
+  "h": 520,
+  "cx": 0.494
+ },
+ "chest_leg_core_6": {
+  "w": 220,
+  "h": 520,
+  "cx": 0.497
+ },
+ "chest_leg_runner_2": {
+  "w": 166,
+  "h": 520,
+  "cx": 0.496
+ },
+ "chest_leg_runner_3": {
+  "w": 166,
+  "h": 520,
+  "cx": 0.497
+ },
+ "chest_leg_runner_4": {
+  "w": 172,
+  "h": 520,
+  "cx": 0.493
+ },
+ "chest_leg_runner_5": {
+  "w": 182,
+  "h": 520,
+  "cx": 0.497
+ },
+ "chest_leg_runner_6": {
+  "w": 190,
+  "h": 520,
+  "cx": 0.502
  },
  "chest_runner_2": {
   "w": 162,
@@ -714,6 +1214,31 @@
   "h": 520,
   "cx": 0.497
  },
+ "chest_shoulder_core_2": {
+  "w": 176,
+  "h": 520,
+  "cx": 0.501
+ },
+ "chest_shoulder_core_3": {
+  "w": 190,
+  "h": 520,
+  "cx": 0.502
+ },
+ "chest_shoulder_core_4": {
+  "w": 205,
+  "h": 520,
+  "cx": 0.498
+ },
+ "chest_shoulder_core_5": {
+  "w": 215,
+  "h": 520,
+  "cx": 0.499
+ },
+ "chest_shoulder_core_6": {
+  "w": 235,
+  "h": 520,
+  "cx": 0.499
+ },
  "chest_shoulder_leg_2": {
   "w": 179,
   "h": 520,
@@ -738,6 +1263,31 @@
   "w": 238,
   "h": 520,
   "cx": 0.498
+ },
+ "chest_shoulder_runner_2": {
+  "w": 160,
+  "h": 520,
+  "cx": 0.504
+ },
+ "chest_shoulder_runner_3": {
+  "w": 166,
+  "h": 520,
+  "cx": 0.497
+ },
+ "chest_shoulder_runner_4": {
+  "w": 179,
+  "h": 520,
+  "cx": 0.5
+ },
+ "chest_shoulder_runner_5": {
+  "w": 191,
+  "h": 520,
+  "cx": 0.502
+ },
+ "chest_shoulder_runner_6": {
+  "w": 204,
+  "h": 520,
+  "cx": 0.501
  },
  "core_2": {
   "w": 167,
@@ -836,6 +1386,31 @@
  },
  "leg_core_6": {
   "w": 190,
+  "h": 520,
+  "cx": 0.5
+ },
+ "leg_core_runner_2": {
+  "w": 165,
+  "h": 520,
+  "cx": 0.5
+ },
+ "leg_core_runner_3": {
+  "w": 169,
+  "h": 520,
+  "cx": 0.502
+ },
+ "leg_core_runner_4": {
+  "w": 174,
+  "h": 520,
+  "cx": 0.5
+ },
+ "leg_core_runner_5": {
+  "w": 177,
+  "h": 520,
+  "cx": 0.499
+ },
+ "leg_core_runner_6": {
+  "w": 184,
   "h": 520,
   "cx": 0.5
  },
@@ -939,6 +1514,81 @@
   "h": 520,
   "cx": 0.5
  },
+ "shoulder_arm_core_2": {
+  "w": 184,
+  "h": 520,
+  "cx": 0.502
+ },
+ "shoulder_arm_core_3": {
+  "w": 198,
+  "h": 520,
+  "cx": 0.502
+ },
+ "shoulder_arm_core_4": {
+  "w": 223,
+  "h": 520,
+  "cx": 0.498
+ },
+ "shoulder_arm_core_5": {
+  "w": 232,
+  "h": 520,
+  "cx": 0.498
+ },
+ "shoulder_arm_core_6": {
+  "w": 240,
+  "h": 520,
+  "cx": 0.497
+ },
+ "shoulder_arm_leg_2": {
+  "w": 193,
+  "h": 520,
+  "cx": 0.498
+ },
+ "shoulder_arm_leg_3": {
+  "w": 209,
+  "h": 520,
+  "cx": 0.504
+ },
+ "shoulder_arm_leg_4": {
+  "w": 231,
+  "h": 520,
+  "cx": 0.497
+ },
+ "shoulder_arm_leg_5": {
+  "w": 239,
+  "h": 520,
+  "cx": 0.499
+ },
+ "shoulder_arm_leg_6": {
+  "w": 256,
+  "h": 520,
+  "cx": 0.504
+ },
+ "shoulder_arm_runner_2": {
+  "w": 177,
+  "h": 520,
+  "cx": 0.497
+ },
+ "shoulder_arm_runner_3": {
+  "w": 192,
+  "h": 520,
+  "cx": 0.501
+ },
+ "shoulder_arm_runner_4": {
+  "w": 210,
+  "h": 520,
+  "cx": 0.497
+ },
+ "shoulder_arm_runner_5": {
+  "w": 215,
+  "h": 520,
+  "cx": 0.502
+ },
+ "shoulder_arm_runner_6": {
+  "w": 226,
+  "h": 520,
+  "cx": 0.496
+ },
  "shoulder_core_2": {
   "w": 172,
   "h": 520,
@@ -964,6 +1614,31 @@
   "h": 520,
   "cx": 0.499
  },
+ "shoulder_core_runner_2": {
+  "w": 168,
+  "h": 520,
+  "cx": 0.491
+ },
+ "shoulder_core_runner_3": {
+  "w": 174,
+  "h": 520,
+  "cx": 0.494
+ },
+ "shoulder_core_runner_4": {
+  "w": 181,
+  "h": 520,
+  "cx": 0.493
+ },
+ "shoulder_core_runner_5": {
+  "w": 180,
+  "h": 520,
+  "cx": 0.499
+ },
+ "shoulder_core_runner_6": {
+  "w": 197,
+  "h": 520,
+  "cx": 0.502
+ },
  "shoulder_leg_2": {
   "w": 172,
   "h": 520,
@@ -986,6 +1661,56 @@
  },
  "shoulder_leg_6": {
   "w": 211,
+  "h": 520,
+  "cx": 0.501
+ },
+ "shoulder_leg_core_2": {
+  "w": 180,
+  "h": 520,
+  "cx": 0.499
+ },
+ "shoulder_leg_core_3": {
+  "w": 190,
+  "h": 520,
+  "cx": 0.501
+ },
+ "shoulder_leg_core_4": {
+  "w": 205,
+  "h": 520,
+  "cx": 0.498
+ },
+ "shoulder_leg_core_5": {
+  "w": 213,
+  "h": 520,
+  "cx": 0.5
+ },
+ "shoulder_leg_core_6": {
+  "w": 229,
+  "h": 520,
+  "cx": 0.501
+ },
+ "shoulder_leg_runner_2": {
+  "w": 166,
+  "h": 520,
+  "cx": 0.501
+ },
+ "shoulder_leg_runner_3": {
+  "w": 171,
+  "h": 520,
+  "cx": 0.499
+ },
+ "shoulder_leg_runner_4": {
+  "w": 181,
+  "h": 520,
+  "cx": 0.5
+ },
+ "shoulder_leg_runner_5": {
+  "w": 183,
+  "h": 520,
+  "cx": 0.495
+ },
+ "shoulder_leg_runner_6": {
+  "w": 196,
   "h": 520,
   "cx": 0.501
  },

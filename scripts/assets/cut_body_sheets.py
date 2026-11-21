@@ -61,6 +61,14 @@ for d in sys.argv[1:]:
         a[..., 3] = np.where(a[..., 3] < 12, 0, a[..., 3])
         im = Image.fromarray(a)
         figs = figures(a[..., 3])
+        # くっついて描かれた2人は、いちばん幅の広いまとまりを、真ん中付近で一番細いところで分ける
+        dens = (a[..., 3] > 20).sum(0)
+        while 0 < len(figs) < 5:
+            i = max(range(len(figs)), key=lambda k: figs[k][1] - figs[k][0])
+            x0, x1 = figs[i]
+            lo, hi = x0 + (x1 - x0) // 4, x1 - (x1 - x0) // 4
+            cut = lo + int(np.argmin(dens[lo:hi]))
+            figs[i : i + 1] = [(x0, cut), (cut + 1, x1)]
         if len(figs) != 5:
             print("!! 5人に分けられない", f, len(figs), figs)
             continue
