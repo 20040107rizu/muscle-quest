@@ -98,6 +98,34 @@
   5,
   6
  ],
+ "chest_back_core": [
+  2,
+  3,
+  4,
+  5,
+  6
+ ],
+ "chest_back_leg": [
+  2,
+  3,
+  4,
+  5,
+  6
+ ],
+ "chest_back_runner": [
+  2,
+  3,
+  4,
+  5,
+  6
+ ],
+ "chest_back_shoulder": [
+  2,
+  3,
+  4,
+  5,
+  6
+ ],
  "chest_core": [
   2,
   3,
@@ -120,6 +148,20 @@
   6
  ],
  "chest_shoulder": [
+  2,
+  3,
+  4,
+  5,
+  6
+ ],
+ "chest_shoulder_arm": [
+  2,
+  3,
+  4,
+  5,
+  6
+ ],
+ "chest_shoulder_leg": [
   2,
   3,
   4,

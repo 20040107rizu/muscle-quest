@@ -489,6 +489,106 @@
   "h": 520,
   "cx": 0.498
  },
+ "chest_back_core_2": {
+  "w": 185,
+  "h": 520,
+  "cx": 0.5
+ },
+ "chest_back_core_3": {
+  "w": 205,
+  "h": 520,
+  "cx": 0.499
+ },
+ "chest_back_core_4": {
+  "w": 224,
+  "h": 520,
+  "cx": 0.504
+ },
+ "chest_back_core_5": {
+  "w": 231,
+  "h": 520,
+  "cx": 0.502
+ },
+ "chest_back_core_6": {
+  "w": 257,
+  "h": 520,
+  "cx": 0.499
+ },
+ "chest_back_leg_2": {
+  "w": 183,
+  "h": 520,
+  "cx": 0.496
+ },
+ "chest_back_leg_3": {
+  "w": 204,
+  "h": 520,
+  "cx": 0.497
+ },
+ "chest_back_leg_4": {
+  "w": 225,
+  "h": 520,
+  "cx": 0.499
+ },
+ "chest_back_leg_5": {
+  "w": 233,
+  "h": 520,
+  "cx": 0.499
+ },
+ "chest_back_leg_6": {
+  "w": 256,
+  "h": 520,
+  "cx": 0.503
+ },
+ "chest_back_runner_2": {
+  "w": 166,
+  "h": 520,
+  "cx": 0.499
+ },
+ "chest_back_runner_3": {
+  "w": 176,
+  "h": 520,
+  "cx": 0.498
+ },
+ "chest_back_runner_4": {
+  "w": 187,
+  "h": 520,
+  "cx": 0.496
+ },
+ "chest_back_runner_5": {
+  "w": 196,
+  "h": 520,
+  "cx": 0.502
+ },
+ "chest_back_runner_6": {
+  "w": 210,
+  "h": 520,
+  "cx": 0.496
+ },
+ "chest_back_shoulder_2": {
+  "w": 197,
+  "h": 520,
+  "cx": 0.502
+ },
+ "chest_back_shoulder_3": {
+  "w": 207,
+  "h": 520,
+  "cx": 0.504
+ },
+ "chest_back_shoulder_4": {
+  "w": 223,
+  "h": 520,
+  "cx": 0.5
+ },
+ "chest_back_shoulder_5": {
+  "w": 233,
+  "h": 520,
+  "cx": 0.502
+ },
+ "chest_back_shoulder_6": {
+  "w": 248,
+  "h": 520,
+  "cx": 0.499
+ },
  "chest_core_2": {
   "w": 166,
   "h": 520,
@@ -588,6 +688,56 @@
   "w": 214,
   "h": 520,
   "cx": 0.499
+ },
+ "chest_shoulder_arm_2": {
+  "w": 191,
+  "h": 520,
+  "cx": 0.5
+ },
+ "chest_shoulder_arm_3": {
+  "w": 212,
+  "h": 520,
+  "cx": 0.504
+ },
+ "chest_shoulder_arm_4": {
+  "w": 232,
+  "h": 520,
+  "cx": 0.502
+ },
+ "chest_shoulder_arm_5": {
+  "w": 244,
+  "h": 520,
+  "cx": 0.5
+ },
+ "chest_shoulder_arm_6": {
+  "w": 252,
+  "h": 520,
+  "cx": 0.497
+ },
+ "chest_shoulder_leg_2": {
+  "w": 179,
+  "h": 520,
+  "cx": 0.506
+ },
+ "chest_shoulder_leg_3": {
+  "w": 186,
+  "h": 520,
+  "cx": 0.497
+ },
+ "chest_shoulder_leg_4": {
+  "w": 199,
+  "h": 520,
+  "cx": 0.499
+ },
+ "chest_shoulder_leg_5": {
+  "w": 212,
+  "h": 520,
+  "cx": 0.498
+ },
+ "chest_shoulder_leg_6": {
+  "w": 238,
+  "h": 520,
+  "cx": 0.498
  },
  "core_2": {
   "w": 167,
