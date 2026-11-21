@@ -1,7 +1,7 @@
 "use client";
 
 import { useLiveQuery } from "dexie-react-hooks";
-import { useEffect, useMemo, useState } from "react";
+import { createContext, createElement, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { buildCharacter, type CharacterState } from "@/domain/character";
 import { toDateKey } from "@/domain/dates";
 import { computeMetrics, type UserMetrics } from "@/domain/ranking";
@@ -51,7 +51,7 @@ export function useBodyLogs() {
   return useLiveQuery(() => getRepo().listBodyLogs(), []);
 }
 
-export function useMyData() {
+function useMyDataInternal() {
   const now = useNow();
   const players = usePlayers();
   useEffect(() => {
@@ -176,4 +176,18 @@ export function useCheers(): (activityId: string) => { name: string; kind: strin
 export function useFriends(now: number): FriendView[] {
   const players = usePlayers();
   return useMemo(() => players.map((p) => buildFriendView(p, now)), [players, now]);
+}
+
+// ---- 自分のデータは1か所で計算して、画面じゅうで使い回す（部品ごとに計算し直すと重い） ----
+type MyData = ReturnType<typeof useMyDataInternal>;
+const MyDataCtx = createContext<MyData | null>(null);
+
+export function MyDataProvider({ children }: { children: ReactNode }) {
+  const data = useMyDataInternal();
+  return createElement(MyDataCtx.Provider, { value: data ?? null }, children);
+}
+
+export function useMyData(): MyData {
+  const v = useContext(MyDataCtx);
+  return v ?? undefined;
 }

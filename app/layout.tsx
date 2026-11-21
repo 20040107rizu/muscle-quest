@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { Barlow_Condensed } from "next/font/google";
 import { AppShell } from "@/components/AppShell";
 
 export const metadata: Metadata = {
@@ -19,17 +20,12 @@ export const viewport: Viewport = {
   themeColor: "#0b0d11",
 };
 
+// 数字用の細い英字フォントだけ、アプリと一緒に配る（外へ取りに行かない）
+const barlow = Barlow_Condensed({ weight: ["500", "600", "700"], subsets: ["latin"], variable: "--font-barlow", display: "swap" });
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="ja" className={barlow.variable}>
       <body className="min-h-dvh antialiased">
         <AppShell>{children}</AppShell>
       </body>
