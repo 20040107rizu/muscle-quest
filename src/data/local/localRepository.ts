@@ -403,13 +403,14 @@ export class LocalRepository implements Repository {
     return this.db.menus.orderBy("createdAt").toArray();
   }
 
-  async saveMenu(name: string, exerciseIds: string[]): Promise<WorkoutMenu> {
+  async saveMenu(name: string, exerciseIds: string[], id?: string): Promise<WorkoutMenu> {
     const trimmed = name.trim().slice(0, 20);
     if (!trimmed) throw new Error("メニュー名を入力してください");
     const custom = await this.db.exercises.toArray();
     const ids = [...new Set(exerciseIds)].filter((id) => findExercise(id, custom)).slice(0, 12);
     if (!ids.length) throw new Error("種目を1つ以上入れてください");
-    const menu: WorkoutMenu = { id: uuid(), name: trimmed, exerciseIds: ids, createdAt: this.now() };
+    const old = id ? await this.db.menus.get(id) : undefined;
+    const menu: WorkoutMenu = { id: old?.id ?? uuid(), name: trimmed, exerciseIds: ids, createdAt: old?.createdAt ?? this.now() };
     await this.db.menus.put(menu);
     return menu;
   }

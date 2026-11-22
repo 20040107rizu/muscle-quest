@@ -200,8 +200,8 @@ export class OnlineRepository extends LocalRepository {
     await super.setTitle(titleId);
     this.queueSync();
   }
-  async saveMenu(name: string, exerciseIds: string[]) {
-    const m = await super.saveMenu(name, exerciseIds);
+  async saveMenu(name: string, exerciseIds: string[], id?: string) {
+    const m = await super.saveMenu(name, exerciseIds, id);
     this.queueSync();
     return m;
   }

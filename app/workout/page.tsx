@@ -92,6 +92,8 @@ function ExercisePicker({
   const [group, setGroup] = useState<MuscleGroup | "all">("all");
   const [adding, setAdding] = useState(false);
   const [building, setBuilding] = useState(false);
+  /** 編集中のメニュー */
+  const [editing, setEditing] = useState<string | null>(null);
   const { confirm: ask } = useFeedback();
   const nameOf = (id: string) => exercises.find((e) => e.id === id)?.name ?? "（削除された種目）";
   const [q, setQ] = useState("");
@@ -109,7 +111,10 @@ function ExercisePicker({
       <section>
         <SectionTitle>マイメニュー</SectionTitle>
         <div className="space-y-2">
-          {menus.map((m) => (
+          {menus.map((m) =>
+            editing === m.id ? (
+              <MenuBuilder key={m.id} exercises={exercises} initial={[]} menu={m} onDone={() => setEditing(null)} />
+            ) : (
             <div key={m.id} className="skin-card flex items-center gap-2 p-3">
               <button onClick={() => onStartMenu(m)} className="min-w-0 flex-1 text-left">
                 <p className="text-sm font-black">{m.name}</p>
@@ -118,6 +123,9 @@ function ExercisePicker({
               <SkinButton onClick={() => onStartMenu(m)} className="h-10 w-20 shrink-0 text-xs">
                 始める
               </SkinButton>
+              <button onClick={() => setEditing(m.id)} className="shrink-0 rounded-lg bg-panel-2 px-2 py-1.5 text-[11px]">
+                編集
+              </button>
               <button
                 aria-label="メニューを削除"
                 onClick={async () => (await ask(`メニュー「${m.name}」を削除しますか？`, { ok: "削除する", danger: true })) && getRepo().deleteMenu(m.id)}
@@ -126,7 +134,8 @@ function ExercisePicker({
                 ✕
               </button>
             </div>
-          ))}
+            ),
+          )}
           {building ? (
             <MenuBuilder exercises={exercises} initial={todayIds} onDone={() => setBuilding(false)} />
           ) : (
@@ -194,26 +203,42 @@ function ExercisePicker({
   );
 }
 
-/** メニュー作り。タップした順に種目が並ぶ */
-function MenuBuilder({ exercises, initial, onDone }: { exercises: Exercise[]; initial: string[]; onDone: () => void }) {
-  const [name, setName] = useState("");
-  const [ids, setIds] = useState<string[]>(() => [...new Set(initial)]);
+function move<T>(arr: T[], i: number, d: number): T[] {
+  const x = [...arr];
+  [x[i], x[i + d]] = [x[i + d], x[i]];
+  return x;
+}
+
+/** メニュー作り・編集。タップした順に種目が並ぶ */
+function MenuBuilder({ exercises, initial, onDone, menu }: { exercises: Exercise[]; initial: string[]; onDone: () => void; /** 編集するメニュー（無ければ新しく作る） */ menu?: WorkoutMenu }) {
+  const [name, setName] = useState(menu?.name ?? "");
+  const [ids, setIds] = useState<string[]>(() => [...new Set(menu?.exerciseIds ?? initial)]);
   const [group, setGroup] = useState<MuscleGroup | "all">("all");
   const [err, setErr] = useState("");
   const toggle = (id: string) => setIds((x) => (x.includes(id) ? x.filter((y) => y !== id) : [...x, id]));
   const list = exercises.filter((e) => group === "all" || primaryGroup(e) === group);
   return (
     <Card className="space-y-3">
-      <p className="text-sm font-bold">メニューを作る</p>
+      <p className="text-sm font-bold">{menu ? "メニューを編集" : "メニューを作る"}</p>
       <input value={name} onChange={(e) => setName(e.target.value)} placeholder="例: 胸の日" maxLength={20} className="w-full skin-input px-2 py-1.5 text-sm outline-none" />
       <div>
-        <p className="mb-1.5 text-xs text-sub">やる順番（タップで外す）</p>
+        <p className="mb-1.5 text-xs text-sub">やる順番（▲▼で入れ替え、✕で外す）</p>
         {ids.length ? (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="space-y-1">
             {ids.map((id, i) => (
-              <button key={id} onClick={() => toggle(id)} className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-white">
-                {i + 1}. {exercises.find((e) => e.id === id)?.name ?? id} ✕
-              </button>
+              <div key={id} className="flex items-center gap-1.5 rounded-lg bg-accent/15 px-2 py-1.5 text-xs">
+                <span className="w-5 font-num font-bold text-accent">{i + 1}</span>
+                <span className="min-w-0 flex-1 truncate font-bold">{exercises.find((e) => e.id === id)?.name ?? id}</span>
+                <button aria-label="上へ" disabled={i === 0} onClick={() => setIds((x) => move(x, i, -1))} className="rounded bg-panel-2 px-2 py-0.5 disabled:opacity-30">
+                  ▲
+                </button>
+                <button aria-label="下へ" disabled={i === ids.length - 1} onClick={() => setIds((x) => move(x, i, 1))} className="rounded bg-panel-2 px-2 py-0.5 disabled:opacity-30">
+                  ▼
+                </button>
+                <button aria-label="外す" onClick={() => toggle(id)} className="px-1.5 text-sub">
+                  ✕
+                </button>
+              </div>
             ))}
           </div>
         ) : (
@@ -243,7 +268,7 @@ function MenuBuilder({ exercises, initial, onDone }: { exercises: Exercise[]; in
         <SkinButton
           onClick={async () => {
             try {
-              await getRepo().saveMenu(name, ids);
+              await getRepo().saveMenu(name, ids, menu?.id);
               onDone();
             } catch (e) {
               setErr((e as Error).message);

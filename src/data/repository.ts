@@ -96,7 +96,8 @@ export interface Repository {
 
   // ---- 筋トレメニュー ----
   listMenus(): Promise<WorkoutMenu[]>;
-  saveMenu(name: string, exerciseIds: string[]): Promise<WorkoutMenu>;
+  /** id を渡すとそのメニューを書き換える（無ければ新しく作る） */
+  saveMenu(name: string, exerciseIds: string[], id?: string): Promise<WorkoutMenu>;
   deleteMenu(id: string): Promise<void>;
 
   // ---- 体重・写真（写真は端末の中だけ） ----

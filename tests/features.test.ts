@@ -206,3 +206,15 @@ describe("同じ日に同じ内容のラン", () => {
     expect((await repo.listRuns()).length).toBe(2);
   });
 });
+
+describe("メニューの編集", () => {
+  it("名前・種目・順番を書き換えられ、作った日は変わらない", async () => {
+    const m = await repo.saveMenu("胸の日", ["bench_press", "incline_db_press"]);
+    const e = await repo.saveMenu("胸と腕", ["incline_db_press", "bench_press", "dumbbell_curl"], m.id);
+    expect(e.id).toBe(m.id);
+    expect(e.createdAt).toBe(m.createdAt);
+    const list = await repo.listMenus();
+    expect(list.length).toBe(1);
+    expect(list[0]).toMatchObject({ name: "胸と腕", exerciseIds: ["incline_db_press", "bench_press", "dumbbell_curl"] });
+  });
+});
