@@ -4,6 +4,7 @@ import { FeedbackProvider } from "@/components/ui/Feedback";
 import { TabBar } from "@/components/ui/TabBar";
 import { NameGate } from "@/components/ui/NameGate";
 import { UpdateWatcher } from "@/components/ui/UpdateWatcher";
+import { QuestAlert } from "@/components/QuestAlert";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -16,6 +17,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <TabBar />
       <NameGate />
       <UpdateWatcher />
+      <QuestAlert />
       </FeedbackProvider>
     </FxProvider>
     </MyDataProvider>

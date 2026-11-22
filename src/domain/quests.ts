@@ -397,3 +397,14 @@ export function titleStatsFrom(input: {
     cheers: input.cheers,
   });
 }
+
+/** いま「ボスに挑む」を押せば倒せる階（解放済み・未撃破で、条件を満たしているもの） */
+export function readyBosses(cleared: Set<string>, s: QuestStats): { d: Dungeon; floor: number }[] {
+  const out: { d: Dungeon; floor: number }[] = [];
+  for (const d of DUNGEONS) {
+    if (!isUnlocked(d, cleared)) continue;
+    const f = currentFloor(d, cleared);
+    if (f != null && floorProgress(d.floors[f], s).ready) out.push({ d, floor: f });
+  }
+  return out;
+}
