@@ -13,6 +13,7 @@ export const PRESET_EXERCISES: Exercise[] = [
   { id: "lat_pulldown", name: "ラットプルダウン", distribution: { back: 0.75, arms: 0.25 }, maxWeightKg: 250, step: 2.5 },
   { id: "seated_row", name: "シーテッドロー", distribution: { back: 0.75, arms: 0.15, shoulders: 0.1 }, maxWeightKg: 250, step: 2.5 },
   { id: "one_arm_db_row", name: "ワンハンド・ダンベルローイング", distribution: { back: 0.75, arms: 0.15, shoulders: 0.1 }, maxWeightKg: 80, step: 1 },
+  { id: "bent_over_row", name: "ベントオーバーロウ", distribution: { back: 0.75, arms: 0.15, legs: 0.1 }, maxWeightKg: 300, step: 2.5 },
   { id: "assisted_chin", name: "チンニングマシン", distribution: { back: 0.65, arms: 0.35 }, assist: true, maxWeightKg: 150, step: 2.5 },
   { id: "pull_up", name: "懸垂", distribution: { back: 0.7, arms: 0.3 }, bodyweight: true, maxWeightKg: 100, step: 2.5 },
   { id: "deadlift", name: "デッドリフト", distribution: { back: 0.45, legs: 0.4, core: 0.15 }, maxWeightKg: 500, step: 2.5 },

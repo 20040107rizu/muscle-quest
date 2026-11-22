@@ -6,7 +6,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 OUT="$ROOT/public/exercises"
 mkdir -p "$OUT"
-IDS="bench_press chest_press incline_db_press push_up lat_pulldown seated_row assisted_chin pull_up deadlift squat leg_press leg_extension leg_curl shoulder_press lateral_raise dumbbell_curl triceps_pushdown ab_crunch hanging_leg_raise one_arm_db_row standing_db_press bent_knee_situp floor_crunch twist_crunch front_plank twist_leg_raise seated_knee_up close_grip_bench incline_chest_press cable_crossover dips"
+IDS="bench_press chest_press incline_db_press push_up lat_pulldown seated_row assisted_chin pull_up deadlift squat leg_press leg_extension leg_curl shoulder_press lateral_raise dumbbell_curl triceps_pushdown ab_crunch hanging_leg_raise one_arm_db_row standing_db_press bent_knee_situp floor_crunch twist_crunch front_plank twist_leg_raise seated_knee_up close_grip_bench incline_chest_press cable_crossover dips bent_over_row"
 for dir in "$@"; do
   for f in "$dir"/*.mp4 "$dir"/*.mov; do
     [[ -e "$f" ]] || continue
