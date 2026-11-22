@@ -1,20 +1,34 @@
 # 公開しているアプリ（Render の無料プラン）が休まないように、定期的に軽くアクセスする。
-# 無料枠（月750時間）を使い切らないよう、日本時間の 6時〜翌2時 だけ起こしておく（夜中は休ませる）。
-# GitHub の定期実行は数分遅れることがあるので、5分ごとにしている（Render は15分アクセスがないと休む）。
+#
+# GitHub の定期実行は、利用の少ないリポジトリだと何時間も遅れることがある（5分ごとに設定しても1日数回しか動かない）。
+# そこで、1回動いたら最長およそ5時間50分、その中で5分ごとにアクセスし続ける。次の定期実行が来たら引き継ぐ。
+# 無料枠（月750時間）を使い切らないよう、日本時間の 2時〜6時 はアクセスしない（夜中は休ませる）。
 name: keep-awake
 
 on:
   schedule:
-    # UTC で書く。日本時間 6:00〜翌1:59 ＝ UTC 21:00〜翌16:59
-    - cron: "*/5 0-16,21-23 * * *"
+    - cron: "7 * * * *"
   workflow_dispatch:
+
+# 新しい実行が始まったら、前の実行は止めて引き継ぐ（同時に2つ動かさない）
+concurrency:
+  group: keep-awake
+  cancel-in-progress: true
 
 permissions: {}
 
 jobs:
   ping:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 355
     steps:
-      - name: アプリにアクセス
-        run: curl -fsS --max-time 90 --retry 2 https://muscle-quest.onrender.com/api/version || true
+      - name: 5分ごとにアクセス（日本時間2時〜6時は休む）
+        run: |
+          end=$(( $(date +%s) + 350*60 ))
+          while [ "$(date +%s)" -lt "$end" ]; do
+            h=$(TZ=Asia/Tokyo date +%H)
+            if [ "$h" -lt 2 ] || [ "$h" -ge 6 ]; then
+              curl -fsS -o /dev/null --max-time 90 https://muscle-quest.onrender.com/api/version && echo "$(TZ=Asia/Tokyo date +%H:%M) ok" || echo "$(TZ=Asia/Tokyo date +%H:%M) failed"
+            fi
+            sleep 300
+          done
