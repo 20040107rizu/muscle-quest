@@ -1,7 +1,8 @@
 # 公開しているアプリ（Render の無料プラン）が休まないように、定期的に軽くアクセスする。
 #
 # GitHub の定期実行は、利用の少ないリポジトリだと何時間も遅れることがある（5分ごとに設定しても1日数回しか動かない）。
-# そこで、1回動いたら最長およそ5時間50分、その中で5分ごとにアクセスし続ける。次の定期実行が来たら引き継ぐ。
+# そこで、1回動いたらおよそ5時間40分、その中で5分ごとにアクセスし続け、終わる直前に自分で次の実行を始める（リレー）。
+# 定期実行はリレーが途切れたときの保険。
 # 無料枠（月750時間）を使い切らないよう、日本時間の 2時〜6時 はアクセスしない（夜中は休ませる）。
 name: keep-awake
 
@@ -9,13 +10,19 @@ on:
   schedule:
     - cron: "7 * * * *"
   workflow_dispatch:
+    inputs:
+      minutes:
+        description: "何分続けるか（動作確認用。ふだんは340）"
+        default: "340"
 
 # 新しい実行が始まったら、前の実行は止めて引き継ぐ（同時に2つ動かさない）
 concurrency:
   group: keep-awake
   cancel-in-progress: true
 
-permissions: {}
+# 次の実行を自分で始めるための権限だけ
+permissions:
+  actions: write
 
 jobs:
   ping:
@@ -24,7 +31,7 @@ jobs:
     steps:
       - name: 5分ごとにアクセス（日本時間2時〜6時は休む）
         run: |
-          end=$(( $(date +%s) + 350*60 ))
+          end=$(( $(date +%s) + ${{ inputs.minutes || '340' }}*60 ))
           while [ "$(date +%s)" -lt "$end" ]; do
             h=$(TZ=Asia/Tokyo date +%H)
             if [ "$h" -lt 2 ] || [ "$h" -ge 6 ]; then
@@ -32,3 +39,10 @@ jobs:
             fi
             sleep 300
           done
+      - name: 次の実行を始める（リレー）
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl -fsS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/keep-awake.yml/dispatches" \
+            -d '{"ref":"${{ github.ref_name }}"}'
