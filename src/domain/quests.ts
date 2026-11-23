@@ -91,8 +91,8 @@ export function findTitle(id: string | undefined): Title | undefined {
   return id ? TITLES.find((t) => t.id === id) : undefined;
 }
 
-const CHEST = ["bench_press", "chest_press", "incline_db_press"];
-const BACK = ["lat_pulldown", "seated_row", "deadlift"];
+const CHEST = ["bench_press", "chest_press", "incline_db_press", "close_grip_bench", "incline_chest_press"];
+const BACK = ["lat_pulldown", "seated_row", "deadlift", "bent_over_row", "one_arm_db_row"];
 const LEGS = ["squat", "leg_press"];
 
 export const DUNGEONS: Dungeon[] = [
@@ -119,7 +119,7 @@ export const DUNGEONS: Dungeon[] = [
     floors: [
       { name: "1F 前庭", boss: "鉄の番兵", emoji: "🛡️", requirements: [{ kind: "stat", stat: "chest", value: 300 }], hint: "ベンチプレス・チェストプレス・腕立て伏せ" },
       { name: "2F 回廊", boss: "鋼のゴーレム", emoji: "🗿", requirements: [{ kind: "stat", stat: "chest", value: 1000 }], hint: "週2回の胸トレを続けよう" },
-      { name: "3F 試練の間", boss: "プレス騎士", emoji: "⚔️", requirements: [{ kind: "e1rm", exercises: CHEST, label: "胸プレス系の推定MAX", value: 60 }], hint: "ベンチ/チェストプレスで推定MAX60kg" },
+      { name: "3F 試練の間", boss: "プレス騎士", emoji: "⚔️", requirements: [{ kind: "e1rm", exercises: CHEST, label: "胸プレス系の推定MAX", value: 60 }], hint: "ベンチ・チェストプレス・ダンベルプレス系で推定MAX60kg" },
       { name: "最上階 祭壇", boss: "胸板の神", emoji: "🔱", requirements: [{ kind: "stat", stat: "chest", value: 2500 }, { kind: "e1rm", exercises: CHEST, label: "胸プレス系の推定MAX", value: 80 }], hint: "推定MAX80kgと胸の経験値2,500" },
     ],
   },
@@ -133,7 +133,7 @@ export const DUNGEONS: Dungeon[] = [
     floors: [
       { name: "麓", boss: "岩トカゲ", emoji: "🦎", requirements: [{ kind: "stat", stat: "back", value: 300 }], hint: "ラットプルダウン・チンニングマシン・シーテッドロー" },
       { name: "中腹", boss: "山岳トロール", emoji: "🧌", requirements: [{ kind: "stat", stat: "back", value: 1000 }], hint: "引く種目を週2回" },
-      { name: "断崖", boss: "鷲の王", emoji: "🦅", requirements: [{ kind: "e1rm", exercises: BACK, label: "背中系の推定MAX", value: 60 }], hint: "ラットプルダウン等で推定MAX60kg" },
+      { name: "断崖", boss: "鷲の王", emoji: "🦅", requirements: [{ kind: "e1rm", exercises: BACK, label: "背中系の推定MAX", value: 60 }], hint: "ラットプルダウン・ロウ系・デッドリフトで推定MAX60kg" },
       { name: "山頂", boss: "背骨の巨人", emoji: "🏔️", requirements: [{ kind: "stat", stat: "back", value: 2500 }, { kind: "e1rm", exercises: BACK, label: "背中系の推定MAX", value: 90 }], hint: "デッドリフトにも挑戦しよう" },
     ],
   },
