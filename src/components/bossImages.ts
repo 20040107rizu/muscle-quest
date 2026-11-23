@@ -11,7 +11,7 @@ export const BOSS_FILES: Record<string, string[]> = {
   wind_corridor: ["wind_1_spirit", "wind_2_wolf", "wind_3_bird", "wind_4_god"],
   tower: ["tower_1_shadow", "tower_2_witch", "tower_3_keeper", "tower_4_dragon"],
   final_castle: ["final_1_generals", "final_2_colossus", "final_3_overlord"],
-  iron_arena: ["arena_1_gladiator"],
+  iron_arena: ["arena_1_gladiator", "arena_2_executioner"],
 };
 
 export function bossImageUrl(dungeonId: string, floor: number): string | undefined {
