@@ -70,12 +70,27 @@ describe("クエスト", () => {
   it("条件の評価と全踏破報酬", () => {
     const s = buildQuestStats([], { level: 40, stats: { chest: 9e3, back: 9e3, shoulders: 9e3, arms: 9e3, legs: 9e3, core: 9e3, cardio: 9e3 }, streak: 20, activeDays: 60 }, today);
     expect(evaluate({ kind: "e1rm", exercises: ["bench_press"], label: "", value: 60 }, s).done).toBe(false);
-    s.e1rm = { bench_press: 100, lat_pulldown: 100, squat: 120 };
+    s.e1rm = { bench_press: 130, lat_pulldown: 100, deadlift: 190, squat: 170 };
     s.totalSets = 100;
     s.totalRunKm = 100;
     s.longestRunKm = 12;
     s.weekXp = 3000;
     const cleared = simulateClears(s);
     expect(DUNGEONS.every((d) => d.floors.every((_, i) => cleared.has(`${d.id}:${i}`)))).toBe(true);
+  });
+});
+
+describe("ジム・ダンベルなしの別ルート", () => {
+  it("推定MAXの階は、自重種目の1セットの回数でも倒せる", async () => {
+    const { DUNGEONS, floorProgress } = await import("@/domain/quests");
+    const chest3 = DUNGEONS.find((d) => d.id === "chest_temple")!.floors[2];
+    const base = { level: 1, stats: { chest: 0, back: 0, shoulders: 0, arms: 0, legs: 0, core: 0, cardio: 0 }, streak: 0, activeDays: 0, weekXp: 0, totalSets: 0, totalRunKm: 0, longestRunKm: 0, e1rm: {}, longestStreak: 0 };
+    expect(floorProgress(chest3, { ...base, maxReps: { push_up: 29 } }).ready).toBe(false);
+    expect(floorProgress(chest3, { ...base, maxReps: { push_up: 30 } }).ready).toBe(true);
+    expect(floorProgress(chest3, { ...base, e1rm: { bench_press: 60 } }).ready).toBe(true);
+  });
+  it("上級の闘技場は覇王の城の解放条件に入らない", async () => {
+    const { findDungeon } = await import("@/domain/quests");
+    expect(findDungeon("final_castle")!.unlockAfter).not.toContain("iron_arena");
   });
 });

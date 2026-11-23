@@ -24,6 +24,8 @@ export interface QuestStats {
   e1rm: Record<string, number>;
   /** これまでで一番長かった連続運動日数 */
   longestStreak: number;
+  /** 種目ID → 1セットでやった最高回数（自重の別ルート用） */
+  maxReps?: Record<string, number>;
 }
 
 export type Requirement =
@@ -36,7 +38,10 @@ export type Requirement =
   | { kind: "totalSets"; value: number }
   | { kind: "totalRunKm"; value: number }
   | { kind: "longestRunKm"; value: number }
-  | { kind: "e1rm"; exercises: string[]; label: string; value: number };
+  | { kind: "e1rm"; exercises: string[]; label: string; value: number }
+  | { kind: "reps"; exercises: string[]; label: string; value: number }
+  /** どれか1つを満たせばOK（ジム・ダンベル無しの人向けの別ルートなど） */
+  | { kind: "anyOf"; options: Requirement[]; value: 1 };
 
 export interface Floor {
   name: string;
@@ -95,6 +100,11 @@ const CHEST = ["bench_press", "chest_press", "incline_db_press", "close_grip_ben
 const BACK = ["lat_pulldown", "seated_row", "deadlift", "bent_over_row", "one_arm_db_row"];
 const LEGS = ["squat", "leg_press"];
 
+/** 推定MAXの代わりに、自重種目の「1セットの回数」でも倒せるようにする */
+function orBodyweight(main: Requirement, ...alts: [string[], string, number][]): Requirement {
+  return { kind: "anyOf", value: 1, options: [main, ...alts.map(([exercises, label, value]) => ({ kind: "reps" as const, exercises, label, value }))] };
+}
+
 export const DUNGEONS: Dungeon[] = [
   {
     id: "cave",
@@ -119,8 +129,8 @@ export const DUNGEONS: Dungeon[] = [
     floors: [
       { name: "1F 前庭", boss: "鉄の番兵", emoji: "🛡️", requirements: [{ kind: "stat", stat: "chest", value: 300 }], hint: "ベンチプレス・チェストプレス・腕立て伏せ" },
       { name: "2F 回廊", boss: "鋼のゴーレム", emoji: "🗿", requirements: [{ kind: "stat", stat: "chest", value: 1000 }], hint: "週2回の胸トレを続けよう" },
-      { name: "3F 試練の間", boss: "プレス騎士", emoji: "⚔️", requirements: [{ kind: "e1rm", exercises: CHEST, label: "胸プレス系の推定MAX", value: 60 }], hint: "ベンチ・チェストプレス・ダンベルプレス系で推定MAX60kg" },
-      { name: "最上階 祭壇", boss: "胸板の神", emoji: "🔱", requirements: [{ kind: "stat", stat: "chest", value: 2500 }, { kind: "e1rm", exercises: CHEST, label: "胸プレス系の推定MAX", value: 80 }], hint: "推定MAX80kgと胸の経験値2,500" },
+      { name: "3F 試練の間", boss: "プレス騎士", emoji: "⚔️", requirements: [orBodyweight({ kind: "e1rm", exercises: CHEST, label: "胸プレス系の推定MAX", value: 60 }, [["push_up"], "腕立て伏せ（1セット）", 30], [["dips"], "ディップス（1セット）", 15])], hint: "ジムなら推定MAX60kg、家なら腕立て伏せ1セット30回" },
+      { name: "最上階 祭壇", boss: "胸板の神", emoji: "🔱", requirements: [{ kind: "stat", stat: "chest", value: 2500 }, orBodyweight({ kind: "e1rm", exercises: CHEST, label: "胸プレス系の推定MAX", value: 80 }, [["push_up"], "腕立て伏せ（1セット）", 50], [["dips"], "ディップス（1セット）", 25])], hint: "胸の経験値2,500と、推定MAX80kgか腕立て伏せ1セット50回" },
     ],
   },
   {
@@ -133,8 +143,8 @@ export const DUNGEONS: Dungeon[] = [
     floors: [
       { name: "麓", boss: "岩トカゲ", emoji: "🦎", requirements: [{ kind: "stat", stat: "back", value: 300 }], hint: "ラットプルダウン・チンニングマシン・シーテッドロー" },
       { name: "中腹", boss: "山岳トロール", emoji: "🧌", requirements: [{ kind: "stat", stat: "back", value: 1000 }], hint: "引く種目を週2回" },
-      { name: "断崖", boss: "鷲の王", emoji: "🦅", requirements: [{ kind: "e1rm", exercises: BACK, label: "背中系の推定MAX", value: 60 }], hint: "ラットプルダウン・ロウ系・デッドリフトで推定MAX60kg" },
-      { name: "山頂", boss: "背骨の巨人", emoji: "🏔️", requirements: [{ kind: "stat", stat: "back", value: 2500 }, { kind: "e1rm", exercises: BACK, label: "背中系の推定MAX", value: 90 }], hint: "デッドリフトにも挑戦しよう" },
+      { name: "断崖", boss: "鷲の王", emoji: "🦅", requirements: [orBodyweight({ kind: "e1rm", exercises: BACK, label: "背中系の推定MAX", value: 60 }, [["pull_up"], "懸垂（1セット）", 8], [["back_extension"], "バックエクステンション（1セット）", 30])], hint: "ジムなら推定MAX60kg、家ならバックエクステンション1セット30回" },
+      { name: "山頂", boss: "背骨の巨人", emoji: "🏔️", requirements: [{ kind: "stat", stat: "back", value: 2500 }, orBodyweight({ kind: "e1rm", exercises: BACK, label: "背中系の推定MAX", value: 90 }, [["pull_up"], "懸垂（1セット）", 15], [["back_extension"], "バックエクステンション（1セット）", 50])], hint: "背中の経験値2,500と、推定MAX90kgか懸垂15回かバックエクステンション50回" },
     ],
   },
   {
@@ -147,7 +157,7 @@ export const DUNGEONS: Dungeon[] = [
     floors: [
       { name: "城門", boss: "門番オーガ", emoji: "🚪", requirements: [{ kind: "stat", stat: "legs", value: 300 }], hint: "スクワット・レッグプレス" },
       { name: "練兵場", boss: "重装兵", emoji: "🪖", requirements: [{ kind: "stat", stat: "legs", value: 1200 }], hint: "脚の日をサボらない" },
-      { name: "玉座の間", boss: "大地の王", emoji: "👑", requirements: [{ kind: "stat", stat: "legs", value: 3000 }, { kind: "e1rm", exercises: LEGS, label: "スクワット/レッグプレスの推定MAX", value: 100 }], hint: "推定MAX100kgを目指そう" },
+      { name: "玉座の間", boss: "大地の王", emoji: "👑", requirements: [{ kind: "stat", stat: "legs", value: 3000 }, orBodyweight({ kind: "e1rm", exercises: LEGS, label: "スクワット/レッグプレスの推定MAX", value: 100 }, [["bodyweight_squat"], "自重スクワット（1セット）", 80])], hint: "脚の経験値3,000と、推定MAX100kgか自重スクワット1セット80回" },
     ],
   },
   {
@@ -176,6 +186,20 @@ export const DUNGEONS: Dungeon[] = [
       { name: "10階", boss: "誘惑の魔女", emoji: "🧙", requirements: [{ kind: "streak", value: 7 }], hint: "7日連続。軽いランでもOK" },
       { name: "30階", boss: "時の番人", emoji: "⏳", requirements: [{ kind: "activeDays", value: 30 }], hint: "運動した日が累計30日" },
       { name: "頂上", boss: "不屈の竜", emoji: "🐉", requirements: [{ kind: "streak", value: 14 }, { kind: "weekXp", value: 2000 }], hint: "14日連続＋今週2,000XP" },
+    ],
+  },
+  {
+    id: "iron_arena",
+    name: "鉄血の闘技場",
+    theme: "上級・重さで勝負（ジム向け）",
+    color: "#e63946",
+    unlockAfter: ["cave"],
+    reward: {},
+    floors: [
+      { name: "第1試合", boss: "鉄球の剣闘士", emoji: "🤺", requirements: [{ kind: "e1rm", exercises: CHEST, label: "胸プレス系の推定MAX", value: 100 }], hint: "ベンチプレスなどで推定MAX100kg" },
+      { name: "第2試合", boss: "鎖の処刑人", emoji: "⛓️", requirements: [{ kind: "e1rm", exercises: BACK, label: "背中系の推定MAX", value: 140 }], hint: "デッドリフトなどで推定MAX140kg" },
+      { name: "第3試合", boss: "石臼の巨人", emoji: "🪨", requirements: [{ kind: "e1rm", exercises: LEGS, label: "スクワット/レッグプレスの推定MAX", value: 160 }], hint: "スクワット・レッグプレスで推定MAX160kg" },
+      { name: "決勝", boss: "闘技場の覇者", emoji: "🏟️", requirements: [{ kind: "e1rm", exercises: ["bench_press"], label: "ベンチプレスの推定MAX", value: 120 }, { kind: "e1rm", exercises: ["deadlift"], label: "デッドリフトの推定MAX", value: 180 }, { kind: "e1rm", exercises: ["squat"], label: "スクワットの推定MAX", value: 150 }], hint: "BIG3で推定MAX 120 / 180 / 150kg" },
     ],
   },
   {
@@ -209,6 +233,7 @@ export function buildQuestStats(
 ): QuestStats {
   const week = startOfWeek(today);
   const e1rm: Record<string, number> = {};
+  const maxReps: Record<string, number> = {};
   let totalSets = 0;
   let totalRunKm = 0;
   let longestRunKm = 0;
@@ -221,13 +246,15 @@ export function buildQuestStats(
         const id = a.workout.exerciseId;
         e1rm[id] = Math.max(e1rm[id] ?? 0, bestE1RM(a.workout.sets));
       }
+      const id = a.workout.exerciseId;
+      for (const st of a.workout.sets) maxReps[id] = Math.max(maxReps[id] ?? 0, st.reps);
     }
     if (a.run) {
       totalRunKm += a.run.distanceKm;
       longestRunKm = Math.max(longestRunKm, a.run.distanceKm);
     }
   }
-  return { ...base, weekXp, totalSets, totalRunKm: round1(totalRunKm), longestRunKm, e1rm, longestStreak: longestStreak(activities.map((a) => a.date)) };
+  return { ...base, weekXp, totalSets, totalRunKm: round1(totalRunKm), longestRunKm, e1rm, maxReps, longestStreak: longestStreak(activities.map((a) => a.date)) };
 }
 
 export interface ReqProgress {
@@ -236,6 +263,12 @@ export interface ReqProgress {
   target: number;
   unit: string;
   done: boolean;
+  /** 「どれか1つ」の条件のとき、それぞれの選択肢 */
+  options?: ReqProgress[];
+}
+
+function ratioOf(r: ReqProgress) {
+  return Math.min(1, r.current / r.target);
 }
 
 export function evaluate(req: Requirement, s: QuestStats): ReqProgress {
@@ -267,13 +300,20 @@ export function evaluate(req: Requirement, s: QuestStats): ReqProgress {
       return p("1回の最長距離", s.longestRunKm, "km");
     case "e1rm":
       return p(req.label, Math.max(0, ...req.exercises.map((e) => s.e1rm[e] ?? 0)), "kg");
+    case "reps":
+      return p(req.label, Math.max(0, ...req.exercises.map((e) => s.maxReps?.[e] ?? 0)), "回");
+    case "anyOf": {
+      const options = req.options.map((o) => evaluate(o, s));
+      const best = Math.max(0, ...options.map(ratioOf));
+      return { label: "どれか1つ", current: best, target: 1, unit: "", done: options.some((o) => o.done), options };
+    }
   }
 }
 
 export function floorProgress(floor: Floor, s: QuestStats) {
   const reqs = floor.requirements.map((r) => evaluate(r, s));
   /** ボスの残りHP（0..1）。条件の達成度の平均 */
-  const ratio = reqs.reduce((a, r) => a + Math.min(1, r.current / r.target), 0) / reqs.length;
+  const ratio = reqs.reduce((a, r) => a + ratioOf(r), 0) / reqs.length;
   return { reqs, ready: reqs.every((r) => r.done), ratio };
 }
 

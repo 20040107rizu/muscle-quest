@@ -15,7 +15,7 @@ import { sfx } from "@/components/fx/sound";
 import { ItemGet } from "@/components/fx/ItemGet";
 import { FxImg, FxRays } from "@/components/fx/FxImg";
 import { Card, Loading } from "@/components/ui/primitives";
-import { clearId, currentFloor, findDungeon, findTitle, floorProgress, isUnlocked } from "@/domain/quests";
+import { clearId, currentFloor, findDungeon, findTitle, floorProgress, isUnlocked, type ReqProgress } from "@/domain/quests";
 import { getRepo, useFriends, useMyData, wearTitle } from "@/data/hooks";
 
 type Phase = "idle" | "fighting" | "won" | "lost";
@@ -246,21 +246,23 @@ export default function DungeonPage() {
         <Card>
           <p className="mb-3 text-sm font-bold">撃破条件</p>
           <div className="space-y-3">
-            {prog.reqs.map((r) => (
-              <div key={r.label}>
-                <div className="flex justify-between text-xs">
-                  <span className={r.done ? "text-good" : ""}>
-                    {r.done ? "✓ " : ""}
-                    {r.label}
-                  </span>
-                  <span className="font-num">
-                    {r.current.toLocaleString()} / {r.target.toLocaleString()}
-                    {r.unit}
-                  </span>
+            {prog.reqs.map((r, ri) =>
+              r.options ? (
+                <div key={ri} className={`rounded-xl border px-3 py-2.5 ${r.done ? "border-good/50" : "border-line"}`}>
+                  <p className={`mb-2 text-[11px] font-bold ${r.done ? "text-good" : "text-sub"}`}>{r.done ? "✓ 達成！" : "どれか1つ達成でOK"}</p>
+                  <div className="space-y-2.5">
+                    {r.options.map((o, oi) => (
+                      <div key={o.label}>
+                        {oi > 0 && <p className="-mt-1 mb-1 text-center text-[10px] text-sub">または</p>}
+                        <ReqRow r={o} />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <SkinGauge kind="ms" value={r.current / r.target} h={12} className="mt-1" />
-              </div>
-            ))}
+              ) : (
+                <ReqRow key={ri} r={r} />
+              ),
+            )}
           </div>
           <p className="mt-3 skin-tag px-2 py-1 text-[11px] text-sub">💡 {floor.hint}</p>
           <div className="mt-3 grid grid-cols-2 gap-2">
@@ -437,4 +439,22 @@ function RewardModal({ titleIds, onClose }: { titleIds: string[]; onClose: () =>
 
 function wait(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+function ReqRow({ r }: { r: ReqProgress }) {
+  return (
+    <div>
+    <div className="flex justify-between text-xs">
+      <span className={r.done ? "text-good" : ""}>
+        {r.done ? "✓ " : ""}
+        {r.label}
+      </span>
+      <span className="font-num">
+        {r.current.toLocaleString()} / {r.target.toLocaleString()}
+        {r.unit}
+      </span>
+    </div>
+    <SkinGauge kind="ms" value={r.current / r.target} h={12} className="mt-1" />
+              </div>
+  );
 }
