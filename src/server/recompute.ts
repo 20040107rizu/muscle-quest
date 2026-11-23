@@ -68,7 +68,7 @@ export function verifyClears(acts: ServerActivity[], claimed: unknown, now: numb
   }));
   const today = latestLocalDate(now);
   const character = buildCharacter(activities.map((a) => ({ total: a.xp, byStat: a.byStat, date: a.date })), activities.map((a) => a.date), today);
-  const possible = simulateClears(buildQuestStats(activities, character, today));
+  const possible = simulateClears(buildQuestStats(activities, character, today), true);
   return [...new Set(claimed.map(String))].filter((id) => possible.has(id)).slice(0, 200);
 }
 

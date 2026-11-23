@@ -94,3 +94,12 @@ describe("ジム・ダンベルなしの別ルート", () => {
     expect(findDungeon("final_castle")!.unlockAfter).not.toContain("iron_arena");
   });
 });
+
+describe("ダンジョンは1つずつ順番に解放", () => {
+  it("洞窟を踏破しても、開くのは胸板神殿だけ", async () => {
+    const { DUNGEONS, isUnlocked } = await import("@/domain/quests");
+    const cleared = new Set(["cave:0", "cave:1", "cave:2"]);
+    expect(DUNGEONS.filter((d) => isUnlocked(d, cleared)).map((d) => d.id)).toEqual(["cave", "chest_temple"]);
+    expect(DUNGEONS.at(-1)!.id).toBe("iron_arena");
+  });
+});

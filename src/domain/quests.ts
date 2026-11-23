@@ -138,7 +138,7 @@ export const DUNGEONS: Dungeon[] = [
     name: "巨人の背骨山",
     theme: "背中を鍛えて登頂",
     color: "#ffb547",
-    unlockAfter: ["cave"],
+    unlockAfter: ["chest_temple"],
     reward: {},
     floors: [
       { name: "麓", boss: "岩トカゲ", emoji: "🦎", requirements: [{ kind: "stat", stat: "back", value: 300 }], hint: "ラットプルダウン・チンニングマシン・シーテッドロー" },
@@ -152,7 +152,7 @@ export const DUNGEONS: Dungeon[] = [
     name: "大地の脚城",
     theme: "脚を鍛えて攻略",
     color: "#3ddc97",
-    unlockAfter: ["cave"],
+    unlockAfter: ["back_mountain"],
     reward: {},
     floors: [
       { name: "城門", boss: "門番オーガ", emoji: "🚪", requirements: [{ kind: "stat", stat: "legs", value: 300 }], hint: "スクワット・レッグプレス" },
@@ -165,7 +165,7 @@ export const DUNGEONS: Dungeon[] = [
     name: "風の回廊",
     theme: "走って駆け抜ける",
     color: "#4cc9f0",
-    unlockAfter: ["cave"],
+    unlockAfter: ["leg_castle"],
     reward: {},
     floors: [
       { name: "第1区間", boss: "風の精", emoji: "🌬️", requirements: [{ kind: "totalRunKm", value: 10 }], hint: "累計10km走ろう" },
@@ -179,7 +179,7 @@ export const DUNGEONS: Dungeon[] = [
     name: "不屈の塔",
     theme: "続けることが力",
     color: "#b79cff",
-    unlockAfter: ["cave"],
+    unlockAfter: ["wind_corridor"],
     reward: {},
     floors: [
       { name: "3階", boss: "怠惰の影", emoji: "👤", requirements: [{ kind: "streak", value: 3 }], hint: "3日連続で運動" },
@@ -189,30 +189,30 @@ export const DUNGEONS: Dungeon[] = [
     ],
   },
   {
+    id: "final_castle",
+    name: "覇王の城",
+    theme: "全身を極めし者へ",
+    color: "#ffd166",
+    unlockAfter: ["tower"],
+    reward: {},
+    floors: [
+      { name: "外郭", boss: "四天王", emoji: "🦹", requirements: [{ kind: "level", value: 22 }], hint: "レベル22（ゴリマッチョ）" },
+      { name: "内郭", boss: "鋼鉄の巨神", emoji: "🤖", requirements: [{ kind: "allMuscles", value: 3000 }], hint: "6部位すべて経験値3,000以上" },
+      { name: "天守", boss: "筋肉覇王", emoji: "😈", requirements: [{ kind: "level", value: 35 }, { kind: "allMuscles", value: 5000 }], hint: "レベル35（レジェンド）へ" },
+    ],
+  },
+  {
     id: "iron_arena",
     name: "鉄血の闘技場",
-    theme: "上級・重さで勝負（ジム向け）",
+    theme: "裏ダンジョン・重さで勝負（ジム向け）",
     color: "#e63946",
-    unlockAfter: ["cave"],
+    unlockAfter: ["final_castle"],
     reward: {},
     floors: [
       { name: "第1試合", boss: "鉄球の剣闘士", emoji: "🤺", requirements: [{ kind: "e1rm", exercises: CHEST, label: "胸プレス系の推定MAX", value: 100 }], hint: "ベンチプレスなどで推定MAX100kg" },
       { name: "第2試合", boss: "鎖の処刑人", emoji: "⛓️", requirements: [{ kind: "e1rm", exercises: BACK, label: "背中系の推定MAX", value: 140 }], hint: "デッドリフトなどで推定MAX140kg" },
       { name: "第3試合", boss: "石臼の巨人", emoji: "🪨", requirements: [{ kind: "e1rm", exercises: LEGS, label: "スクワット/レッグプレスの推定MAX", value: 160 }], hint: "スクワット・レッグプレスで推定MAX160kg" },
       { name: "決勝", boss: "闘技場の覇者", emoji: "🏟️", requirements: [{ kind: "e1rm", exercises: ["bench_press"], label: "ベンチプレスの推定MAX", value: 120 }, { kind: "e1rm", exercises: ["deadlift"], label: "デッドリフトの推定MAX", value: 180 }, { kind: "e1rm", exercises: ["squat"], label: "スクワットの推定MAX", value: 150 }], hint: "BIG3で推定MAX 120 / 180 / 150kg" },
-    ],
-  },
-  {
-    id: "final_castle",
-    name: "覇王の城",
-    theme: "全身を極めし者へ",
-    color: "#ffd166",
-    unlockAfter: ["chest_temple", "back_mountain", "leg_castle", "wind_corridor", "tower"],
-    reward: {},
-    floors: [
-      { name: "外郭", boss: "四天王", emoji: "🦹", requirements: [{ kind: "level", value: 22 }], hint: "レベル22（ゴリマッチョ）" },
-      { name: "内郭", boss: "鋼鉄の巨神", emoji: "🤖", requirements: [{ kind: "allMuscles", value: 3000 }], hint: "6部位すべて経験値3,000以上" },
-      { name: "天守", boss: "筋肉覇王", emoji: "😈", requirements: [{ kind: "level", value: 35 }, { kind: "allMuscles", value: 5000 }], hint: "レベル35（レジェンド）へ" },
     ],
   },
 ];
@@ -331,14 +331,17 @@ export function currentFloor(d: Dungeon, cleared: Set<string>): number | null {
   return i === -1 ? null : i;
 }
 
-/** 条件を満たしている階を順番にすべてクリアした場合の状態（友達のモック用） */
-export function simulateClears(s: QuestStats): Set<string> {
+/**
+ * 条件を満たしている階を順番にすべてクリアした場合の状態。
+ * ignoreLocks: ダンジョンの解放順を無視する（解放順を変える前に倒した階をサーバーで消さないため）
+ */
+export function simulateClears(s: QuestStats, ignoreLocks = false): Set<string> {
   const cleared = new Set<string>();
   let changed = true;
   while (changed) {
     changed = false;
     for (const d of DUNGEONS) {
-      if (!isUnlocked(d, cleared)) continue;
+      if (!ignoreLocks && !isUnlocked(d, cleared)) continue;
       const f = currentFloor(d, cleared);
       if (f != null && floorProgress(d.floors[f], s).ready) {
         cleared.add(clearId(d.id, f));
