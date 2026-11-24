@@ -96,7 +96,7 @@ export function findTitle(id: string | undefined): Title | undefined {
   return id ? TITLES.find((t) => t.id === id) : undefined;
 }
 
-const CHEST = ["bench_press", "chest_press", "incline_db_press", "close_grip_bench", "incline_chest_press"];
+const CHEST = ["bench_press", "chest_press", "incline_db_press", "db_bench_press", "close_grip_bench", "incline_chest_press"];
 const BACK = ["lat_pulldown", "seated_row", "deadlift", "bent_over_row", "one_arm_db_row"];
 const LEGS = ["squat", "leg_press"];
 

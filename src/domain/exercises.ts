@@ -5,6 +5,7 @@ export const PRESET_EXERCISES: Exercise[] = [
   { id: "bench_press", name: "ベンチプレス", distribution: { chest: 0.7, shoulders: 0.15, arms: 0.15 }, maxWeightKg: 400, step: 2.5 },
   { id: "chest_press", name: "チェストプレス", distribution: { chest: 0.75, shoulders: 0.1, arms: 0.15 }, maxWeightKg: 300, step: 2.5 },
   { id: "incline_db_press", name: "インクラインダンベルプレス", distribution: { chest: 0.6, shoulders: 0.3, arms: 0.1 }, maxWeightKg: 100, step: 1 },
+  { id: "db_bench_press", name: "ダンベルベンチプレス", distribution: { chest: 0.7, shoulders: 0.15, arms: 0.15 }, maxWeightKg: 100, step: 1 },
   { id: "close_grip_bench", name: "ベンチプレス（クローズグリップ）", distribution: { chest: 0.5, arms: 0.4, shoulders: 0.1 }, maxWeightKg: 300, step: 2.5 },
   { id: "incline_chest_press", name: "インクラインチェストプレス（マシン）", distribution: { chest: 0.75, shoulders: 0.15, arms: 0.1 }, maxWeightKg: 250, step: 2.5 },
   { id: "cable_crossover", name: "ケーブルクロスオーバー", distribution: { chest: 0.85, shoulders: 0.15 }, maxWeightKg: 150, step: 2.5 },
