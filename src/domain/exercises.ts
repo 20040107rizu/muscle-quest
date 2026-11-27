@@ -21,6 +21,7 @@ export const PRESET_EXERCISES: Exercise[] = [
   { id: "back_extension", name: "バックエクステンション（床）", distribution: { back: 0.8, core: 0.2 }, bodyweight: true, maxWeightKg: 30, step: 1 },
   { id: "squat", name: "スクワット", distribution: { legs: 0.8, core: 0.2 }, maxWeightKg: 500, step: 2.5 },
   { id: "bodyweight_squat", name: "自重スクワット", distribution: { legs: 0.85, core: 0.15 }, bodyweight: true, maxWeightKg: 30, step: 1 },
+  { id: "bulgarian_squat_barbell", name: "ブルガリアンスクワット（バーベル）", distribution: { legs: 0.9, core: 0.1 }, maxWeightKg: 200, step: 2.5 },
   { id: "leg_press", name: "レッグプレス", distribution: { legs: 1.0 }, maxWeightKg: 600, step: 5 },
   { id: "leg_extension", name: "レッグエクステンション", distribution: { legs: 1.0 }, maxWeightKg: 200, step: 2.5 },
   { id: "leg_curl", name: "レッグカール", distribution: { legs: 1.0 }, maxWeightKg: 200, step: 2.5 },
